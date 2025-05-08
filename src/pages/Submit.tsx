@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import BusinessMediaUpload from '@/components/BusinessMediaUpload';
 
 type CountryCurrency = {
   [key: string]: string;
@@ -20,6 +21,9 @@ type CountryCurrency = {
 
 const Submit = () => {
   const [selectedCountry, setSelectedCountry] = useState<string>("United States");
+  const [businessImages, setBusinessImages] = useState<File[]>([]);
+  const [businessVideo, setBusinessVideo] = useState<File | null>(null);
+  const [businessVideoUrl, setBusinessVideoUrl] = useState<string>("");
   
   // Country to currency code mapping
   const countryCurrencies: CountryCurrency = {
@@ -127,7 +131,17 @@ const Submit = () => {
                 />
               </div>
 
-              <h2 className="text-xl font-semibold mb-4 pt-4">Contact Information</h2>
+              {/* Business Media Section */}
+              <div className="pt-4 border-t border-gray-100">
+                <h2 className="text-xl font-semibold mb-4">Business Media</h2>
+                <BusinessMediaUpload 
+                  onImagesChange={setBusinessImages}
+                  onVideoChange={setBusinessVideo}
+                  onVideoUrlChange={setBusinessVideoUrl}
+                />
+              </div>
+
+              <h2 className="text-xl font-semibold mb-4 pt-4 border-t border-gray-100">Contact Information</h2>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="full-name">Full Name</Label>
