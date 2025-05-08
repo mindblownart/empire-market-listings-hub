@@ -99,7 +99,7 @@ export default {
 				'fade-in': 'fadeIn 0.5s ease-in-out forwards'
 			},
 			backgroundImage: {
-				'singapore-skyline': "url('/lovable-uploads/a49736eb-98cb-4903-bec9-4ecba94673ae.png')"
+				'singapore-skyline': "url('/lovable-uploads/a2a50cd9-28b3-4526-9ab2-2b0f645b0edd.png')"
 			}
 		}
 	},
