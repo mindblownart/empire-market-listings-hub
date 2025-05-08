@@ -122,6 +122,12 @@ const Index = () => {
               <Button 
                 size="lg" 
                 className="bg-primary hover:bg-primary-light text-white px-8"
+                onClick={() => {
+                  const listingsSection = document.getElementById('listings');
+                  if (listingsSection) {
+                    listingsSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
               >
                 Browse Listings
               </Button>
@@ -129,6 +135,9 @@ const Index = () => {
                 size="lg" 
                 variant="outline" 
                 className="bg-transparent text-white border-white hover:bg-white/10"
+                onClick={() => {
+                  window.location.href = '/submit';
+                }}
               >
                 List a Business
               </Button>
@@ -208,7 +217,7 @@ const Index = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-32 bg-gray-50">
+      <section id="how-it-works" className="py-32 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-16">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -250,7 +259,7 @@ const Index = () => {
       </section>
 
       {/* Available Businesses Section */}
-      <section className="py-20">
+      <section id="listings" className="py-20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-16">Available Businesses</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
