@@ -83,7 +83,7 @@ const testimonials = [
   {
     name: 'David Chen',
     position: 'Entrepreneur',
-    content: 'EmpireMarket made it incredibly easy to find the perfect business. The platform's verification process gave me confidence, and I was able to close the deal within two months. Couldn\'t be happier with my investment!',
+    content: 'EmpireMarket made it incredibly easy to find the perfect business. The platform\'s verification process gave me confidence, and I was able to close the deal within two months. Couldn\'t be happier with my investment!',
   },
   {
     name: 'Sarah Williams',
