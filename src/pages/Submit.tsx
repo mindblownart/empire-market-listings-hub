@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,7 +14,35 @@ import {
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
+type CountryCurrency = {
+  [key: string]: string;
+};
+
 const Submit = () => {
+  const [selectedCountry, setSelectedCountry] = useState<string>("United States");
+  
+  // Country to currency code mapping
+  const countryCurrencies: CountryCurrency = {
+    "United States": "USD",
+    "United Kingdom": "GBP",
+    "Singapore": "SGD",
+    "Australia": "AUD",
+    "Canada": "CAD",
+    "Germany": "EUR",
+    "France": "EUR",
+    "Japan": "JPY",
+    "India": "INR",
+    "Malaysia": "MYR"
+  };
+  
+  // Get current currency based on selected country
+  const currentCurrency = countryCurrencies[selectedCountry] || "USD";
+  
+  // Handle country change
+  const handleCountryChange = (value: string) => {
+    setSelectedCountry(value);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -55,22 +83,38 @@ const Submit = () => {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="location">Location</Label>
-                  <Input id="location" placeholder="City, Country" />
+                  <Select onValueChange={handleCountryChange} defaultValue={selectedCountry}>
+                    <SelectTrigger id="location">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="United States">United States</SelectItem>
+                      <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                      <SelectItem value="Singapore">Singapore</SelectItem>
+                      <SelectItem value="Australia">Australia</SelectItem>
+                      <SelectItem value="Canada">Canada</SelectItem>
+                      <SelectItem value="Germany">Germany</SelectItem>
+                      <SelectItem value="France">France</SelectItem>
+                      <SelectItem value="Japan">Japan</SelectItem>
+                      <SelectItem value="India">India</SelectItem>
+                      <SelectItem value="Malaysia">Malaysia</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="asking-price">Asking Price (USD)</Label>
-                  <Input id="asking-price" type="number" placeholder="Enter asking price" />
+                  <Label htmlFor="asking-price">Asking Price ({currentCurrency})</Label>
+                  <Input id="asking-price" type="number" placeholder={`Enter asking price in ${currentCurrency}`} />
                 </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="annual-revenue">Annual Revenue (USD)</Label>
-                  <Input id="annual-revenue" type="number" placeholder="Enter annual revenue" />
+                  <Label htmlFor="annual-revenue">Annual Revenue ({currentCurrency})</Label>
+                  <Input id="annual-revenue" type="number" placeholder={`Enter annual revenue in ${currentCurrency}`} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="annual-profit">Annual Profit (USD)</Label>
-                  <Input id="annual-profit" type="number" placeholder="Enter annual profit" />
+                  <Label htmlFor="annual-profit">Annual Profit ({currentCurrency})</Label>
+                  <Input id="annual-profit" type="number" placeholder={`Enter annual profit in ${currentCurrency}`} />
                 </div>
               </div>
 
