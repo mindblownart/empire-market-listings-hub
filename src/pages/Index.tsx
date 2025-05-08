@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Select, 
@@ -107,17 +108,17 @@ const Index = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative bg-[url('/lovable-uploads/15c61d8b-e8a1-4b4b-9dc5-cf5ff0d8ecd9.png')] bg-cover bg-center h-screen">
+      <section className="relative bg-[url('/lovable-uploads/a49736eb-98cb-4903-bec9-4ecba94673ae.png')] bg-cover bg-center h-screen">
         <div className="absolute inset-0 bg-black/40 z-0"></div>
-        <div className="container mx-auto px-4 h-full flex items-center relative z-10">
-          <div className="max-w-3xl">
+        <div className="container mx-auto px-4 md:px-12 h-full flex items-center relative z-10">
+          <div className="max-w-3xl text-center md:text-left">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight animate-fade-in">
               A Smarter Way to Buy and Sell Businesses
             </h1>
             <p className="text-xl md:text-2xl text-gray-200 mt-6 max-w-2xl animate-fade-in" style={{animationDelay: '0.2s'}}>
               List, discover, and acquire high-quality businesses across all industries with ease.
             </p>
-            <div className="mt-10 flex flex-wrap gap-4 animate-fade-in" style={{animationDelay: '0.4s'}}>
+            <div className="mt-10 flex flex-wrap gap-4 justify-center md:justify-start animate-fade-in" style={{animationDelay: '0.4s'}}>
               <Button 
                 size="lg" 
                 className="bg-primary hover:bg-primary-light text-white px-8"
