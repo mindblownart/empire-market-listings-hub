@@ -107,8 +107,8 @@ const Index = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative bg-singapore-skyline bg-cover bg-center h-screen">
-        <div className="absolute inset-0 bg-black/40"></div>
+      <section className="relative bg-[url('/lovable-uploads/15c61d8b-e8a1-4b4b-9dc5-cf5ff0d8ecd9.png')] bg-cover bg-center h-screen">
+        <div className="absolute inset-0 bg-black/40 z-0"></div>
         <div className="container mx-auto px-4 h-full flex items-center relative z-10">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight animate-fade-in">
