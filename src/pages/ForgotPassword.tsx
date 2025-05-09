@@ -5,8 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -33,10 +31,15 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
-      <div className="flex-1 flex flex-col items-center justify-center p-4 bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="flex-1 flex flex-col items-center justify-center p-4">
+        {/* Simple logo header */}
+        <div className="mb-8">
+          <Link to="/" className="text-2xl font-bold text-primary">
+            EmpireMarket
+          </Link>
+        </div>
+        
         <Card className="w-full max-w-md mb-6">
           <CardHeader>
             <CardTitle className="text-2xl">Forgot Your Password?</CardTitle>
@@ -94,15 +97,13 @@ const ForgotPassword = () => {
           </CardFooter>
         </Card>
         
-        {/* Security information card */}
-        <div className="w-full max-w-md bg-gray-100 border border-gray-200 rounded-lg p-4">
-          <p className="text-sm text-gray-700 leading-relaxed">
+        {/* Security information text - now a simple paragraph with matching styling */}
+        <div className="w-full max-w-md px-4 mt-2">
+          <p className="text-sm text-gray-500 leading-relaxed text-center">
             Don't click on links if an email looks suspicious. Fraudsters sometimes send emails with phishing links while pretending to be EmpireMarket. To avoid phishing attacks, bookmark this page and only use that link when signing in.
           </p>
         </div>
       </div>
-      
-      <Footer />
     </div>
   );
 };
