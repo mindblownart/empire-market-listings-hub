@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp, Search } from "lucide-react"
@@ -212,7 +211,7 @@ const SearchableSelect = React.forwardRef<
                 setSearch("");
               }}
             >
-              <span className="text-lg">{option.flag}</span>
+              <span className="text-base min-w-[1.5rem]">{option.flag}</span>
               <span>{option.label}</span>
               {value === option.value && <Check className="ml-auto h-4 w-4 opacity-70" />}
             </div>
@@ -239,7 +238,7 @@ const SearchableSelect = React.forwardRef<
         >
           {selectedOption ? (
             <div className="flex items-center gap-2">
-              <span className="text-lg">{selectedOption.flag}</span>
+              <span className="text-base">{selectedOption.flag}</span>
               <span>{selectedOption.label}</span>
             </div>
           ) : (
