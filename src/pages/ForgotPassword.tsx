@@ -32,14 +32,14 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Logo placement at top left */}
+      <div className="p-6">
+        <Link to="/" className="text-2xl font-bold text-primary">
+          EmpireMarket
+        </Link>
+      </div>
+      
       <div className="flex-1 flex flex-col items-center justify-center p-4">
-        {/* Simple logo header */}
-        <div className="mb-8">
-          <Link to="/" className="text-2xl font-bold text-primary">
-            EmpireMarket
-          </Link>
-        </div>
-        
         <Card className="w-full max-w-md mb-6">
           <CardHeader>
             <CardTitle className="text-2xl">Forgot Your Password?</CardTitle>
@@ -97,11 +97,21 @@ const ForgotPassword = () => {
           </CardFooter>
         </Card>
         
-        {/* Security information text - now a simple paragraph with matching styling */}
+        {/* Security information text */}
         <div className="w-full max-w-md px-4 mt-2">
           <p className="text-sm text-gray-500 leading-relaxed text-center">
             Don't click on links if an email looks suspicious. Fraudsters sometimes send emails with phishing links while pretending to be EmpireMarket. To avoid phishing attacks, bookmark this page and only use that link when signing in.
           </p>
+        </div>
+      </div>
+      
+      {/* Footer branding at bottom left */}
+      <div className="p-6">
+        <div className="text-xs text-gray-500">
+          <p>© EmpireMarket</p>
+          <Link to="/privacy" className="hover:text-primary transition-colors">
+            Privacy & terms
+          </Link>
         </div>
       </div>
     </div>
