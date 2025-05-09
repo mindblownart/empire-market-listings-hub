@@ -1,8 +1,11 @@
+
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown, ChevronUp } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 const Select = SelectPrimitive.Root
 
@@ -144,6 +147,99 @@ const SelectSeparator = React.forwardRef<
 ))
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName
 
+// New component for a searchable select
+type CountryOption = {
+  value: string;
+  label: string;
+  flag: string;
+}
+
+const SearchableSelect = React.forwardRef<
+  HTMLButtonElement,
+  {
+    options: CountryOption[];
+    value: string;
+    onValueChange: (value: string) => void;
+    placeholder?: string;
+    disabled?: boolean;
+    required?: boolean;
+  }
+>(({ options, value, onValueChange, placeholder, disabled, required }, ref) => {
+  const [open, setOpen] = React.useState(false)
+  const [search, setSearch] = React.useState("")
+  
+  const filteredOptions = React.useMemo(() => {
+    if (!search) return options;
+    return options.filter(option => 
+      option.label.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [search, options]);
+
+  const selectedOption = React.useMemo(() => 
+    options.find(option => option.value === value), 
+    [options, value]
+  );
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          ref={ref}
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          className={cn(
+            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            !selectedOption && "text-muted-foreground"
+          )}
+          required={required}
+        >
+          {selectedOption ? (
+            <div className="flex items-center gap-2">
+              <span>{selectedOption.flag}</span>
+              <span>{selectedOption.label}</span>
+            </div>
+          ) : (
+            placeholder
+          )}
+          <ChevronDown className="h-4 w-4 opacity-50" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px]">
+        <Command>
+          <CommandInput 
+            placeholder="Search country..."
+            value={search}
+            onValueChange={setSearch}
+            className="h-9 border-none focus:ring-0"
+          />
+          <CommandEmpty>No country found.</CommandEmpty>
+          <CommandGroup className="max-h-[250px] overflow-auto">
+            {filteredOptions.map((option) => (
+              <CommandItem
+                key={option.value}
+                value={option.value}
+                onSelect={() => {
+                  onValueChange(option.value);
+                  setOpen(false);
+                  setSearch("");
+                }}
+                className="flex items-center gap-2 py-1.5"
+              >
+                <span>{option.flag}</span>
+                <span>{option.label}</span>
+                {value === option.value && <Check className="ml-auto h-4 w-4 opacity-70" />}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+});
+
+SearchableSelect.displayName = "SearchableSelect";
+
 export {
   Select,
   SelectGroup,
@@ -155,4 +251,5 @@ export {
   SelectSeparator,
   SelectScrollUpButton,
   SelectScrollDownButton,
+  SearchableSelect,
 }

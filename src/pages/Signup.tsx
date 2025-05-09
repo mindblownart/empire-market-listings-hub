@@ -9,7 +9,8 @@ import {
   SelectContent, 
   SelectItem, 
   SelectTrigger, 
-  SelectValue 
+  SelectValue,
+  SearchableSelect 
 } from '@/components/ui/select';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -26,6 +27,20 @@ const Signup = () => {
   const [passwordMessage, setPasswordMessage] = useState('');
   const [hasTyped, setHasTyped] = useState(false);
   const [country, setCountry] = useState('');
+
+  // Country options with flag emoji
+  const countryOptions = [
+    { value: "us", label: "United States", flag: "🇺🇸" },
+    { value: "uk", label: "United Kingdom", flag: "🇬🇧" },
+    { value: "sg", label: "Singapore", flag: "🇸🇬" },
+    { value: "au", label: "Australia", flag: "🇦🇺" },
+    { value: "ca", label: "Canada", flag: "🇨🇦" },
+    { value: "de", label: "Germany", flag: "🇩🇪" },
+    { value: "fr", label: "France", flag: "🇫🇷" },
+    { value: "jp", label: "Japan", flag: "🇯🇵" },
+    { value: "in", label: "India", flag: "🇮🇳" },
+    { value: "my", label: "Malaysia", flag: "🇲🇾" }
+  ];
 
   // Password strength evaluation function
   const evaluatePasswordStrength = (value: string) => {
@@ -205,73 +220,13 @@ const Signup = () => {
                 {/* Country Dropdown */}
                 <div className="grid gap-2">
                   <Label htmlFor="country">Country</Label>
-                  <Select value={country} onValueChange={setCountry} required>
-                    <SelectTrigger id="country" className="h-10 text-base md:text-sm">
-                      <SelectValue placeholder="Select your country" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="us">
-                        <div className="flex items-center justify-between w-full">
-                          <span>🇺🇸 United States</span>
-                          {country === "us" && <Check className="h-4 w-4 ml-2" />}
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="uk">
-                        <div className="flex items-center justify-between w-full">
-                          <span>🇬🇧 United Kingdom</span>
-                          {country === "uk" && <Check className="h-4 w-4 ml-2" />}
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="sg">
-                        <div className="flex items-center justify-between w-full">
-                          <span>🇸🇬 Singapore</span>
-                          {country === "sg" && <Check className="h-4 w-4 ml-2" />}
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="au">
-                        <div className="flex items-center justify-between w-full">
-                          <span>🇦🇺 Australia</span>
-                          {country === "au" && <Check className="h-4 w-4 ml-2" />}
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="ca">
-                        <div className="flex items-center justify-between w-full">
-                          <span>🇨🇦 Canada</span>
-                          {country === "ca" && <Check className="h-4 w-4 ml-2" />}
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="de">
-                        <div className="flex items-center justify-between w-full">
-                          <span>🇩🇪 Germany</span>
-                          {country === "de" && <Check className="h-4 w-4 ml-2" />}
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="fr">
-                        <div className="flex items-center justify-between w-full">
-                          <span>🇫🇷 France</span>
-                          {country === "fr" && <Check className="h-4 w-4 ml-2" />}
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="jp">
-                        <div className="flex items-center justify-between w-full">
-                          <span>🇯🇵 Japan</span>
-                          {country === "jp" && <Check className="h-4 w-4 ml-2" />}
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="in">
-                        <div className="flex items-center justify-between w-full">
-                          <span>🇮🇳 India</span>
-                          {country === "in" && <Check className="h-4 w-4 ml-2" />}
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="my">
-                        <div className="flex items-center justify-between w-full">
-                          <span>🇲🇾 Malaysia</span>
-                          {country === "my" && <Check className="h-4 w-4 ml-2" />}
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect 
+                    options={countryOptions}
+                    value={country} 
+                    onValueChange={setCountry} 
+                    placeholder="Select your country"
+                    required
+                  />
                 </div>
 
                 <div className="flex items-center space-x-2">
