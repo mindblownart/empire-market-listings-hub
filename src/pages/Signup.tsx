@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -114,8 +113,15 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex items-center justify-center p-4 bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Logo placement at top left */}
+      <div className="p-6">
+        <Link to="/" className="text-2xl font-bold text-primary">
+          EmpireMarket
+        </Link>
+      </div>
+      
+      <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl">Create an account</CardTitle>
@@ -251,7 +257,17 @@ const Signup = () => {
         </Card>
       </div>
       
-      <Footer />
+      {/* Updated footer with left-aligned elements in Stripe style */}
+      <div className="p-6 border-t border-gray-100">
+        <div className="flex justify-start gap-6 items-center">
+          <Link to="/" className="text-sm text-gray-500 hover:text-primary transition-colors">
+            © EmpireMarket
+          </Link>
+          <Link to="/privacy" className="text-sm text-gray-500 hover:text-primary transition-colors">
+            Privacy & terms
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };
