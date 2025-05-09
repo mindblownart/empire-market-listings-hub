@@ -9,6 +9,9 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
+  // Check if we're on the home page
+  const isHomePage = location.pathname === '/';
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -37,6 +40,22 @@ const Navbar = () => {
   const isLoginPage = location.pathname === '/login';
   const isMinimalNavigation = isSignupPage || isLoginPage;
 
+  // Determine text color class based on page and scroll state
+  const getTextColorClass = () => {
+    if (isHomePage && !isScrolled) {
+      return 'text-white';
+    }
+    return 'text-[#2F3542]';
+  };
+  
+  // Get hover color class based on page
+  const getHoverColorClass = () => {
+    if (isHomePage && !isScrolled) {
+      return 'hover:text-gray-200';
+    }
+    return 'hover:text-[#1a1f29]';
+  };
+
   return (
     <nav 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -47,7 +66,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Link to="/" className="text-2xl font-bold">
-              <span className={`text-[#5B3DF5] transition-colors`}>
+              <span className={`${isHomePage && !isScrolled ? 'text-white' : 'text-[#5B3DF5]'} transition-colors`}>
                 EmpireMarket
               </span>
             </Link>
@@ -61,27 +80,27 @@ const Navbar = () => {
                   smooth 
                   to="/#listings" 
                   scroll={scrollWithOffset}
-                  className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}
+                  className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}
                 >
                   Browse Listings
                 </HashLink>
-                <Link to="/submit" className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}>
+                <Link to="/submit" className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}>
                   Submit a Business
                 </Link>
                 <HashLink 
                   smooth 
                   to="/#how-it-works" 
                   scroll={scrollWithOffset}
-                  className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}
+                  className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}
                 >
                   How It Works
                 </HashLink>
-                <Link to="/pricing" className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}>
+                <Link to="/pricing" className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}>
                   Pricing
                 </Link>
               </>
             )}
-            <Link to="/login" className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}>
+            <Link to="/login" className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}>
               Login
             </Link>
             <Link to="/signup">
@@ -96,7 +115,9 @@ const Navbar = () => {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`p-2 rounded-md ${isScrolled ? 'text-[#2F3542]' : 'text-white'}`}
+              className={`p-2 rounded-md ${
+                isScrolled || !isHomePage ? 'text-[#2F3542]' : 'text-white'
+              }`}
             >
               {isMobileMenuOpen ? (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
