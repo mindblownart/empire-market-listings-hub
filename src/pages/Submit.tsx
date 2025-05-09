@@ -350,6 +350,7 @@ const Submit = () => {
                 <Label htmlFor="description">Business Description</Label>
                 <Textarea 
                   id="description" 
+                  name="description"
                   placeholder="Provide a detailed description of your business..."
                   className={`min-h-[120px] ${validationErrors.description ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                   value={formData.description}
