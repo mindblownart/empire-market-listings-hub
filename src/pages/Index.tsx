@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Select, 
@@ -11,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import HomeFooter from '@/components/HomeFooter';
 import BusinessCard from '@/components/BusinessCard';
 
 // Sample business data for the listing section
@@ -308,7 +307,7 @@ const Index = () => {
         </div>
       </section>
 
-      <Footer />
+      <HomeFooter />
     </div>
   );
 };
