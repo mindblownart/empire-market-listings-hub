@@ -14,16 +14,18 @@ import Submit from "./pages/Submit";
 import Pricing from "./pages/Pricing";
 import ForgotPassword from "./pages/ForgotPassword";
 import PrivacyTerms from "./pages/PrivacyTerms";
+import { FormDataProvider } from "./contexts/FormDataContext";
+import PreviewListing from "./pages/PreviewListing";
 
 // Create a client
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+        <TooltipProvider>
+          <FormDataProvider>
             <Toaster />
             <Sonner />
             <Routes>
@@ -33,14 +35,15 @@ const App = () => {
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/submit" element={<Submit />} />
+              <Route path="/preview-listing" element={<PreviewListing />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/privacy" element={<PrivacyTerms />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </TooltipProvider>
-        </QueryClientProvider>
+          </FormDataProvider>
+        </TooltipProvider>
       </BrowserRouter>
-    </React.StrictMode>
+    </QueryClientProvider>
   );
 };
 

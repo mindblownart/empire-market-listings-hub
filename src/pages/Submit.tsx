@@ -1,15 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { 
   Select, 
   SelectContent, 
@@ -21,7 +16,8 @@ import {
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BusinessMediaUpload from '@/components/BusinessMediaUpload';
-import { ChevronDown } from 'lucide-react';
+import { Eye } from 'lucide-react';
+import { useFormData } from '@/contexts/FormDataContext';
 
 type CountryData = {
   name: string;
@@ -30,10 +26,8 @@ type CountryData = {
 };
 
 const Submit = () => {
-  const [selectedCountry, setSelectedCountry] = useState<string>("us");
-  const [businessImages, setBusinessImages] = useState<File[]>([]);
-  const [businessVideo, setBusinessVideo] = useState<File | null>(null);
-  const [businessVideoUrl, setBusinessVideoUrl] = useState<string>("");
+  const navigate = useNavigate();
+  const { formData, updateFormData } = useFormData();
   
   // Country data with flag codes and currency codes
   const countries: CountryData[] = [
@@ -57,11 +51,41 @@ const Submit = () => {
   }));
   
   // Get current currency based on selected country
-  const currentCurrency = countries.find(country => country.flagCode === selectedCountry)?.currencyCode || "USD";
+  const currentCurrency = countries.find(country => country.flagCode === formData.location)?.currencyCode || "USD";
   
   // Handle country change
   const handleCountryChange = (value: string) => {
-    setSelectedCountry(value);
+    const selectedCountry = countries.find(c => c.flagCode === value);
+    updateFormData({ 
+      location: value,
+      locationName: selectedCountry?.name,
+      flagCode: selectedCountry?.flagCode,
+      currencyCode: selectedCountry?.currencyCode
+    });
+  };
+
+  // Update form data when inputs change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    updateFormData({ [id.replace('business-', '')]: value });
+  };
+  
+  // Handle select changes
+  const handleSelectChange = (id: string, value: string) => {
+    updateFormData({ [id]: value });
+  };
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    alert('Your business listing has been submitted!');
+    navigate('/');
+  };
+
+  // Handle preview click
+  const handlePreview = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate('/preview-listing');
   };
 
   return (
@@ -76,16 +100,24 @@ const Submit = () => {
           </p>
           
           <div className="bg-white rounded-xl shadow-md p-8">
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <h2 className="text-xl font-semibold mb-4">Business Details</h2>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="business-name">Business Name</Label>
-                  <Input id="business-name" placeholder="Enter business name" />
+                  <Input 
+                    id="business-name" 
+                    placeholder="Enter business name"
+                    value={formData.businessName}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="industry">Industry</Label>
-                  <Select>
+                  <Select
+                    value={formData.industry}
+                    onValueChange={(value) => handleSelectChange('industry', value)}
+                  >
                     <SelectTrigger id="industry">
                       <SelectValue placeholder="Select industry" />
                     </SelectTrigger>
@@ -106,7 +138,7 @@ const Submit = () => {
                   <Label htmlFor="location">Location</Label>
                   <SearchableSelect
                     options={countryOptions}
-                    value={selectedCountry}
+                    value={formData.location}
                     onValueChange={handleCountryChange}
                     placeholder="Select your country"
                     required
@@ -114,18 +146,36 @@ const Submit = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="asking-price">Asking Price ({currentCurrency})</Label>
-                  <Input id="asking-price" type="number" placeholder={`Enter asking price in ${currentCurrency}`} />
+                  <Input 
+                    id="asking-price" 
+                    type="number" 
+                    placeholder={`Enter asking price in ${currentCurrency}`}
+                    value={formData.askingPrice}
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="annual-revenue">Annual Revenue ({currentCurrency})</Label>
-                  <Input id="annual-revenue" type="number" placeholder={`Enter annual revenue in ${currentCurrency}`} />
+                  <Input 
+                    id="annual-revenue" 
+                    type="number" 
+                    placeholder={`Enter annual revenue in ${currentCurrency}`}
+                    value={formData.annualRevenue}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="annual-profit">Annual Profit ({currentCurrency})</Label>
-                  <Input id="annual-profit" type="number" placeholder={`Enter annual profit in ${currentCurrency}`} />
+                  <Input 
+                    id="annual-profit" 
+                    type="number" 
+                    placeholder={`Enter annual profit in ${currentCurrency}`}
+                    value={formData.annualProfit}
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
 
@@ -135,6 +185,8 @@ const Submit = () => {
                   id="description" 
                   placeholder="Provide a detailed description of your business..."
                   className="min-h-[120px]"
+                  value={formData.description}
+                  onChange={handleInputChange}
                 />
               </div>
 
@@ -142,9 +194,9 @@ const Submit = () => {
               <div className="pt-4 border-t border-gray-100">
                 <h2 className="text-xl font-semibold mb-4">Business Media</h2>
                 <BusinessMediaUpload 
-                  onImagesChange={setBusinessImages}
-                  onVideoChange={setBusinessVideo}
-                  onVideoUrlChange={setBusinessVideoUrl}
+                  onImagesChange={(images) => updateFormData({ businessImages: images })}
+                  onVideoChange={(video) => updateFormData({ businessVideo: video })}
+                  onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
                 />
               </div>
 
@@ -152,22 +204,41 @@ const Submit = () => {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="full-name">Full Name</Label>
-                  <Input id="full-name" placeholder="Enter your full name" />
+                  <Input 
+                    id="full-name" 
+                    placeholder="Enter your full name"
+                    value={formData.fullName}
+                    onChange={(e) => updateFormData({ fullName: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="Enter your email" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={(e) => updateFormData({ email: e.target.value })}
+                  />
                 </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" placeholder="Enter your phone number" />
+                  <Input 
+                    id="phone" 
+                    placeholder="Enter your phone number"
+                    value={formData.phone}
+                    onChange={(e) => updateFormData({ phone: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Role in Business</Label>
-                  <Select>
+                  <Select
+                    value={formData.role}
+                    onValueChange={(value) => handleSelectChange('role', value)}
+                  >
                     <SelectTrigger id="role">
                       <SelectValue placeholder="Select your role" />
                     </SelectTrigger>
@@ -181,8 +252,19 @@ const Submit = () => {
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-center">
-                <Button className="bg-primary hover:bg-primary-light px-10 py-6 text-lg">
+              <div className="pt-4 flex justify-center gap-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="px-10 py-6 text-lg flex items-center gap-2" 
+                  onClick={handlePreview}
+                >
+                  <Eye className="h-5 w-5" /> Preview
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-primary hover:bg-primary-light px-10 py-6 text-lg"
+                >
                   Submit Business Listing
                 </Button>
               </div>
