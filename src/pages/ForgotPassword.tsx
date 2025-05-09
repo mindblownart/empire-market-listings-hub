@@ -82,7 +82,7 @@ const ForgotPassword = () => {
                   type="submit" 
                   className="w-full bg-primary hover:bg-primary-light"
                 >
-                  Send Reset Link
+                  Continue
                 </Button>
               </div>
             </form>
@@ -90,12 +90,22 @@ const ForgotPassword = () => {
           <CardFooter className="flex flex-col items-center">
             <Link 
               to="/login" 
-              className="text-sm text-gray-500 mt-2 flex items-center hover:text-primary transition-colors"
+              className="text-sm text-primary mt-2 flex items-center hover:text-primary-dark transition-colors"
             >
-              <ArrowLeft size={16} className="mr-1" /> Return to Login
+              Return to sign in
             </Link>
           </CardFooter>
         </Card>
+        
+        {/* Account Prompt in light gray container box */}
+        <div className="w-full max-w-md bg-gray-50 p-4 rounded-md border border-gray-100">
+          <p className="text-center text-gray-600">
+            New to EmpireMarket? 
+            <Link to="/signup" className="text-primary hover:text-primary-dark ml-1">
+              Create account
+            </Link>
+          </p>
+        </div>
         
         {/* Security information text */}
         <div className="w-full max-w-md px-4 mt-2">
