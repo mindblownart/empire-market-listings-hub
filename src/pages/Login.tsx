@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,8 +7,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Login = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -33,7 +42,31 @@ const Login = () => {
                       Forgot password?
                     </Link>
                   </div>
-                  <Input id="password" type="password" />
+                  <div className="relative">
+                    <Input 
+                      id="password" 
+                      type={showPassword ? "text" : "password"} 
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button 
+                              type="button" 
+                              onClick={togglePasswordVisibility}
+                              className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                              aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{showPassword ? "Hide password" : "Show password"}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
                 </div>
                 <Button className="w-full bg-primary hover:bg-primary-light">Sign In</Button>
               </div>
