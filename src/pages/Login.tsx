@@ -99,9 +99,9 @@ const Login = () => {
         </div>
       </div>
       
-      {/* Updated footer with side-by-side elements in Stripe style */}
+      {/* Updated footer with left-aligned elements in Stripe style */}
       <div className="p-6 border-t border-gray-100">
-        <div className="flex justify-center gap-6 items-center">
+        <div className="flex justify-start gap-6 items-center">
           <span className="text-sm text-gray-500">© EmpireMarket</span>
           <Link to="/privacy" className="text-sm text-gray-500 hover:text-primary transition-colors">
             Privacy & terms
