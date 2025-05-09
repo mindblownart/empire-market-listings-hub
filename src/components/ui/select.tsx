@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp, Search } from "lucide-react"
@@ -149,7 +150,7 @@ SelectSeparator.displayName = SelectPrimitive.Separator.displayName
 type CountryOption = {
   value: string;
   label: string;
-  flag: string;
+  flagCode: string;
 }
 
 const SearchableSelect = React.forwardRef<
@@ -211,7 +212,7 @@ const SearchableSelect = React.forwardRef<
                 setSearch("");
               }}
             >
-              <span className="text-base min-w-[1.5rem]">{option.flag}</span>
+              <span className="min-w-[1.5rem]"><span className={`fi fi-${option.flagCode}`}></span></span>
               <span>{option.label}</span>
               {value === option.value && <Check className="ml-auto h-4 w-4 opacity-70" />}
             </div>
@@ -238,7 +239,7 @@ const SearchableSelect = React.forwardRef<
         >
           {selectedOption ? (
             <div className="flex items-center gap-2">
-              <span className="text-base">{selectedOption.flag}</span>
+              <span className="min-w-[1.5rem]"><span className={`fi fi-${selectedOption.flagCode}`}></span></span>
               <span>{selectedOption.label}</span>
             </div>
           ) : (

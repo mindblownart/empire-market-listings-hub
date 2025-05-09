@@ -21,18 +21,18 @@ const Signup = () => {
   const [hasTyped, setHasTyped] = useState(false);
   const [country, setCountry] = useState('');
 
-  // Country options with flag emoji
+  // Country options with flag codes
   const countryOptions = [
-    { value: "us", label: "United States", flag: "🇺🇸" },
-    { value: "uk", label: "United Kingdom", flag: "🇬🇧" },
-    { value: "sg", label: "Singapore", flag: "🇸🇬" },
-    { value: "au", label: "Australia", flag: "🇦🇺" },
-    { value: "ca", label: "Canada", flag: "🇨🇦" },
-    { value: "de", label: "Germany", flag: "🇩🇪" },
-    { value: "fr", label: "France", flag: "🇫🇷" },
-    { value: "jp", label: "Japan", flag: "🇯🇵" },
-    { value: "in", label: "India", flag: "🇮🇳" },
-    { value: "my", label: "Malaysia", flag: "🇲🇾" }
+    { value: "us", label: "United States", flagCode: "us" },
+    { value: "gb", label: "United Kingdom", flagCode: "gb" },
+    { value: "sg", label: "Singapore", flagCode: "sg" },
+    { value: "au", label: "Australia", flagCode: "au" },
+    { value: "ca", label: "Canada", flagCode: "ca" },
+    { value: "de", label: "Germany", flagCode: "de" },
+    { value: "fr", label: "France", flagCode: "fr" },
+    { value: "jp", label: "Japan", flagCode: "jp" },
+    { value: "in", label: "India", flagCode: "in" },
+    { value: "my", label: "Malaysia", flagCode: "my" }
   ];
 
   // Password strength evaluation function
