@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -679,14 +678,19 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
 
   // Organize media items to ensure correct order
   const organizedMediaItems = React.useMemo(() => {
+    // If there are no items, return empty array to avoid errors
+    if (!mediaItems || mediaItems.length === 0) {
+      return [];
+    }
+
     const items = [...mediaItems];
     
     // If we have items but no primary image, set the first image as primary
-    const hasImages = items.some(item => item.type === 'image');
-    const hasPrimary = items.some(item => item.isPrimary);
+    const hasImages = items.some(item => item && item.type === 'image');
+    const hasPrimary = items.some(item => item && item.isPrimary);
     
     if (hasImages && !hasPrimary) {
-      const firstImageIndex = items.findIndex(item => item.type === 'image');
+      const firstImageIndex = items.findIndex(item => item && item.type === 'image');
       if (firstImageIndex >= 0) {
         items[firstImageIndex] = {
           ...items[firstImageIndex],
@@ -697,6 +701,10 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     
     // Sort to ensure primary image is first
     items.sort((a, b) => {
+      // Add null checks to prevent errors
+      if (!a) return 1;
+      if (!b) return -1;
+      
       if (a.isPrimary) return -1;
       if (b.isPrimary) return 1;
       if (a.type === 'video') return 1;
@@ -704,8 +712,8 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
       return 0;
     });
     
-    // Find video index
-    const videoIndex = items.findIndex(item => item.type === 'video');
+    // Find video index - add null check
+    const videoIndex = items.findIndex(item => item && item.type === 'video');
     
     // If we have a video and it's not at position 1, move it there
     if (videoIndex >= 0 && videoIndex !== 1 && items.length > 1) {
