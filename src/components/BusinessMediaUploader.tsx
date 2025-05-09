@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Upload, Image, Video, X, Move, Play, Link as LinkIcon } from 'lucide-react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import VideoPreviewModal from './VideoPreviewModal';
 
 interface MediaFile extends File {
   preview?: string;
@@ -31,15 +32,19 @@ type MediaItemType = {
   preview: string;
   url?: string;
   isPrimary?: boolean;
+  videoInfo?: {
+    platform: string | null;
+    id: string | null;
+  };
 };
 
 // Function to extract video ID from YouTube and Vimeo URLs
 const extractVideoInfo = (url: string): { platform: string | null; id: string | null } => {
   if (!url) return { platform: null, id: null };
 
-  // YouTube patterns
-  const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
-  const youtubeMatch = url.match(youtubeRegex);
+  // YouTube patterns - handle both standard and shortened URLs
+  const youtubeStandardRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+  const youtubeMatch = url.match(youtubeStandardRegex);
   if (youtubeMatch && youtubeMatch[1]) {
     return { platform: 'youtube', id: youtubeMatch[1] };
   }
@@ -60,11 +65,22 @@ const getVideoThumbnailUrl = (platform: string | null, id: string | null): strin
   if (!platform || !id) return '';
   
   if (platform === 'youtube') {
-    return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+    return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
   } else if (platform === 'vimeo') {
-    // For Vimeo we'd ideally use their oEmbed API, but for now we'll just return a placeholder
-    // In a production app, you should fetch the actual thumbnail using the Vimeo API
     return `https://vumbnail.com/${id}.jpg`;
+  }
+  
+  return '';
+};
+
+// Function to get embed URL for the video preview
+const getVideoEmbedUrl = (platform: string | null, id: string | null): string => {
+  if (!platform || !id) return '';
+  
+  if (platform === 'youtube') {
+    return `https://www.youtube.com/embed/${id}?autoplay=1`;
+  } else if (platform === 'vimeo') {
+    return `https://player.vimeo.com/video/${id}?autoplay=1`;
   }
   
   return '';
@@ -75,12 +91,14 @@ const MediaItem = ({
   index, 
   moveItem, 
   onDelete,
+  onVideoPreview,
   isFixed = false
 }: { 
   item: MediaItemType; 
   index: number; 
   moveItem: (dragIndex: number, hoverIndex: number) => void;
   onDelete: (id: string) => void;
+  onVideoPreview: (item: MediaItemType) => void;
   isFixed?: boolean;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -118,6 +136,12 @@ const MediaItem = ({
     drag(drop(ref));
   }
 
+  const handleVideoClick = () => {
+    if (item.type === 'video') {
+      onVideoPreview(item);
+    }
+  };
+
   return (
     <div 
       ref={ref}
@@ -131,32 +155,29 @@ const MediaItem = ({
       ) : (
         <div className="w-full h-full bg-gray-100 flex items-center justify-center">
           {item.preview ? (
-            <div className="relative w-full h-full">
-              <video 
-                src={item.preview} 
-                className="w-full h-full object-cover" 
-              />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                <Play className="text-white w-12 h-12" />
-              </div>
-            </div>
-          ) : item.url && item.preview ? (
-            // This is for external video with thumbnail
-            <div className="relative w-full h-full">
+            <div 
+              className="relative w-full h-full cursor-pointer" 
+              onClick={handleVideoClick}
+            >
               <img 
                 src={item.preview} 
                 alt="Video thumbnail" 
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors">
                 <Play className="text-white w-12 h-12" />
               </div>
-              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md flex items-center">
-                <LinkIcon className="w-3 h-3 mr-1" /> External Video
-              </div>
+              {item.url && (
+                <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md flex items-center">
+                  <LinkIcon className="w-3 h-3 mr-1" /> {item.videoInfo?.platform || 'External'} Video
+                </div>
+              )}
             </div>
           ) : item.url ? (
-            <div className="text-center p-2">
+            <div 
+              className="text-center p-2 cursor-pointer" 
+              onClick={handleVideoClick}
+            >
               <Video className="w-10 h-10 mx-auto text-gray-500 mb-1" />
               <p className="text-xs truncate text-gray-600">External Video</p>
             </div>
@@ -217,9 +238,10 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     
     // Extract video info from URL if available
     let videoThumbnail = '';
+    let videoInfo = null;
     if (initialVideoUrl) {
-      const { platform, id } = extractVideoInfo(initialVideoUrl);
-      videoThumbnail = getVideoThumbnailUrl(platform, id);
+      videoInfo = extractVideoInfo(initialVideoUrl);
+      videoThumbnail = getVideoThumbnailUrl(videoInfo.platform, videoInfo.id);
     }
     
     // Add video placeholder (always at index 1 if we have items)
@@ -237,7 +259,8 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
         id: `video-url-${Date.now()}`,
         type: 'video',
         preview: videoThumbnail,
-        url: initialVideoUrl
+        url: initialVideoUrl,
+        videoInfo: videoInfo
       });
     } else if (items.length > 0) {
       // Add empty video slot if we have any images
@@ -255,6 +278,12 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   const [videoThumbnail, setVideoThumbnail] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [currentVideoPreview, setCurrentVideoPreview] = useState<{
+    embedUrl: string;
+    platform: string | null;
+  } | null>(null);
+  
   const { toast } = useToast();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -290,9 +319,32 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
 
   // Fetch thumbnail when videoUrl changes
   useEffect(() => {
-    const { platform, id } = extractVideoInfo(videoUrl);
-    const newThumbnailUrl = getVideoThumbnailUrl(platform, id);
+    const videoInfo = extractVideoInfo(videoUrl);
+    const newThumbnailUrl = getVideoThumbnailUrl(videoInfo.platform, videoInfo.id);
     setVideoThumbnail(newThumbnailUrl);
+
+    // Update video item with new thumbnail if exists
+    if (videoUrl) {
+      setMediaItems(prevItems => {
+        const newItems = [...prevItems];
+        
+        // Find existing video item
+        const videoIndex = newItems.findIndex(item => item.type === 'video');
+        
+        if (videoIndex >= 0) {
+          // Update existing video
+          newItems[videoIndex] = {
+            ...newItems[videoIndex],
+            url: videoUrl,
+            preview: newThumbnailUrl,
+            file: undefined,
+            videoInfo: videoInfo
+          };
+        }
+        
+        return newItems;
+      });
+    }
   }, [videoUrl]);
 
   // Handle item reordering
@@ -331,8 +383,8 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     setVideoUrl(url);
     
     // Extract video platform and ID
-    const { platform, id } = extractVideoInfo(url);
-    const thumbnailUrl = getVideoThumbnailUrl(platform, id);
+    const videoInfo = extractVideoInfo(url);
+    const thumbnailUrl = getVideoThumbnailUrl(videoInfo.platform, videoInfo.id);
     
     // Update or add video URL item
     setMediaItems(prevItems => {
@@ -347,7 +399,8 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
           ...newItems[videoIndex],
           url: url,
           preview: thumbnailUrl,
-          file: undefined
+          file: undefined,
+          videoInfo: videoInfo
         };
       } else if (url) {
         // Add new video at index 1
@@ -355,7 +408,8 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
           id: `video-url-${Date.now()}`,
           type: 'video',
           preview: thumbnailUrl,
-          url: url
+          url: url,
+          videoInfo: videoInfo
         };
         
         // If we have at least one item, insert at index 1
@@ -372,6 +426,30 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     
     if (onVideoUrlChange) {
       onVideoUrlChange(url);
+    }
+  };
+
+  // Handle video preview
+  const handleVideoPreview = (item: MediaItemType) => {
+    if (item.type === 'video') {
+      if (item.file) {
+        // For uploaded video files
+        setCurrentVideoPreview({
+          embedUrl: item.preview,
+          platform: 'file'
+        });
+      } else if (item.url && item.videoInfo) {
+        // For YouTube or Vimeo URLs
+        const embedUrl = getVideoEmbedUrl(item.videoInfo.platform, item.videoInfo.id);
+        setCurrentVideoPreview({
+          embedUrl,
+          platform: item.videoInfo.platform
+        });
+      } else {
+        return; // No video to preview
+      }
+      
+      setIsVideoModalOpen(true);
     }
   };
 
@@ -741,7 +819,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
               id="video-url" 
               type="url" 
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="https://youtube.com/..." 
+              placeholder="https://youtube.com/... or https://youtu.be/..." 
               value={videoUrl}
               onChange={handleVideoUrlChange}
             />
@@ -759,6 +837,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
                   index={index}
                   moveItem={moveItem}
                   onDelete={handleDelete}
+                  onVideoPreview={handleVideoPreview}
                   isFixed={index === 0 || index === 1} // Primary image and video are fixed
                 />
               ))}
@@ -771,6 +850,14 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
           <span className="font-semibold">Tips:</span> For best results, use high-quality images (1200px+ width) and keep videos under 2 minutes.
           You can drag and drop to reorder non-primary images. The primary image and video position cannot be changed.
         </p>
+
+        {/* Video Preview Modal */}
+        <VideoPreviewModal
+          isOpen={isVideoModalOpen}
+          onClose={() => setIsVideoModalOpen(false)}
+          embedUrl={currentVideoPreview?.embedUrl || ''}
+          platform={currentVideoPreview?.platform || null}
+        />
       </div>
     </DndProvider>
   );
