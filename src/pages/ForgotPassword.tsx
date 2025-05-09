@@ -121,7 +121,9 @@ const ForgotPassword = () => {
       {/* Updated footer branding at bottom left with Stripe-style layout */}
       <div className="p-6 border-t border-gray-100">
         <div className="flex justify-start gap-6 items-center">
-          <span className="text-sm text-gray-500">© EmpireMarket</span>
+          <Link to="/" className="text-sm text-gray-500 hover:text-primary transition-colors">
+            © EmpireMarket
+          </Link>
           <Link to="/privacy" className="text-sm text-gray-500 hover:text-primary transition-colors">
             Privacy & terms
           </Link>
