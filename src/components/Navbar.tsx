@@ -41,8 +41,8 @@ const Navbar = () => {
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Link to="/" className="text-2xl font-bold text-white">
-              <span className={`transition-colors ${isScrolled ? 'text-primary-dark' : 'text-white'}`}>
+            <Link to="/" className="text-2xl font-bold">
+              <span className={`text-[#5B3DF5] transition-colors`}>
                 EmpireMarket
               </span>
             </Link>
@@ -54,25 +54,25 @@ const Navbar = () => {
               smooth 
               to="/#listings" 
               scroll={scrollWithOffset}
-              className={`transition-colors ${isScrolled ? 'text-gray-700 hover:text-primary-dark' : 'text-white hover:text-gray-200'}`}
+              className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}
             >
               Browse Listings
             </HashLink>
-            <Link to="/submit" className={`transition-colors ${isScrolled ? 'text-gray-700 hover:text-primary-dark' : 'text-white hover:text-gray-200'}`}>
+            <Link to="/submit" className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}>
               Submit a Business
             </Link>
             <HashLink 
               smooth 
               to="/#how-it-works" 
               scroll={scrollWithOffset}
-              className={`transition-colors ${isScrolled ? 'text-gray-700 hover:text-primary-dark' : 'text-white hover:text-gray-200'}`}
+              className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}
             >
               How It Works
             </HashLink>
-            <Link to="/pricing" className={`transition-colors ${isScrolled ? 'text-gray-700 hover:text-primary-dark' : 'text-white hover:text-gray-200'}`}>
+            <Link to="/pricing" className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}>
               Pricing
             </Link>
-            <Link to="/login" className={`transition-colors ${isScrolled ? 'text-gray-700 hover:text-primary-dark' : 'text-white hover:text-gray-200'}`}>
+            <Link to="/login" className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}>
               Login
             </Link>
             <Link to="/signup">
@@ -87,7 +87,7 @@ const Navbar = () => {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`p-2 rounded-md ${isScrolled ? 'text-gray-700' : 'text-white'}`}
+              className={`p-2 rounded-md ${isScrolled ? 'text-[#2F3542]' : 'text-white'}`}
             >
               {isMobileMenuOpen ? (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -110,27 +110,27 @@ const Navbar = () => {
                 smooth 
                 to="/#listings" 
                 scroll={scrollWithOffset}
-                className="text-gray-700 hover:text-primary" 
+                className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" 
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Browse Listings
               </HashLink>
-              <Link to="/submit" className="text-gray-700 hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link to="/submit" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
                 Submit a Business
               </Link>
               <HashLink 
                 smooth 
                 to="/#how-it-works" 
                 scroll={scrollWithOffset}
-                className="text-gray-700 hover:text-primary" 
+                className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" 
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 How It Works
               </HashLink>
-              <Link to="/pricing" className="text-gray-700 hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link to="/pricing" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
                 Pricing
               </Link>
-              <Link to="/login" className="text-gray-700 hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link to="/login" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
                 Login
               </Link>
               <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
