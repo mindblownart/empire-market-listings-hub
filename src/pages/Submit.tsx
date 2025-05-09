@@ -67,7 +67,8 @@ const Submit = () => {
   // Update form data when inputs change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    updateFormData({ [id.replace('business-', '')]: value });
+    const fieldName = id.replace('business-', '').replace('-', '');
+    updateFormData({ [fieldName]: value });
   };
   
   // Handle select changes
@@ -148,7 +149,6 @@ const Submit = () => {
                   <Label htmlFor="asking-price">Asking Price ({currentCurrency})</Label>
                   <Input 
                     id="asking-price" 
-                    type="number" 
                     placeholder={`Enter asking price in ${currentCurrency}`}
                     value={formData.askingPrice}
                     onChange={handleInputChange}
@@ -161,7 +161,6 @@ const Submit = () => {
                   <Label htmlFor="annual-revenue">Annual Revenue ({currentCurrency})</Label>
                   <Input 
                     id="annual-revenue" 
-                    type="number" 
                     placeholder={`Enter annual revenue in ${currentCurrency}`}
                     value={formData.annualRevenue}
                     onChange={handleInputChange}
@@ -171,7 +170,6 @@ const Submit = () => {
                   <Label htmlFor="annual-profit">Annual Profit ({currentCurrency})</Label>
                   <Input 
                     id="annual-profit" 
-                    type="number" 
                     placeholder={`Enter annual profit in ${currentCurrency}`}
                     value={formData.annualProfit}
                     onChange={handleInputChange}
