@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ForgotPassword = () => {
@@ -107,19 +107,22 @@ const ForgotPassword = () => {
           </CardFooter>
         </Card>
         
-        {/* Security information text */}
-        <div className="w-full max-w-md px-4 mt-6">
-          <p className="text-sm text-gray-500 leading-relaxed text-center">
-            Don't click on links if an email looks suspicious. Fraudsters sometimes send emails with phishing links while pretending to be EmpireMarket. To avoid phishing attacks, bookmark this page and only use that link when signing in.
-          </p>
+        {/* Updated security information text with lock icon */}
+        <div className="w-full max-w-md mt-8 flex justify-center">
+          <div className="flex items-center text-center">
+            <Lock size={16} className="text-gray-400 flex-shrink-0 mr-2" />
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Don't click on links if an email looks suspicious. Fraudsters sometimes send emails with phishing links while pretending to be EmpireMarket. To avoid phishing attacks, bookmark this page and only use that link when signing in.
+            </p>
+          </div>
         </div>
       </div>
       
       {/* Updated footer branding at bottom left with Stripe-style layout */}
       <div className="p-6 border-t border-gray-100">
-        <div className="flex items-center gap-4 text-sm text-gray-500">
-          <span>© EmpireMarket</span>
-          <Link to="/privacy" className="hover:text-primary transition-colors">
+        <div className="flex justify-start gap-6 items-center">
+          <span className="text-sm text-gray-500">© EmpireMarket</span>
+          <Link to="/privacy" className="text-sm text-gray-500 hover:text-primary transition-colors">
             Privacy & terms
           </Link>
         </div>
