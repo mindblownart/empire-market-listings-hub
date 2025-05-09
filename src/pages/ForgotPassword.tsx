@@ -36,8 +36,8 @@ const ForgotPassword = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <div className="flex-1 flex items-center justify-center p-4 bg-gray-50">
-        <Card className="w-full max-w-md">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 bg-gray-50">
+        <Card className="w-full max-w-md mb-6">
           <CardHeader>
             <CardTitle className="text-2xl">Forgot Your Password?</CardTitle>
             <CardDescription>
@@ -93,6 +93,13 @@ const ForgotPassword = () => {
             </Link>
           </CardFooter>
         </Card>
+        
+        {/* Security information card */}
+        <div className="w-full max-w-md bg-gray-100 border border-gray-200 rounded-lg p-4">
+          <p className="text-sm text-gray-700 leading-relaxed">
+            Don't click on links if an email looks suspicious. Fraudsters sometimes send emails with phishing links while pretending to be EmpireMarket. To avoid phishing attacks, bookmark this page and only use that link when signing in.
+          </p>
+        </div>
       </div>
       
       <Footer />
