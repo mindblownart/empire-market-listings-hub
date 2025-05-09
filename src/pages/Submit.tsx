@@ -107,27 +107,18 @@ const Submit = () => {
 
   // Handle input changes for numeric fields with validation
   const handleNumericInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    const fieldName = id.replace('business-', '');
-    
-    console.log(`Numeric input change: field=${fieldName}, value=${value}`);
-    
-    // Allow empty values or valid numeric values with up to 2 decimal places
-    if (value === '' || /^[0-9]+(\.[0-9]{0,2})?$/.test(value)) {
-      updateFormData({ [fieldName]: value });
-      validateField(fieldName, value);
-    }
+    const { name, value } = e.target;
+    console.log(`Numeric input change: field=${name}, value=${value}`);
+    updateFormData({ [name]: value });
+    validateField(name, value);
   };
 
   // Handle text input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    const fieldName = id.replace('business-', '');
-    
-    console.log(`Text input change: field=${fieldName}, value=${value}`);
-    
-    updateFormData({ [fieldName]: value });
-    validateField(fieldName, value);
+    const { name, value } = e.target;
+    console.log(`Text input change: field=${name}, value=${value}`);
+    updateFormData({ [name]: value });
+    validateField(name, value);
   };
   
   // Handle select changes
@@ -214,6 +205,7 @@ const Submit = () => {
                   <Input 
                     id="business-name" 
                     name="businessName"
+                    type="text" 
                     placeholder="Enter business name"
                     value={formData.businessName}
                     onChange={handleInputChange}
@@ -273,7 +265,8 @@ const Submit = () => {
                   <Input 
                     id="business-askingprice" 
                     name="askingPrice"
-                    type="text"
+                    type="number" 
+                    step="0.01"
                     placeholder={`Enter asking price in ${currentCurrency}`}
                     value={formData.askingPrice}
                     onChange={handleNumericInputChange}
@@ -294,7 +287,8 @@ const Submit = () => {
                   <Input 
                     id="business-annualrevenue" 
                     name="annualRevenue"
-                    type="text"
+                    type="number" 
+                    step="0.01"
                     placeholder={`Enter annual revenue in ${currentCurrency}`}
                     value={formData.annualRevenue}
                     onChange={handleNumericInputChange}
@@ -312,7 +306,8 @@ const Submit = () => {
                   <Input 
                     id="business-annualprofit" 
                     name="annualProfit"
-                    type="text"
+                    type="number" 
+                    step="0.01"
                     placeholder={`Enter annual profit in ${currentCurrency}`}
                     value={formData.annualProfit}
                     onChange={handleNumericInputChange}
