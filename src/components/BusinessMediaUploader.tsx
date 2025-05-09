@@ -1,11 +1,12 @@
-import React, { useState, useCallback, useRef } from 'react';
+
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Upload, Image, Video, X, Move, Play } from 'lucide-react';
+import { Upload, Image, Video, X, Move, Play, Link as LinkIcon } from 'lucide-react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -30,6 +31,43 @@ type MediaItemType = {
   preview: string;
   url?: string;
   isPrimary?: boolean;
+};
+
+// Function to extract video ID from YouTube and Vimeo URLs
+const extractVideoInfo = (url: string): { platform: string | null; id: string | null } => {
+  if (!url) return { platform: null, id: null };
+
+  // YouTube patterns
+  const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+  const youtubeMatch = url.match(youtubeRegex);
+  if (youtubeMatch && youtubeMatch[1]) {
+    return { platform: 'youtube', id: youtubeMatch[1] };
+  }
+
+  // Vimeo patterns
+  const vimeoRegex = /(?:vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|)(\d+)(?:$|\/|\?)|player\.vimeo\.com\/video\/(\d+))/i;
+  const vimeoMatch = url.match(vimeoRegex);
+  if (vimeoMatch && (vimeoMatch[1] || vimeoMatch[2])) {
+    const vimeoId = vimeoMatch[1] || vimeoMatch[2];
+    return { platform: 'vimeo', id: vimeoId };
+  }
+
+  return { platform: null, id: null };
+};
+
+// Function to get thumbnail URL based on platform and ID
+const getVideoThumbnailUrl = (platform: string | null, id: string | null): string => {
+  if (!platform || !id) return '';
+  
+  if (platform === 'youtube') {
+    return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+  } else if (platform === 'vimeo') {
+    // For Vimeo we'd ideally use their oEmbed API, but for now we'll just return a placeholder
+    // In a production app, you should fetch the actual thumbnail using the Vimeo API
+    return `https://vumbnail.com/${id}.jpg`;
+  }
+  
+  return '';
 };
 
 const MediaItem = ({ 
@@ -102,6 +140,21 @@ const MediaItem = ({
                 <Play className="text-white w-12 h-12" />
               </div>
             </div>
+          ) : item.url && item.preview ? (
+            // This is for external video with thumbnail
+            <div className="relative w-full h-full">
+              <img 
+                src={item.preview} 
+                alt="Video thumbnail" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <Play className="text-white w-12 h-12" />
+              </div>
+              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md flex items-center">
+                <LinkIcon className="w-3 h-3 mr-1" /> External Video
+              </div>
+            </div>
           ) : item.url ? (
             <div className="text-center p-2">
               <Video className="w-10 h-10 mx-auto text-gray-500 mb-1" />
@@ -162,6 +215,13 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
       });
     });
     
+    // Extract video info from URL if available
+    let videoThumbnail = '';
+    if (initialVideoUrl) {
+      const { platform, id } = extractVideoInfo(initialVideoUrl);
+      videoThumbnail = getVideoThumbnailUrl(platform, id);
+    }
+    
     // Add video placeholder (always at index 1 if we have items)
     if (initialVideo) {
       const videoFile = initialVideo as MediaFile;
@@ -176,7 +236,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
       items.splice(1, 0, {
         id: `video-url-${Date.now()}`,
         type: 'video',
-        preview: '',
+        preview: videoThumbnail,
         url: initialVideoUrl
       });
     } else if (items.length > 0) {
@@ -192,6 +252,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   });
   
   const [videoUrl, setVideoUrl] = useState(initialVideoUrl || '');
+  const [videoThumbnail, setVideoThumbnail] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
@@ -226,6 +287,13 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
       onVideoUrlChange(videoUrl);
     }
   }, [getImageFiles, getVideoFile, onImagesChange, onVideoChange, onVideoUrlChange, videoUrl]);
+
+  // Fetch thumbnail when videoUrl changes
+  useEffect(() => {
+    const { platform, id } = extractVideoInfo(videoUrl);
+    const newThumbnailUrl = getVideoThumbnailUrl(platform, id);
+    setVideoThumbnail(newThumbnailUrl);
+  }, [videoUrl]);
 
   // Handle item reordering
   const moveItem = useCallback((dragIndex: number, hoverIndex: number) => {
@@ -262,6 +330,10 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     const url = e.target.value;
     setVideoUrl(url);
     
+    // Extract video platform and ID
+    const { platform, id } = extractVideoInfo(url);
+    const thumbnailUrl = getVideoThumbnailUrl(platform, id);
+    
     // Update or add video URL item
     setMediaItems(prevItems => {
       const newItems = [...prevItems];
@@ -274,6 +346,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
         newItems[videoIndex] = {
           ...newItems[videoIndex],
           url: url,
+          preview: thumbnailUrl,
           file: undefined
         };
       } else if (url) {
@@ -281,7 +354,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
         const videoItem: MediaItemType = {
           id: `video-url-${Date.now()}`,
           type: 'video',
-          preview: '',
+          preview: thumbnailUrl,
           url: url
         };
         
