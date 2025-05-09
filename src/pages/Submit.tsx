@@ -12,6 +12,7 @@ import {
   SelectValue,
   SearchableSelect
 } from '@/components/ui/select';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BusinessMediaUploader from '@/components/BusinessMediaUploader';
@@ -54,6 +55,9 @@ const Submit = () => {
   
   // Get current currency based on selected country
   const currentCurrency = countries.find(country => country.flagCode === formData.location)?.currencyCode || "USD";
+  const currentLocale = formData.location === 'us' ? 'en-US' : 
+                        formData.location === 'gb' ? 'en-GB' : 
+                        formData.location === 'au' ? 'en-AU' : 'en-US';
   
   // Handle country change
   const handleCountryChange = (value: string) => {
@@ -105,12 +109,11 @@ const Submit = () => {
     return !error;
   };
 
-  // Handle input changes for numeric fields with validation
-  const handleNumericInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    console.log(`Numeric input change: field=${name}, value=${value}`);
-    updateFormData({ [name]: value });
-    validateField(name, value);
+  // Handle input changes for numeric fields
+  const handleNumericInputChange = (fieldName: string) => (value: string) => {
+    console.log(`Numeric input change: field=${fieldName}, value=${value}`);
+    updateFormData({ [fieldName]: value });
+    validateField(fieldName, value);
   };
 
   // Handle text input changes
@@ -262,16 +265,15 @@ const Submit = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="business-askingprice">Asking Price ({currentCurrency})</Label>
-                  <Input 
+                  <CurrencyInput 
                     id="business-askingprice" 
-                    name="askingPrice"
-                    type="number" 
-                    step="0.01"
-                    placeholder={`Enter asking price in ${currentCurrency}`}
                     value={formData.askingPrice}
-                    onChange={handleNumericInputChange}
+                    onChange={handleNumericInputChange('askingPrice')}
                     onKeyDown={(e) => handleKeyDown(e, 'business-annualrevenue')}
-                    inputMode="decimal"
+                    currencyCode={currentCurrency}
+                    locale={currentLocale}
+                    placeholder={`Enter asking price in ${currentCurrency}`}
+                    aria-invalid={!!validationErrors.askingPrice}
                     className={validationErrors.askingPrice ? "border-red-500 focus-visible:ring-red-500" : ""}
                     autoComplete="off"
                   />
@@ -284,16 +286,15 @@ const Submit = () => {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="business-annualrevenue">Annual Revenue ({currentCurrency})</Label>
-                  <Input 
+                  <CurrencyInput
                     id="business-annualrevenue" 
-                    name="annualRevenue"
-                    type="number" 
-                    step="0.01"
-                    placeholder={`Enter annual revenue in ${currentCurrency}`}
                     value={formData.annualRevenue}
-                    onChange={handleNumericInputChange}
+                    onChange={handleNumericInputChange('annualRevenue')}
                     onKeyDown={(e) => handleKeyDown(e, 'business-annualprofit')}
-                    inputMode="decimal"
+                    currencyCode={currentCurrency}
+                    locale={currentLocale}
+                    placeholder={`Enter annual revenue in ${currentCurrency}`}
+                    aria-invalid={!!validationErrors.annualRevenue}
                     className={validationErrors.annualRevenue ? "border-red-500 focus-visible:ring-red-500" : ""}
                     autoComplete="off"
                   />
@@ -303,16 +304,15 @@ const Submit = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="business-annualprofit">Annual Profit ({currentCurrency})</Label>
-                  <Input 
-                    id="business-annualprofit" 
-                    name="annualProfit"
-                    type="number" 
-                    step="0.01"
-                    placeholder={`Enter annual profit in ${currentCurrency}`}
+                  <CurrencyInput
+                    id="business-annualprofit"
                     value={formData.annualProfit}
-                    onChange={handleNumericInputChange}
+                    onChange={handleNumericInputChange('annualProfit')}
                     onKeyDown={(e) => handleKeyDown(e, 'description')}
-                    inputMode="decimal"
+                    currencyCode={currentCurrency}
+                    locale={currentLocale}
+                    placeholder={`Enter annual profit in ${currentCurrency}`}
+                    aria-invalid={!!validationErrors.annualProfit}
                     className={validationErrors.annualProfit ? "border-red-500 focus-visible:ring-red-500" : ""}
                     autoComplete="off"
                   />
