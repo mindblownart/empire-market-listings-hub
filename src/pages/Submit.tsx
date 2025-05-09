@@ -106,19 +106,19 @@ const Submit = () => {
     return !error;
   };
 
-  // Update form data when numeric inputs change
+  // Handle input changes for numeric fields with validation
   const handleNumericInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     const fieldName = id.replace('business-', '').replace('-', '');
     
-    // Only accept numbers and decimals
+    // Allow empty values or valid numeric values with up to 2 decimal places
     if (value === '' || /^[0-9]+(\.[0-9]{0,2})?$/.test(value)) {
       updateFormData({ [fieldName]: value });
       validateField(fieldName, value);
     }
   };
 
-  // Update form data when text inputs change
+  // Handle text input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     const fieldName = id.replace('business-', '').replace('-', '');
@@ -263,15 +263,16 @@ const Submit = () => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="asking-price">Asking Price ({currentCurrency})</Label>
+                  <Label htmlFor="business-askingprice">Asking Price ({currentCurrency})</Label>
                   <Input 
-                    id="asking-price" 
+                    id="business-askingprice" 
                     placeholder={`Enter asking price in ${currentCurrency}`}
                     value={formData.askingPrice}
                     onChange={handleNumericInputChange}
-                    onKeyDown={(e) => handleKeyDown(e, 'annual-revenue')}
+                    onKeyDown={(e) => handleKeyDown(e, 'business-annualrevenue')}
                     inputMode="decimal"
                     className={validationErrors.askingPrice ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    autoComplete="off"
                   />
                   {validationErrors.askingPrice && (
                     <p className="text-sm font-medium text-red-500">{validationErrors.askingPrice}</p>
@@ -281,30 +282,32 @@ const Submit = () => {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="annual-revenue">Annual Revenue ({currentCurrency})</Label>
+                  <Label htmlFor="business-annualrevenue">Annual Revenue ({currentCurrency})</Label>
                   <Input 
-                    id="annual-revenue" 
+                    id="business-annualrevenue" 
                     placeholder={`Enter annual revenue in ${currentCurrency}`}
                     value={formData.annualRevenue}
                     onChange={handleNumericInputChange}
-                    onKeyDown={(e) => handleKeyDown(e, 'annual-profit')}
+                    onKeyDown={(e) => handleKeyDown(e, 'business-annualprofit')}
                     inputMode="decimal"
                     className={validationErrors.annualRevenue ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    autoComplete="off"
                   />
                   {validationErrors.annualRevenue && (
                     <p className="text-sm font-medium text-red-500">{validationErrors.annualRevenue}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="annual-profit">Annual Profit ({currentCurrency})</Label>
+                  <Label htmlFor="business-annualprofit">Annual Profit ({currentCurrency})</Label>
                   <Input 
-                    id="annual-profit" 
+                    id="business-annualprofit" 
                     placeholder={`Enter annual profit in ${currentCurrency}`}
                     value={formData.annualProfit}
                     onChange={handleNumericInputChange}
                     onKeyDown={(e) => handleKeyDown(e, 'description')}
                     inputMode="decimal"
                     className={validationErrors.annualProfit ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    autoComplete="off"
                   />
                   {validationErrors.annualProfit && (
                     <p className="text-sm font-medium text-red-500">{validationErrors.annualProfit}</p>
