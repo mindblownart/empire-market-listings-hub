@@ -1,12 +1,11 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFormData } from '@/contexts/FormDataContext';
-import { ArrowLeft, DollarSign, TrendingUp, TrendingDown, MapPin, Phone } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, MapPin, Phone } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const PreviewListing = () => {
@@ -48,9 +47,9 @@ const PreviewListing = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      {/* Removed Navbar component */}
       
-      <div className="py-20 px-4 flex-grow">
+      <div className="py-10 px-4 flex-grow">
         <div className="container mx-auto max-w-4xl">
           <div className="mb-8">
             <h1 className="text-3xl font-bold">Preview Your Business Listing</h1>
