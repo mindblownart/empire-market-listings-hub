@@ -97,11 +97,11 @@ const ForgotPassword = () => {
           </CardFooter>
         </Card>
         
-        {/* Account Prompt in light gray container box */}
-        <div className="w-full max-w-md bg-gray-50 p-4 rounded-md border border-gray-100">
-          <p className="text-center text-gray-600">
-            New to EmpireMarket? 
-            <Link to="/signup" className="text-primary hover:text-primary-dark ml-1">
+        {/* New to EmpireMarket section with improved styling */}
+        <div className="w-full max-w-md bg-[#f8f9fc] p-4 py-4 rounded-md border border-gray-100 mb-4">
+          <p className="text-center text-sm text-gray-600">
+            New to EmpireMarket?{" "}
+            <Link to="/signup" className="text-primary font-medium hover:underline">
               Create account
             </Link>
           </p>
