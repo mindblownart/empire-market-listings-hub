@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -213,61 +212,61 @@ const Signup = () => {
                     <SelectContent>
                       <SelectItem value="us">
                         <div className="flex items-center justify-between w-full">
-                          <span>United States</span>
+                          <span>🇺🇸 United States</span>
                           {country === "us" && <Check className="h-4 w-4 ml-2" />}
                         </div>
                       </SelectItem>
                       <SelectItem value="uk">
                         <div className="flex items-center justify-between w-full">
-                          <span>United Kingdom</span>
+                          <span>🇬🇧 United Kingdom</span>
                           {country === "uk" && <Check className="h-4 w-4 ml-2" />}
                         </div>
                       </SelectItem>
                       <SelectItem value="sg">
                         <div className="flex items-center justify-between w-full">
-                          <span>Singapore</span>
+                          <span>🇸🇬 Singapore</span>
                           {country === "sg" && <Check className="h-4 w-4 ml-2" />}
                         </div>
                       </SelectItem>
                       <SelectItem value="au">
                         <div className="flex items-center justify-between w-full">
-                          <span>Australia</span>
+                          <span>🇦🇺 Australia</span>
                           {country === "au" && <Check className="h-4 w-4 ml-2" />}
                         </div>
                       </SelectItem>
                       <SelectItem value="ca">
                         <div className="flex items-center justify-between w-full">
-                          <span>Canada</span>
+                          <span>🇨🇦 Canada</span>
                           {country === "ca" && <Check className="h-4 w-4 ml-2" />}
                         </div>
                       </SelectItem>
                       <SelectItem value="de">
                         <div className="flex items-center justify-between w-full">
-                          <span>Germany</span>
+                          <span>🇩🇪 Germany</span>
                           {country === "de" && <Check className="h-4 w-4 ml-2" />}
                         </div>
                       </SelectItem>
                       <SelectItem value="fr">
                         <div className="flex items-center justify-between w-full">
-                          <span>France</span>
+                          <span>🇫🇷 France</span>
                           {country === "fr" && <Check className="h-4 w-4 ml-2" />}
                         </div>
                       </SelectItem>
                       <SelectItem value="jp">
                         <div className="flex items-center justify-between w-full">
-                          <span>Japan</span>
+                          <span>🇯🇵 Japan</span>
                           {country === "jp" && <Check className="h-4 w-4 ml-2" />}
                         </div>
                       </SelectItem>
                       <SelectItem value="in">
                         <div className="flex items-center justify-between w-full">
-                          <span>India</span>
+                          <span>🇮🇳 India</span>
                           {country === "in" && <Check className="h-4 w-4 ml-2" />}
                         </div>
                       </SelectItem>
                       <SelectItem value="my">
                         <div className="flex items-center justify-between w-full">
-                          <span>Malaysia</span>
+                          <span>🇲🇾 Malaysia</span>
                           {country === "my" && <Check className="h-4 w-4 ml-2" />}
                         </div>
                       </SelectItem>
