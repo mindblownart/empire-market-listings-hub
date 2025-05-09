@@ -88,10 +88,10 @@ const Login = () => {
           </CardFooter>
         </Card>
         
-        {/* Security notice with lock icon */}
-        <div className="w-full max-w-md px-4 mt-8 flex items-center justify-center">
-          <div className="flex items-center gap-2 text-center">
-            <Lock size={16} className="text-gray-400 flex-shrink-0" />
+        {/* Updated security notice with lock icon and centered text */}
+        <div className="w-full max-w-md mt-8 flex justify-center">
+          <div className="flex items-center text-center">
+            <Lock size={16} className="text-gray-400 flex-shrink-0 mr-2" />
             <p className="text-xs text-gray-500 leading-relaxed">
               Only install browser extensions from companies you trust. Malicious browser extensions can compromise your security by reading your passwords.
             </p>
@@ -99,7 +99,7 @@ const Login = () => {
         </div>
       </div>
       
-      {/* Updated footer with Stripe-style layout */}
+      {/* Updated footer with horizontally aligned elements */}
       <div className="p-6 border-t border-gray-100">
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-500">© EmpireMarket</span>
