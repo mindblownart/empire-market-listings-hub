@@ -40,7 +40,7 @@ const ForgotPassword = () => {
       </div>
       
       <div className="flex-1 flex flex-col items-center justify-center p-4">
-        <Card className="w-full max-w-md mb-6">
+        <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl">Forgot Your Password?</CardTitle>
             <CardDescription>
@@ -94,21 +94,21 @@ const ForgotPassword = () => {
             >
               Return to sign in
             </Link>
+            
+            {/* New to EmpireMarket section integrated within the Card */}
+            <div className="w-full bg-[#f8f9fc] p-4 rounded-md border border-gray-100 mt-6">
+              <p className="text-center text-sm text-gray-600">
+                New to EmpireMarket?{" "}
+                <Link to="/signup" className="text-primary font-medium hover:underline">
+                  Create account
+                </Link>
+              </p>
+            </div>
           </CardFooter>
         </Card>
         
-        {/* New to EmpireMarket section with improved styling */}
-        <div className="w-full max-w-md bg-[#f8f9fc] p-4 py-4 rounded-md border border-gray-100 mb-4">
-          <p className="text-center text-sm text-gray-600">
-            New to EmpireMarket?{" "}
-            <Link to="/signup" className="text-primary font-medium hover:underline">
-              Create account
-            </Link>
-          </p>
-        </div>
-        
         {/* Security information text */}
-        <div className="w-full max-w-md px-4 mt-2">
+        <div className="w-full max-w-md px-4 mt-6">
           <p className="text-sm text-gray-500 leading-relaxed text-center">
             Don't click on links if an email looks suspicious. Fraudsters sometimes send emails with phishing links while pretending to be EmpireMarket. To avoid phishing attacks, bookmark this page and only use that link when signing in.
           </p>
