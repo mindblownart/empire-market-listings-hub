@@ -18,6 +18,8 @@ import Footer from '@/components/Footer';
 import BusinessMediaUploader from '@/components/BusinessMediaUploader';
 import { Eye } from 'lucide-react';
 import { useFormData } from '@/contexts/FormDataContext';
+import { toast } from "sonner";
+import { z } from "zod";
 
 type CountryData = {
   name: string;
@@ -28,6 +30,7 @@ type CountryData = {
 const Submit = () => {
   const navigate = useNavigate();
   const { formData, updateFormData } = useFormData();
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
   // Country data with flag codes and currency codes
   const countries: CountryData[] = [
@@ -62,31 +65,129 @@ const Submit = () => {
       flagCode: selectedCountry?.flagCode,
       currencyCode: selectedCountry?.currencyCode
     });
+    validateField('location', value);
   };
 
-  // Update form data when inputs change
+  // Validate a single field
+  const validateField = (field: string, value: any) => {
+    let error = '';
+    
+    switch (field) {
+      case 'businessName':
+        if (!value.trim()) error = 'Business name is required';
+        break;
+      case 'industry':
+        if (!value) error = 'Industry is required';
+        break;
+      case 'location':
+        if (!value) error = 'Location is required';
+        break;
+      case 'askingPrice':
+      case 'annualRevenue':
+      case 'annualProfit':
+        if (value && !/^[0-9]+(\.[0-9]{1,2})?$/.test(value)) {
+          error = 'Please enter a valid number (e.g., 1000 or 1000.50)';
+        }
+        break;
+      case 'description':
+        if (value && value.trim().length < 10) {
+          error = 'Description must be at least 10 characters long';
+        }
+        break;
+      default:
+        break;
+    }
+    
+    setValidationErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
+    
+    return !error;
+  };
+
+  // Update form data when numeric inputs change
+  const handleNumericInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    const fieldName = id.replace('business-', '').replace('-', '');
+    
+    // Only accept numbers and decimals
+    if (value === '' || /^[0-9]+(\.[0-9]{0,2})?$/.test(value)) {
+      updateFormData({ [fieldName]: value });
+      validateField(fieldName, value);
+    }
+  };
+
+  // Update form data when text inputs change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     const fieldName = id.replace('business-', '').replace('-', '');
     updateFormData({ [fieldName]: value });
+    validateField(fieldName, value);
   };
   
   // Handle select changes
   const handleSelectChange = (id: string, value: string) => {
     updateFormData({ [id]: value });
+    validateField(id, value);
+  };
+
+  // Validate all fields before submission
+  const validateAllFields = () => {
+    const fields = [
+      { name: 'businessName', value: formData.businessName },
+      { name: 'industry', value: formData.industry },
+      { name: 'location', value: formData.location },
+      { name: 'askingPrice', value: formData.askingPrice },
+      { name: 'annualRevenue', value: formData.annualRevenue },
+      { name: 'annualProfit', value: formData.annualProfit },
+      { name: 'description', value: formData.description }
+    ];
+    
+    let isValid = true;
+    
+    fields.forEach(field => {
+      if (!validateField(field.name, field.value)) {
+        isValid = false;
+      }
+    });
+    
+    return isValid;
   };
 
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Your business listing has been submitted!');
-    navigate('/');
+    
+    if (validateAllFields()) {
+      toast.success("Business listing submitted successfully!");
+      navigate('/');
+    } else {
+      toast.error("Please fix the errors in the form before submitting.");
+      // Focus on the first field with an error
+      const firstErrorField = Object.keys(validationErrors).find(
+        field => validationErrors[field]
+      );
+      if (firstErrorField) {
+        const element = document.getElementById(`business-${firstErrorField}`);
+        if (element) element.focus();
+      }
+    }
   };
 
   // Handle preview click
   const handlePreview = (e: React.MouseEvent) => {
     e.preventDefault();
     navigate('/preview-listing');
+  };
+
+  // Handle key press in fields to enable tabbing in the proper order
+  const handleKeyDown = (e: React.KeyboardEvent, nextFieldId: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const nextField = document.getElementById(nextFieldId);
+      if (nextField) nextField.focus();
+    }
   };
 
   return (
@@ -111,7 +212,13 @@ const Submit = () => {
                     placeholder="Enter business name"
                     value={formData.businessName}
                     onChange={handleInputChange}
+                    onKeyDown={(e) => handleKeyDown(e, 'industry')}
+                    aria-invalid={!!validationErrors.businessName}
+                    className={validationErrors.businessName ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {validationErrors.businessName && (
+                    <p className="text-sm font-medium text-red-500">{validationErrors.businessName}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="industry">Industry</Label>
@@ -119,7 +226,11 @@ const Submit = () => {
                     value={formData.industry}
                     onValueChange={(value) => handleSelectChange('industry', value)}
                   >
-                    <SelectTrigger id="industry">
+                    <SelectTrigger 
+                      id="industry" 
+                      className={validationErrors.industry ? "border-red-500 focus-visible:ring-red-500" : ""}
+                      onKeyDown={(e) => handleKeyDown(e, 'location')}
+                    >
                       <SelectValue placeholder="Select industry" />
                     </SelectTrigger>
                     <SelectContent>
@@ -131,6 +242,9 @@ const Submit = () => {
                       <SelectItem value="service">Professional Services</SelectItem>
                     </SelectContent>
                   </Select>
+                  {validationErrors.industry && (
+                    <p className="text-sm font-medium text-red-500">{validationErrors.industry}</p>
+                  )}
                 </div>
               </div>
 
@@ -144,6 +258,9 @@ const Submit = () => {
                     placeholder="Select your country"
                     required
                   />
+                  {validationErrors.location && (
+                    <p className="text-sm font-medium text-red-500">{validationErrors.location}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="asking-price">Asking Price ({currentCurrency})</Label>
@@ -151,8 +268,14 @@ const Submit = () => {
                     id="asking-price" 
                     placeholder={`Enter asking price in ${currentCurrency}`}
                     value={formData.askingPrice}
-                    onChange={handleInputChange}
+                    onChange={handleNumericInputChange}
+                    onKeyDown={(e) => handleKeyDown(e, 'annual-revenue')}
+                    inputMode="decimal"
+                    className={validationErrors.askingPrice ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {validationErrors.askingPrice && (
+                    <p className="text-sm font-medium text-red-500">{validationErrors.askingPrice}</p>
+                  )}
                 </div>
               </div>
 
@@ -163,8 +286,14 @@ const Submit = () => {
                     id="annual-revenue" 
                     placeholder={`Enter annual revenue in ${currentCurrency}`}
                     value={formData.annualRevenue}
-                    onChange={handleInputChange}
+                    onChange={handleNumericInputChange}
+                    onKeyDown={(e) => handleKeyDown(e, 'annual-profit')}
+                    inputMode="decimal"
+                    className={validationErrors.annualRevenue ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {validationErrors.annualRevenue && (
+                    <p className="text-sm font-medium text-red-500">{validationErrors.annualRevenue}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="annual-profit">Annual Profit ({currentCurrency})</Label>
@@ -172,8 +301,14 @@ const Submit = () => {
                     id="annual-profit" 
                     placeholder={`Enter annual profit in ${currentCurrency}`}
                     value={formData.annualProfit}
-                    onChange={handleInputChange}
+                    onChange={handleNumericInputChange}
+                    onKeyDown={(e) => handleKeyDown(e, 'description')}
+                    inputMode="decimal"
+                    className={validationErrors.annualProfit ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {validationErrors.annualProfit && (
+                    <p className="text-sm font-medium text-red-500">{validationErrors.annualProfit}</p>
+                  )}
                 </div>
               </div>
 
@@ -182,10 +317,13 @@ const Submit = () => {
                 <Textarea 
                   id="description" 
                   placeholder="Provide a detailed description of your business..."
-                  className="min-h-[120px]"
+                  className={`min-h-[120px] ${validationErrors.description ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                   value={formData.description}
                   onChange={handleInputChange}
                 />
+                {validationErrors.description && (
+                  <p className="text-sm font-medium text-red-500">{validationErrors.description}</p>
+                )}
               </div>
 
               {/* Business Media Section */}
@@ -210,6 +348,7 @@ const Submit = () => {
                     placeholder="Enter your full name"
                     value={formData.fullName}
                     onChange={(e) => updateFormData({ fullName: e.target.value })}
+                    onKeyDown={(e) => handleKeyDown(e, 'email')}
                   />
                 </div>
                 <div className="space-y-2">
@@ -220,6 +359,7 @@ const Submit = () => {
                     placeholder="Enter your email"
                     value={formData.email}
                     onChange={(e) => updateFormData({ email: e.target.value })}
+                    onKeyDown={(e) => handleKeyDown(e, 'phone')}
                   />
                 </div>
               </div>
@@ -232,6 +372,7 @@ const Submit = () => {
                     placeholder="Enter your phone number"
                     value={formData.phone}
                     onChange={(e) => updateFormData({ phone: e.target.value })}
+                    onKeyDown={(e) => handleKeyDown(e, 'role')}
                   />
                 </div>
                 <div className="space-y-2">
@@ -257,14 +398,14 @@ const Submit = () => {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  className="px-10 py-6 text-lg flex items-center gap-2" 
+                  className="px-10 py-6 text-lg flex items-center gap-2 transition-all hover:bg-gray-100" 
                   onClick={handlePreview}
                 >
                   <Eye className="h-5 w-5" /> Preview
                 </Button>
                 <Button 
                   type="submit" 
-                  className="bg-primary hover:bg-primary-light px-10 py-6 text-lg"
+                  className="bg-primary hover:bg-primary-light px-10 py-6 text-lg transition-all focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   Submit Business Listing
                 </Button>
