@@ -164,20 +164,23 @@ const SearchableSelect = React.forwardRef<
     disabled?: boolean;
     required?: boolean;
   }
->(({ options, value, onValueChange, placeholder, disabled, required }, ref) => {
+>(({ options = [], value, onValueChange, placeholder, disabled, required }, ref) => {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
   
+  // Make sure options is always an array and provide default empty array
+  const safeOptions = Array.isArray(options) ? options : [];
+  
   const filteredOptions = React.useMemo(() => {
-    if (!search) return options;
-    return options.filter(option => 
+    if (!search) return safeOptions;
+    return safeOptions.filter(option => 
       option.label.toLowerCase().includes(search.toLowerCase())
     );
-  }, [search, options]);
+  }, [search, safeOptions]);
 
   const selectedOption = React.useMemo(() => 
-    options.find(option => option.value === value), 
-    [options, value]
+    safeOptions.find(option => option.value === value), 
+    [safeOptions, value]
   );
 
   return (
@@ -194,7 +197,6 @@ const SearchableSelect = React.forwardRef<
           )}
           // We need to remove the 'required' attribute as it's not a valid HTML attribute for buttons
           // We'll handle the validation elsewhere
-          // required={required}
           data-required={required ? "true" : "false"}
           type="button" // Ensure it's a button type
         >
@@ -219,7 +221,7 @@ const SearchableSelect = React.forwardRef<
           />
           <CommandEmpty>No country found.</CommandEmpty>
           <CommandGroup className="max-h-[250px] overflow-auto">
-            {filteredOptions && filteredOptions.map((option) => (
+            {filteredOptions.map((option) => (
               <CommandItem
                 key={option.value}
                 value={option.value}
