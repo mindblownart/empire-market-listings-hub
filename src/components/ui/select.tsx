@@ -146,7 +146,7 @@ const SelectSeparator = React.forwardRef<
 ))
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName
 
-// New component for a searchable select
+// Country option type
 type CountryOption = {
   value: string;
   label: string;
