@@ -76,15 +76,8 @@ const Login = () => {
             </form>
           </CardContent>
           <CardFooter className="flex flex-col items-center">
-            <div className="text-sm text-gray-500 mt-2 text-center">
-              Don't have an account?{' '}
-              <Link to="/signup" className="text-primary font-medium hover:underline">
-                Create account
-              </Link>
-            </div>
-            
             {/* New to EmpireMarket section with Stripe-style background */}
-            <div className="w-full bg-[#f8f9fc] p-4 rounded-md border border-gray-100 mt-6">
+            <div className="w-full bg-[#f8f9fc] p-4 rounded-md border border-gray-100 mt-2">
               <p className="text-center text-sm text-gray-600">
                 New to EmpireMarket?{" "}
                 <Link to="/signup" className="text-primary font-medium hover:underline">
