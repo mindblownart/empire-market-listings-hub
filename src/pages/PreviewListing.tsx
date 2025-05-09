@@ -52,11 +52,8 @@ const PreviewListing = () => {
       
       <div className="py-20 px-4 flex-grow">
         <div className="container mx-auto max-w-4xl">
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-8">
             <h1 className="text-3xl font-bold">Preview Your Business Listing</h1>
-            <Button variant="outline" onClick={handleBack} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" /> Back to Edit
-            </Button>
           </div>
           
           <Card className="overflow-hidden shadow-lg mb-8">
