@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,15 +59,33 @@ const Submit = () => {
                         formData.location === 'gb' ? 'en-GB' : 
                         formData.location === 'au' ? 'en-AU' : 'en-US';
   
+  // Initialize original values on mount if not already set
+  useEffect(() => {
+    // Only set original values if they're not already set
+    if (!formData.originalValues.currencyCode) {
+      updateFormData({
+        originalValues: {
+          askingPrice: formData.askingPrice,
+          annualRevenue: formData.annualRevenue,
+          annualProfit: formData.annualProfit,
+          currencyCode: currentCurrency,
+        }
+      });
+    }
+  }, []);
+  
   // Handle country change
   const handleCountryChange = (value: string) => {
     const selectedCountry = countries.find(c => c.flagCode === value);
+    
+    // First update the location to trigger UI updates
     updateFormData({ 
       location: value,
       locationName: selectedCountry?.name,
       flagCode: selectedCountry?.flagCode,
       currencyCode: selectedCountry?.currencyCode
     });
+    
     validateField('location', value);
   };
 
@@ -276,6 +294,8 @@ const Submit = () => {
                     aria-invalid={!!validationErrors.askingPrice}
                     className={validationErrors.askingPrice ? "border-red-500 focus-visible:ring-red-500" : ""}
                     autoComplete="off"
+                    originalValue={formData.originalValues.askingPrice}
+                    originalCurrency={formData.originalValues.currencyCode}
                   />
                   {validationErrors.askingPrice && (
                     <p className="text-sm font-medium text-red-500">{validationErrors.askingPrice}</p>
@@ -297,6 +317,8 @@ const Submit = () => {
                     aria-invalid={!!validationErrors.annualRevenue}
                     className={validationErrors.annualRevenue ? "border-red-500 focus-visible:ring-red-500" : ""}
                     autoComplete="off"
+                    originalValue={formData.originalValues.annualRevenue}
+                    originalCurrency={formData.originalValues.currencyCode}
                   />
                   {validationErrors.annualRevenue && (
                     <p className="text-sm font-medium text-red-500">{validationErrors.annualRevenue}</p>
@@ -315,6 +337,8 @@ const Submit = () => {
                     aria-invalid={!!validationErrors.annualProfit}
                     className={validationErrors.annualProfit ? "border-red-500 focus-visible:ring-red-500" : ""}
                     autoComplete="off"
+                    originalValue={formData.originalValues.annualProfit}
+                    originalCurrency={formData.originalValues.currencyCode}
                   />
                   {validationErrors.annualProfit && (
                     <p className="text-sm font-medium text-red-500">{validationErrors.annualProfit}</p>

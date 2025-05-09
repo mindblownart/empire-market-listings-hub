@@ -21,6 +21,13 @@ export type BusinessFormData = {
   locationName?: string;
   flagCode?: string;
   currencyCode?: string;
+  // Original values in the initial currency (for conversion)
+  originalValues: {
+    askingPrice: string;
+    annualRevenue: string;
+    annualProfit: string;
+    currencyCode: string;
+  };
 };
 
 type FormDataContextType = {
@@ -46,7 +53,13 @@ const initialFormData: BusinessFormData = {
   role: '',
   locationName: 'United States',
   flagCode: 'us',
-  currencyCode: 'USD'
+  currencyCode: 'USD',
+  originalValues: {
+    askingPrice: '',
+    annualRevenue: '',
+    annualProfit: '',
+    currencyCode: 'USD',
+  }
 };
 
 const FormDataContext = createContext<FormDataContextType | undefined>(undefined);
@@ -56,10 +69,32 @@ export const FormDataProvider = ({ children }: { children: ReactNode }) => {
 
   const updateFormData = (data: Partial<BusinessFormData>) => {
     console.log('Updating form data:', data);
-    setFormData(prevData => ({
-      ...prevData,
-      ...data
-    }));
+    setFormData(prevData => {
+      // Special handling for currency values to update original values when directly modified
+      // and not during a country change
+      const newData = { ...prevData, ...data };
+      
+      // Track original values when directly changing a monetary value
+      // but not when location/currency is changing or when setting original values explicitly
+      if (
+        (data.askingPrice !== undefined || 
+         data.annualRevenue !== undefined || 
+         data.annualProfit !== undefined) && 
+        !data.originalValues && 
+        !data.location && 
+        !data.currencyCode
+      ) {
+        newData.originalValues = {
+          ...prevData.originalValues,
+          askingPrice: data.askingPrice !== undefined ? data.askingPrice : prevData.originalValues.askingPrice,
+          annualRevenue: data.annualRevenue !== undefined ? data.annualRevenue : prevData.originalValues.annualRevenue,
+          annualProfit: data.annualProfit !== undefined ? data.annualProfit : prevData.originalValues.annualProfit,
+          currencyCode: prevData.currencyCode || 'USD',
+        };
+      }
+      
+      return newData;
+    });
   };
 
   const resetFormData = () => {
