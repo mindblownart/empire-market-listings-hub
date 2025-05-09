@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,8 +8,90 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Progress } from '@/components/ui/progress';
 
 const Signup = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [hasTyped, setHasTyped] = useState(false);
+
+  // Password strength evaluation function
+  const evaluatePasswordStrength = (value: string) => {
+    if (!value) {
+      setPasswordStrength(0);
+      setPasswordMessage('');
+      return;
+    }
+
+    // Set hasTyped to true once the user starts typing
+    if (!hasTyped) {
+      setHasTyped(true);
+    }
+
+    let strength = 0;
+    let checks = 0;
+
+    // Check length
+    if (value.length >= 10) {
+      strength += 33;
+      checks += 1;
+    }
+
+    // Check for uppercase and lowercase
+    if (/[a-z]/.test(value) && /[A-Z]/.test(value)) {
+      strength += 33;
+      checks += 1;
+    }
+
+    // Check for numbers and special characters
+    if (/[0-9]/.test(value) && /[^a-zA-Z0-9]/.test(value)) {
+      strength += 34;
+      checks += 1;
+    }
+
+    setPasswordStrength(strength);
+
+    // Set appropriate message
+    if (checks === 3) {
+      setPasswordMessage('Strong');
+    } else if (checks === 0) {
+      setPasswordMessage('Too weak');
+    } else {
+      setPasswordMessage('Medium');
+    }
+  };
+
+  // Handle password change
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+    evaluatePasswordStrength(value);
+  };
+
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  // Determine password field border color
+  const getPasswordBorderClass = () => {
+    if (!hasTyped) return '';
+    if (passwordStrength === 100) return 'border-green-500';
+    if (passwordStrength === 0) return 'border-red-500';
+    return 'border-yellow-500';
+  };
+
+  // Determine password strength color
+  const getPasswordStrengthColor = () => {
+    if (passwordStrength === 100) return 'text-green-500';
+    if (passwordStrength === 0) return 'text-red-500';
+    return 'text-yellow-500';
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -39,7 +121,44 @@ const Signup = () => {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input id="password" type="password" />
+                  <div className="relative">
+                    <Input 
+                      id="password" 
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={handlePasswordChange}
+                      className={getPasswordBorderClass()}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button 
+                              type="button" 
+                              onClick={togglePasswordVisibility}
+                              className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                              aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{showPassword ? "Hide password" : "Show password"}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
+                  {hasTyped && (
+                    <div className="mt-1">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className={`text-xs font-medium ${getPasswordStrengthColor()}`}>
+                          {passwordMessage}
+                        </span>
+                      </div>
+                      <Progress value={passwordStrength} className="h-1.5" />
+                    </div>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="confirm-password">Confirm Password</Label>
