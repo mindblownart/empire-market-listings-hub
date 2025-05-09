@@ -15,48 +15,49 @@ import {
   SelectContent, 
   SelectItem, 
   SelectTrigger, 
-  SelectValue
+  SelectValue,
+  SearchableSelect
 } from '@/components/ui/select';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BusinessMediaUpload from '@/components/BusinessMediaUpload';
 import { ChevronDown } from 'lucide-react';
 
-type CountryCurrency = {
-  [key: string]: string;
-};
-
 type CountryData = {
   name: string;
-  flag: string;
+  flagCode: string;
   currencyCode: string;
 };
 
 const Submit = () => {
-  const [selectedCountry, setSelectedCountry] = useState<string>("United States");
+  const [selectedCountry, setSelectedCountry] = useState<string>("us");
   const [businessImages, setBusinessImages] = useState<File[]>([]);
   const [businessVideo, setBusinessVideo] = useState<File | null>(null);
   const [businessVideoUrl, setBusinessVideoUrl] = useState<string>("");
   
-  // Country data with flags and currency codes
+  // Country data with flag codes and currency codes
   const countries: CountryData[] = [
-    { name: "United States", flag: "🇺🇸", currencyCode: "USD" },
-    { name: "United Kingdom", flag: "🇬🇧", currencyCode: "GBP" },
-    { name: "Singapore", flag: "🇸🇬", currencyCode: "SGD" },
-    { name: "Australia", flag: "🇦🇺", currencyCode: "AUD" },
-    { name: "Canada", flag: "🇨🇦", currencyCode: "CAD" },
-    { name: "Germany", flag: "🇩🇪", currencyCode: "EUR" },
-    { name: "France", flag: "🇫🇷", currencyCode: "EUR" },
-    { name: "Japan", flag: "🇯🇵", currencyCode: "JPY" },
-    { name: "India", flag: "🇮🇳", currencyCode: "INR" },
-    { name: "Malaysia", flag: "🇲🇾", currencyCode: "MYR" }
+    { name: "United States", flagCode: "us", currencyCode: "USD" },
+    { name: "United Kingdom", flagCode: "gb", currencyCode: "GBP" },
+    { name: "Singapore", flagCode: "sg", currencyCode: "SGD" },
+    { name: "Australia", flagCode: "au", currencyCode: "AUD" },
+    { name: "Canada", flagCode: "ca", currencyCode: "CAD" },
+    { name: "Germany", flagCode: "de", currencyCode: "EUR" },
+    { name: "France", flagCode: "fr", currencyCode: "EUR" },
+    { name: "Japan", flagCode: "jp", currencyCode: "JPY" },
+    { name: "India", flagCode: "in", currencyCode: "INR" },
+    { name: "Malaysia", flagCode: "my", currencyCode: "MYR" }
   ];
   
-  // Get current currency based on selected country
-  const currentCurrency = countries.find(country => country.name === selectedCountry)?.currencyCode || "USD";
+  // Country options for SearchableSelect
+  const countryOptions = countries.map(country => ({
+    value: country.flagCode,
+    label: country.name,
+    flagCode: country.flagCode
+  }));
   
-  // Get current flag based on selected country
-  const currentFlag = countries.find(country => country.name === selectedCountry)?.flag || "🇺🇸";
+  // Get current currency based on selected country
+  const currentCurrency = countries.find(country => country.flagCode === selectedCountry)?.currencyCode || "USD";
   
   // Handle country change
   const handleCountryChange = (value: string) => {
@@ -103,29 +104,13 @@ const Submit = () => {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="location">Location</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between" id="location">
-                        <span className="flex items-center gap-2 truncate">
-                          <span className="text-base">{currentFlag}</span>
-                          <span>{selectedCountry}</span>
-                        </span>
-                        <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full min-w-[240px]" align="start">
-                      {countries.map((country) => (
-                        <DropdownMenuItem 
-                          key={country.name}
-                          onClick={() => handleCountryChange(country.name)}
-                          className="flex items-center gap-2 cursor-pointer py-2"
-                        >
-                          <span className="text-base">{country.flag}</span>
-                          <span>{country.name}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <SearchableSelect
+                    options={countryOptions}
+                    value={selectedCountry}
+                    onValueChange={handleCountryChange}
+                    placeholder="Select your country"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="asking-price">Asking Price ({currentCurrency})</Label>
