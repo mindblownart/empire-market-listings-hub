@@ -105,10 +105,10 @@ const ForgotPassword = () => {
         </div>
       </div>
       
-      {/* Footer branding at bottom left */}
-      <div className="p-6">
-        <div className="text-xs text-gray-500">
-          <p>© EmpireMarket</p>
+      {/* Updated footer branding at bottom left with Stripe-style layout */}
+      <div className="p-6 border-t border-gray-100">
+        <div className="flex items-center gap-4 text-sm text-gray-500">
+          <span>© EmpireMarket</span>
           <Link to="/privacy" className="hover:text-primary transition-colors">
             Privacy & terms
           </Link>
