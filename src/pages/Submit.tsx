@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import BusinessMediaUpload from '@/components/BusinessMediaUpload';
+import BusinessMediaUploader from '@/components/BusinessMediaUploader';
 import { Eye } from 'lucide-react';
 import { useFormData } from '@/contexts/FormDataContext';
 
@@ -193,7 +193,10 @@ const Submit = () => {
               {/* Business Media Section */}
               <div className="pt-4 border-t border-gray-100">
                 <h2 className="text-xl font-semibold mb-4">Business Media</h2>
-                <BusinessMediaUpload 
+                <BusinessMediaUploader 
+                  initialImages={formData.businessImages}
+                  initialVideo={formData.businessVideo}
+                  initialVideoUrl={formData.businessVideoUrl}
                   onImagesChange={(images) => updateFormData({ businessImages: images })}
                   onVideoChange={(video) => updateFormData({ businessVideo: video })}
                   onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
