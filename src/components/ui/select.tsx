@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp, Search } from "lucide-react"
@@ -168,7 +167,7 @@ const SearchableSelect = React.forwardRef<
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   
-  // Make sure options is always an array and provide default empty array
+  // Make sure options is always an array
   const safeOptions = Array.isArray(options) ? options : [];
   
   const filteredOptions = React.useMemo(() => {
@@ -183,12 +182,45 @@ const SearchableSelect = React.forwardRef<
     [safeOptions, value]
   );
 
-  // Empty state to handle when there are no options
-  const emptyState = (
-    <div className="py-6 text-center text-sm text-muted-foreground">
-      No country options available
-    </div>
-  );
+  // Render options based on their availability
+  const renderOptions = () => {
+    if (safeOptions.length === 0) {
+      return (
+        <div className="py-6 text-center text-sm text-muted-foreground">
+          No country options available
+        </div>
+      );
+    }
+
+    return (
+      <div className="max-h-[250px] overflow-auto">
+        {filteredOptions.length === 0 ? (
+          <div className="py-6 text-center text-sm text-muted-foreground">
+            No country found.
+          </div>
+        ) : (
+          filteredOptions.map((option) => (
+            <div
+              key={option.value}
+              className={cn(
+                "flex items-center gap-2 py-1.5 px-2 cursor-pointer rounded-sm text-sm",
+                value === option.value ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground"
+              )}
+              onClick={() => {
+                onValueChange(option.value);
+                setOpen(false);
+                setSearch("");
+              }}
+            >
+              <span>{option.flag}</span>
+              <span>{option.label}</span>
+              {value === option.value && <Check className="ml-auto h-4 w-4 opacity-70" />}
+            </div>
+          ))
+        )}
+      </div>
+    );
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -202,7 +234,6 @@ const SearchableSelect = React.forwardRef<
             "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
             !selectedOption && "text-muted-foreground"
           )}
-          // We remove required attribute as it's not valid on buttons
           data-required={required ? "true" : "false"}
           type="button"
         >
@@ -218,37 +249,18 @@ const SearchableSelect = React.forwardRef<
         </button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px]">
-        {safeOptions.length > 0 ? (
-          <Command>
-            <CommandInput 
-              placeholder="Search country..."
-              value={search}
-              onValueChange={setSearch}
-              className="h-9 border-none focus:ring-0"
-            />
-            <CommandEmpty>No country found.</CommandEmpty>
-            <CommandGroup className="max-h-[250px] overflow-auto">
-              {filteredOptions.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={() => {
-                    onValueChange(option.value);
-                    setOpen(false);
-                    setSearch("");
-                  }}
-                  className="flex items-center gap-2 py-1.5"
-                >
-                  <span>{option.flag}</span>
-                  <span>{option.label}</span>
-                  {value === option.value && <Check className="ml-auto h-4 w-4 opacity-70" />}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </Command>
-        ) : (
-          emptyState
-        )}
+        <div className="flex border-b">
+          <div className="flex items-center px-3">
+            <Search className="h-4 w-4 opacity-50" />
+          </div>
+          <input
+            className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Search country..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        {renderOptions()}
       </PopoverContent>
     </Popover>
   );
