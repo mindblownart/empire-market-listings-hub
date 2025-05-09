@@ -55,6 +55,7 @@ export const FormDataProvider = ({ children }: { children: ReactNode }) => {
   const [formData, setFormData] = useState<BusinessFormData>(initialFormData);
 
   const updateFormData = (data: Partial<BusinessFormData>) => {
+    console.log('Updating form data:', data);
     setFormData(prevData => ({
       ...prevData,
       ...data

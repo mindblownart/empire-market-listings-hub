@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -109,7 +108,9 @@ const Submit = () => {
   // Handle input changes for numeric fields with validation
   const handleNumericInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    const fieldName = id.replace('business-', '').replace('-', '');
+    const fieldName = id.replace('business-', '');
+    
+    console.log(`Numeric input change: field=${fieldName}, value=${value}`);
     
     // Allow empty values or valid numeric values with up to 2 decimal places
     if (value === '' || /^[0-9]+(\.[0-9]{0,2})?$/.test(value)) {
@@ -121,7 +122,10 @@ const Submit = () => {
   // Handle text input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    const fieldName = id.replace('business-', '').replace('-', '');
+    const fieldName = id.replace('business-', '');
+    
+    console.log(`Text input change: field=${fieldName}, value=${value}`);
+    
     updateFormData({ [fieldName]: value });
     validateField(fieldName, value);
   };
@@ -209,12 +213,14 @@ const Submit = () => {
                   <Label htmlFor="business-name">Business Name</Label>
                   <Input 
                     id="business-name" 
+                    name="businessName"
                     placeholder="Enter business name"
                     value={formData.businessName}
                     onChange={handleInputChange}
                     onKeyDown={(e) => handleKeyDown(e, 'industry')}
                     aria-invalid={!!validationErrors.businessName}
                     className={validationErrors.businessName ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    autoComplete="off"
                   />
                   {validationErrors.businessName && (
                     <p className="text-sm font-medium text-red-500">{validationErrors.businessName}</p>
@@ -266,6 +272,8 @@ const Submit = () => {
                   <Label htmlFor="business-askingprice">Asking Price ({currentCurrency})</Label>
                   <Input 
                     id="business-askingprice" 
+                    name="askingPrice"
+                    type="text"
                     placeholder={`Enter asking price in ${currentCurrency}`}
                     value={formData.askingPrice}
                     onChange={handleNumericInputChange}
@@ -285,6 +293,8 @@ const Submit = () => {
                   <Label htmlFor="business-annualrevenue">Annual Revenue ({currentCurrency})</Label>
                   <Input 
                     id="business-annualrevenue" 
+                    name="annualRevenue"
+                    type="text"
                     placeholder={`Enter annual revenue in ${currentCurrency}`}
                     value={formData.annualRevenue}
                     onChange={handleNumericInputChange}
@@ -301,6 +311,8 @@ const Submit = () => {
                   <Label htmlFor="business-annualprofit">Annual Profit ({currentCurrency})</Label>
                   <Input 
                     id="business-annualprofit" 
+                    name="annualProfit"
+                    type="text"
                     placeholder={`Enter annual profit in ${currentCurrency}`}
                     value={formData.annualProfit}
                     onChange={handleNumericInputChange}
