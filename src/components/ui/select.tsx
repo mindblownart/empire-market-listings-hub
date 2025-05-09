@@ -165,8 +165,8 @@ const SearchableSelect = React.forwardRef<
     required?: boolean;
   }
 >(({ options = [], value, onValueChange, placeholder, disabled, required }, ref) => {
-  const [open, setOpen] = React.useState(false)
-  const [search, setSearch] = React.useState("")
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
   
   // Make sure options is always an array and provide default empty array
   const safeOptions = Array.isArray(options) ? options : [];
@@ -183,6 +183,13 @@ const SearchableSelect = React.forwardRef<
     [safeOptions, value]
   );
 
+  // Empty state to handle when there are no options
+  const emptyState = (
+    <div className="py-6 text-center text-sm text-muted-foreground">
+      No country options available
+    </div>
+  );
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -195,10 +202,9 @@ const SearchableSelect = React.forwardRef<
             "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
             !selectedOption && "text-muted-foreground"
           )}
-          // We need to remove the 'required' attribute as it's not a valid HTML attribute for buttons
-          // We'll handle the validation elsewhere
+          // We remove required attribute as it's not valid on buttons
           data-required={required ? "true" : "false"}
-          type="button" // Ensure it's a button type
+          type="button"
         >
           {selectedOption ? (
             <div className="flex items-center gap-2">
@@ -212,16 +218,15 @@ const SearchableSelect = React.forwardRef<
         </button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px]">
-        <Command>
-          <CommandInput 
-            placeholder="Search country..."
-            value={search}
-            onValueChange={setSearch}
-            className="h-9 border-none focus:ring-0"
-          />
-          <CommandEmpty>No country found.</CommandEmpty>
-          {/* Ensure CommandGroup never receives undefined or an empty array of children */}
-          {filteredOptions.length > 0 ? (
+        {safeOptions.length > 0 ? (
+          <Command>
+            <CommandInput 
+              placeholder="Search country..."
+              value={search}
+              onValueChange={setSearch}
+              className="h-9 border-none focus:ring-0"
+            />
+            <CommandEmpty>No country found.</CommandEmpty>
             <CommandGroup className="max-h-[250px] overflow-auto">
               {filteredOptions.map((option) => (
                 <CommandItem
@@ -240,8 +245,10 @@ const SearchableSelect = React.forwardRef<
                 </CommandItem>
               ))}
             </CommandGroup>
-          ) : null}
-        </Command>
+          </Command>
+        ) : (
+          emptyState
+        )}
       </PopoverContent>
     </Popover>
   );
