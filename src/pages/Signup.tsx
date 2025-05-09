@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SearchableSelect } from '@/components/ui/select';
-import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
@@ -115,8 +115,6 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
       <div className="flex-1 flex items-center justify-center p-4 bg-gray-50">
         <Card className="w-full max-w-md">
           <CardHeader>
@@ -244,9 +242,9 @@ const Signup = () => {
           </CardContent>
           <CardFooter className="flex flex-col items-center">
             <div className="text-sm text-gray-500 mt-2">
-              New to EmpireMarket?{' '}
+              Already have an account?{' '}
               <Link to="/login" className="text-primary hover:text-primary-dark font-medium">
-                Create account
+                Sign in
               </Link>
             </div>
           </CardFooter>
