@@ -1,7 +1,7 @@
 
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown, ChevronUp, Search } from "lucide-react"
+import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
@@ -192,7 +192,11 @@ const SearchableSelect = React.forwardRef<
             "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
             !selectedOption && "text-muted-foreground"
           )}
-          required={required}
+          // We need to remove the 'required' attribute as it's not a valid HTML attribute for buttons
+          // We'll handle the validation elsewhere
+          // required={required}
+          data-required={required ? "true" : "false"}
+          type="button" // Ensure it's a button type
         >
           {selectedOption ? (
             <div className="flex items-center gap-2">
@@ -215,7 +219,7 @@ const SearchableSelect = React.forwardRef<
           />
           <CommandEmpty>No country found.</CommandEmpty>
           <CommandGroup className="max-h-[250px] overflow-auto">
-            {filteredOptions.map((option) => (
+            {filteredOptions && filteredOptions.map((option) => (
               <CommandItem
                 key={option.value}
                 value={option.value}
