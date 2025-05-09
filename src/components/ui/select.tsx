@@ -1,9 +1,9 @@
+
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp, Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 const Select = SelectPrimitive.Root
@@ -212,7 +212,7 @@ const SearchableSelect = React.forwardRef<
                 setSearch("");
               }}
             >
-              <span>{option.flag}</span>
+              <span className="text-lg">{option.flag}</span>
               <span>{option.label}</span>
               {value === option.value && <Check className="ml-auto h-4 w-4 opacity-70" />}
             </div>
@@ -239,7 +239,7 @@ const SearchableSelect = React.forwardRef<
         >
           {selectedOption ? (
             <div className="flex items-center gap-2">
-              <span>{selectedOption.flag}</span>
+              <span className="text-lg">{selectedOption.flag}</span>
               <span>{selectedOption.label}</span>
             </div>
           ) : (
