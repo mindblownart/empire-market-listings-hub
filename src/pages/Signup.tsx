@@ -14,6 +14,7 @@ import { Progress } from '@/components/ui/progress';
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [passwordMessage, setPasswordMessage] = useState('');
@@ -75,6 +76,11 @@ const Signup = () => {
   // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  // Toggle confirm password visibility
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   // Determine password field border color
@@ -162,7 +168,31 @@ const Signup = () => {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input id="confirm-password" type="password" />
+                  <div className="relative">
+                    <Input 
+                      id="confirm-password" 
+                      type={showConfirmPassword ? "text" : "password"}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button 
+                              type="button" 
+                              onClick={toggleConfirmPasswordVisibility}
+                              className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                            >
+                              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{showConfirmPassword ? "Hide password" : "Show password"}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox id="terms" />
