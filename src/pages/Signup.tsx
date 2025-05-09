@@ -244,9 +244,9 @@ const Signup = () => {
           </CardContent>
           <CardFooter className="flex flex-col items-center">
             <div className="text-sm text-gray-500 mt-2">
-              Already have an account?{' '}
+              New to EmpireMarket?{' '}
               <Link to="/login" className="text-primary hover:text-primary-dark font-medium">
-                Sign in
+                Create account
               </Link>
             </div>
           </CardFooter>
