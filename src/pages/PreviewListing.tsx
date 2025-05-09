@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,7 +47,16 @@ const PreviewListing = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Removed Navbar component */}
+      {/* Logo header */}
+      <header className="py-4 px-6 border-b">
+        <div className="container mx-auto">
+          <Link to="/" className="inline-block">
+            <span className="text-2xl font-bold text-[#5B3DF5]">
+              EmpireMarket
+            </span>
+          </Link>
+        </div>
+      </header>
       
       <div className="py-10 px-4 flex-grow">
         <div className="container mx-auto max-w-4xl">
