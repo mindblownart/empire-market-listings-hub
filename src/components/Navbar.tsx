@@ -32,6 +32,9 @@ const Navbar = () => {
     window.scrollTo({ top: yCoordinate + yOffset, behavior: 'smooth' });
   };
 
+  // Check if we're on the signup page
+  const isSignupPage = location.pathname === '/signup';
+
   return (
     <nav 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -50,28 +53,32 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:space-x-8">
-            <HashLink 
-              smooth 
-              to="/#listings" 
-              scroll={scrollWithOffset}
-              className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}
-            >
-              Browse Listings
-            </HashLink>
-            <Link to="/submit" className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}>
-              Submit a Business
-            </Link>
-            <HashLink 
-              smooth 
-              to="/#how-it-works" 
-              scroll={scrollWithOffset}
-              className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}
-            >
-              How It Works
-            </HashLink>
-            <Link to="/pricing" className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}>
-              Pricing
-            </Link>
+            {!isSignupPage && (
+              <>
+                <HashLink 
+                  smooth 
+                  to="/#listings" 
+                  scroll={scrollWithOffset}
+                  className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}
+                >
+                  Browse Listings
+                </HashLink>
+                <Link to="/submit" className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}>
+                  Submit a Business
+                </Link>
+                <HashLink 
+                  smooth 
+                  to="/#how-it-works" 
+                  scroll={scrollWithOffset}
+                  className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}
+                >
+                  How It Works
+                </HashLink>
+                <Link to="/pricing" className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}>
+                  Pricing
+                </Link>
+              </>
+            )}
             <Link to="/login" className={`text-[#2F3542] hover:text-[#1a1f29] transition-colors`}>
               Login
             </Link>
@@ -106,30 +113,34 @@ const Navbar = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 bg-white p-4 rounded-lg shadow-lg">
             <div className="flex flex-col space-y-4">
-              <HashLink 
-                smooth 
-                to="/#listings" 
-                scroll={scrollWithOffset}
-                className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" 
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Browse Listings
-              </HashLink>
-              <Link to="/submit" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
-                Submit a Business
-              </Link>
-              <HashLink 
-                smooth 
-                to="/#how-it-works" 
-                scroll={scrollWithOffset}
-                className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" 
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                How It Works
-              </HashLink>
-              <Link to="/pricing" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
-                Pricing
-              </Link>
+              {!isSignupPage && (
+                <>
+                  <HashLink 
+                    smooth 
+                    to="/#listings" 
+                    scroll={scrollWithOffset}
+                    className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Browse Listings
+                  </HashLink>
+                  <Link to="/submit" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
+                    Submit a Business
+                  </Link>
+                  <HashLink 
+                    smooth 
+                    to="/#how-it-works" 
+                    scroll={scrollWithOffset}
+                    className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    How It Works
+                  </HashLink>
+                  <Link to="/pricing" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
+                    Pricing
+                  </Link>
+                </>
+              )}
               <Link to="/login" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
                 Login
               </Link>
