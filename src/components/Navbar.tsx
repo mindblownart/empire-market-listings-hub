@@ -32,8 +32,10 @@ const Navbar = () => {
     window.scrollTo({ top: yCoordinate + yOffset, behavior: 'smooth' });
   };
 
-  // Check if we're on the signup page
+  // Check if we're on the signup or login page
   const isSignupPage = location.pathname === '/signup';
+  const isLoginPage = location.pathname === '/login';
+  const isMinimalNavigation = isSignupPage || isLoginPage;
 
   return (
     <nav 
@@ -53,7 +55,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:space-x-8">
-            {!isSignupPage && (
+            {!isMinimalNavigation && (
               <>
                 <HashLink 
                   smooth 
@@ -113,7 +115,7 @@ const Navbar = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 bg-white p-4 rounded-lg shadow-lg">
             <div className="flex flex-col space-y-4">
-              {!isSignupPage && (
+              {!isMinimalNavigation && (
                 <>
                   <HashLink 
                     smooth 
