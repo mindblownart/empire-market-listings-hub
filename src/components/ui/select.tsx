@@ -157,7 +157,7 @@ type CountryOption = {
 const SearchableSelect = React.forwardRef<
   HTMLButtonElement,
   {
-    options: CountryOption[];
+    options?: CountryOption[];
     value: string;
     onValueChange: (value: string) => void;
     placeholder?: string;
@@ -220,24 +220,27 @@ const SearchableSelect = React.forwardRef<
             className="h-9 border-none focus:ring-0"
           />
           <CommandEmpty>No country found.</CommandEmpty>
-          <CommandGroup className="max-h-[250px] overflow-auto">
-            {filteredOptions.map((option) => (
-              <CommandItem
-                key={option.value}
-                value={option.value}
-                onSelect={() => {
-                  onValueChange(option.value);
-                  setOpen(false);
-                  setSearch("");
-                }}
-                className="flex items-center gap-2 py-1.5"
-              >
-                <span>{option.flag}</span>
-                <span>{option.label}</span>
-                {value === option.value && <Check className="ml-auto h-4 w-4 opacity-70" />}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          {/* Ensure CommandGroup never receives undefined or an empty array of children */}
+          {filteredOptions.length > 0 ? (
+            <CommandGroup className="max-h-[250px] overflow-auto">
+              {filteredOptions.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.value}
+                  onSelect={() => {
+                    onValueChange(option.value);
+                    setOpen(false);
+                    setSearch("");
+                  }}
+                  className="flex items-center gap-2 py-1.5"
+                >
+                  <span>{option.flag}</span>
+                  <span>{option.label}</span>
+                  {value === option.value && <Check className="ml-auto h-4 w-4 opacity-70" />}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ) : null}
         </Command>
       </PopoverContent>
     </Popover>
