@@ -1,14 +1,11 @@
 
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Login = () => {
@@ -20,11 +17,16 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Logo placement at top left */}
+      <div className="p-6">
+        <Link to="/" className="text-2xl font-bold text-primary">
+          EmpireMarket
+        </Link>
+      </div>
       
-      <div className="flex-1 flex items-center justify-center p-4 bg-gray-50">
-        <Card className="w-full max-w-md">
+      <div className="flex-1 flex flex-col items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-sm">
           <CardHeader>
             <CardTitle className="text-2xl">Welcome back</CardTitle>
             <CardDescription>Enter your credentials to access your account</CardDescription>
@@ -74,20 +76,47 @@ const Login = () => {
             </form>
           </CardContent>
           <CardFooter className="flex flex-col items-center">
-            <div className="text-sm text-gray-500 mt-2">
+            <div className="text-sm text-gray-500 mt-2 text-center">
               Don't have an account?{' '}
-              <Link to="/signup" className="text-primary hover:text-primary-dark font-medium">
-                Sign up
+              <Link to="/signup" className="text-primary font-medium hover:underline">
+                Create account
               </Link>
+            </div>
+            
+            {/* New to EmpireMarket section with Stripe-style background */}
+            <div className="w-full bg-[#f8f9fc] p-4 rounded-md border border-gray-100 mt-6">
+              <p className="text-center text-sm text-gray-600">
+                New to EmpireMarket?{" "}
+                <Link to="/signup" className="text-primary font-medium hover:underline">
+                  Create account
+                </Link>
+              </p>
             </div>
           </CardFooter>
         </Card>
+        
+        {/* Security notice with lock icon */}
+        <div className="w-full max-w-md px-4 mt-8 flex items-center justify-center">
+          <div className="flex items-center gap-2 text-center">
+            <Lock size={16} className="text-gray-400 flex-shrink-0" />
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Only install browser extensions from companies you trust. Malicious browser extensions can compromise your security by reading your passwords.
+            </p>
+          </div>
+        </div>
       </div>
       
-      <Footer />
+      {/* Updated footer with Stripe-style layout */}
+      <div className="p-6 border-t border-gray-100">
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-500">© EmpireMarket</span>
+          <Link to="/privacy" className="text-sm text-gray-500 hover:text-primary transition-colors">
+            Privacy & terms
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default Login;
-
