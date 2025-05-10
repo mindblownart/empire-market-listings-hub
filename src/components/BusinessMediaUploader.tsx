@@ -6,8 +6,6 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Upload, Image, Video, X, Move, Play, Link as LinkIcon } from 'lucide-react';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import VideoPreviewModal from './VideoPreviewModal';
 
 interface MediaFile extends File {
@@ -726,148 +724,146 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   }, [mediaItems]);
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="space-y-4">
-        {/* Upload Area */}
-        <div
-          className={`border-2 border-dashed rounded-md p-6 transition-colors min-h-[200px] ${
-            dragActive ? 'border-primary bg-primary/5' : 'border-gray-300'
-          }`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-        >
-          <div className="flex flex-col items-center justify-center space-y-4">
-            <div className="flex gap-3">
-              <Image className="text-gray-400" />
-              <Video className="text-gray-400" />
-            </div>
-            <p className="text-sm text-center text-gray-500">
-              Drag & drop images and video or <span className="text-primary font-medium">browse</span>
-            </p>
-            <div className="flex gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      type="button"
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Image className="mr-2 h-4 w-4" /> Select Images
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Select up to 10 images (JPG, PNG, WebP)</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      type="button"
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => videoInputRef.current?.click()}
-                    >
-                      <Video className="mr-2 h-4 w-4" /> Select Video
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Select one video (MP4, MOV, max 100MB)</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".jpg,.jpeg,.png,.webp"
-              onChange={handleFileSelect}
-              multiple
-              className="hidden"
-            />
-            
-            <input
-              ref={videoInputRef}
-              type="file"
-              accept=".mp4,.mov"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-            
-            <p className="text-xs text-gray-500 mt-1">
-              {organizedMediaItems.filter(item => item.type === 'image').length}/10 images uploaded
-            </p>
-            
-            <p className="text-xs text-gray-400 mt-1">
-              First image will be set as primary. Video will always appear second.
-            </p>
+    <div className="space-y-4">
+      {/* Upload Area */}
+      <div
+        className={`border-2 border-dashed rounded-md p-6 transition-colors min-h-[200px] ${
+          dragActive ? 'border-primary bg-primary/5' : 'border-gray-300'
+        }`}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+      >
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="flex gap-3">
+            <Image className="text-gray-400" />
+            <Video className="text-gray-400" />
           </div>
-        </div>
-        
-        {/* Upload progress */}
-        {uploadProgress > 0 && uploadProgress < 100 && (
-          <div className="mt-2">
-            <Progress value={uploadProgress} className="h-2" />
-            <p className="text-xs text-gray-500 mt-1">Uploading: {uploadProgress}%</p>
-          </div>
-        )}
-        
-        {/* Video URL input */}
-        <div className="space-y-2">
-          <Label htmlFor="video-url" className="text-sm">Or paste a YouTube/Vimeo URL:</Label>
+          <p className="text-sm text-center text-gray-500">
+            Drag & drop images and video or <span className="text-primary font-medium">browse</span>
+          </p>
           <div className="flex gap-2">
-            <input 
-              id="video-url" 
-              type="url" 
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="https://youtube.com/... or https://youtu.be/..." 
-              value={videoUrl}
-              onChange={handleVideoUrlChange}
-            />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Image className="mr-2 h-4 w-4" /> Select Images
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Select up to 10 images (JPG, PNG, WebP)</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => videoInputRef.current?.click()}
+                  >
+                    <Video className="mr-2 h-4 w-4" /> Select Video
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Select one video (MP4, MOV, max 100MB)</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp"
+            onChange={handleFileSelect}
+            multiple
+            className="hidden"
+          />
+          
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept=".mp4,.mov"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          
+          <p className="text-xs text-gray-500 mt-1">
+            {organizedMediaItems.filter(item => item.type === 'image').length}/10 images uploaded
+          </p>
+          
+          <p className="text-xs text-gray-400 mt-1">
+            First image will be set as primary. Video will always appear second.
+          </p>
+        </div>
+      </div>
+      
+      {/* Upload progress */}
+      {uploadProgress > 0 && uploadProgress < 100 && (
+        <div className="mt-2">
+          <Progress value={uploadProgress} className="h-2" />
+          <p className="text-xs text-gray-500 mt-1">Uploading: {uploadProgress}%</p>
+        </div>
+      )}
+      
+      {/* Video URL input */}
+      <div className="space-y-2">
+        <Label htmlFor="video-url" className="text-sm">Or paste a YouTube/Vimeo URL:</Label>
+        <div className="flex gap-2">
+          <input 
+            id="video-url" 
+            type="url" 
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="https://youtube.com/... or https://youtu.be/..." 
+            value={videoUrl}
+            onChange={handleVideoUrlChange}
+          />
+        </div>
+      </div>
+      
+      {/* Media Grid */}
+      {organizedMediaItems.length > 0 && (
+        <div className="mt-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            {organizedMediaItems.map((item, index) => (
+              <MediaItem 
+                key={item.id}
+                item={item}
+                index={index}
+                moveItem={moveItem}
+                onDelete={handleDelete}
+                onVideoPreview={handleVideoPreview}
+                isFixed={index === 0 || index === 1} // Primary image and video are fixed
+              />
+            ))}
           </div>
         </div>
-        
-        {/* Media Grid */}
-        {organizedMediaItems.length > 0 && (
-          <div className="mt-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-              {organizedMediaItems.map((item, index) => (
-                <MediaItem 
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  moveItem={moveItem}
-                  onDelete={handleDelete}
-                  onVideoPreview={handleVideoPreview}
-                  isFixed={index === 0 || index === 1} // Primary image and video are fixed
-                />
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Help text */}
-        <p className="text-xs text-gray-500 italic mt-4">
-          <span className="font-semibold">Tips:</span> For best results, use high-quality images (1200px+ width) and keep videos under 2 minutes.
-          You can drag and drop to reorder non-primary images. The primary image and video position cannot be changed.
-        </p>
+      )}
+      
+      {/* Help text */}
+      <p className="text-xs text-gray-500 italic mt-4">
+        <span className="font-semibold">Tips:</span> For best results, use high-quality images (1200px+ width) and keep videos under 2 minutes.
+        You can drag and drop to reorder non-primary images. The primary image and video position cannot be changed.
+      </p>
 
-        {/* Video Preview Modal */}
-        <VideoPreviewModal
-          isOpen={isVideoModalOpen}
-          onClose={() => setIsVideoModalOpen(false)}
-          embedUrl={currentVideoPreview?.embedUrl || ''}
-          platform={currentVideoPreview?.platform || null}
-        />
-      </div>
-    </DndProvider>
+      {/* Video Preview Modal */}
+      <VideoPreviewModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        embedUrl={currentVideoPreview?.embedUrl || ''}
+        platform={currentVideoPreview?.platform || null}
+      />
+    </div>
   );
 };
 

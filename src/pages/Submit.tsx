@@ -20,6 +20,8 @@ import { Eye } from 'lucide-react';
 import { useFormData } from '@/contexts/FormDataContext';
 import { toast } from "sonner";
 import { z } from "zod";
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 type CountryData = {
   name: string;
@@ -364,14 +366,16 @@ const Submit = () => {
               {/* Business Media Section */}
               <div className="pt-4 border-t border-gray-100">
                 <h2 className="text-xl font-semibold mb-4">Business Media</h2>
-                <BusinessMediaUploader 
-                  initialImages={formData.businessImages}
-                  initialVideo={formData.businessVideo}
-                  initialVideoUrl={formData.businessVideoUrl}
-                  onImagesChange={(images) => updateFormData({ businessImages: images })}
-                  onVideoChange={(video) => updateFormData({ businessVideo: video })}
-                  onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
-                />
+                <DndProvider backend={HTML5Backend}>
+                  <BusinessMediaUploader 
+                    initialImages={formData.businessImages}
+                    initialVideo={formData.businessVideo}
+                    initialVideoUrl={formData.businessVideoUrl}
+                    onImagesChange={(images) => updateFormData({ businessImages: images })}
+                    onVideoChange={(video) => updateFormData({ businessVideo: video })}
+                    onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
+                  />
+                </DndProvider>
               </div>
 
               <h2 className="text-xl font-semibold mb-4 pt-4 border-t border-gray-100">Contact Information</h2>
