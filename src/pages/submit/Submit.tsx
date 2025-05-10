@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -134,25 +133,26 @@ const Submit = () => {
         
         // Prepare business listing data with proper type conversions
         const businessData: Partial<BusinessListing> = {
-          user_id: session.user.id,
+          // No need to explicitly set user_id as it defaults to auth.uid() in the database
           business_name: formData.businessName,
           category: formData.industry,
           location: formData.location,
-          // Convert year_established from string to number or null
           year_established: formData.yearEstablished ? parseInt(formData.yearEstablished) : null,
-          employees: formData.employees,
+          employees: formData.employees || null,
           asking_price: formData.askingPrice,
           annual_revenue: formData.annualRevenue,
           annual_profit: formData.annualProfit,
           currency_code: formData.currencyCode || 'USD',
-          description: formData.description,
-          highlights: formData.highlights || [],
-          contact_name: formData.fullName,
-          contact_email: formData.email,
-          contact_phone: formData.phone,
-          contact_role: formData.role,
+          description: formData.description || null,
+          highlights: formData.highlights && formData.highlights.length > 0 ? formData.highlights : null,
+          contact_name: formData.fullName || null,
+          contact_email: formData.email || null,
+          contact_phone: formData.phone || null,
+          contact_role: formData.role || null,
           is_published: true,
-          is_new: true
+          is_new: true,
+          is_hot: false,
+          is_featured: false
         };
         
         // Handle image uploads if there are any
@@ -223,7 +223,7 @@ const Submit = () => {
           
         if (insertError) {
           console.error('Error inserting business listing:', insertError);
-          toast.error("There was an error submitting your business listing.");
+          toast.error(`Error: ${insertError.message || "There was an error submitting your business listing."}`);
         } else {
           toast.success("Business listing submitted successfully!");
           navigate(`/listing/${insertedBusiness.id}`);

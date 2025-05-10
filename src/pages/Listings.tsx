@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -109,16 +110,16 @@ const Listings = () => {
     const fetchBusinesses = async () => {
       setIsLoading(true);
       try {
-        // Query business_listings table - RLS will automatically filter results
-        // The policy allows viewing published listings OR own listings
+        // Query business_listings table
         const { data, error } = await supabase
           .from('business_listings')
-          .select('*');
+          .select('*')
+          .eq('is_published', true);
         
         if (error) {
           console.error('Error fetching business listings:', error);
           setBusinesses([]);
-        } else if (data) {
+        } else if (data && data.length > 0) {
           // Map the business listings to match the BusinessCard component props
           const mappedBusinesses = data.map(listing => ({
             id: listing.id,
@@ -135,6 +136,8 @@ const Listings = () => {
           }));
           
           setBusinesses(mappedBusinesses);
+        } else {
+          setBusinesses([]);
         }
       } catch (error) {
         console.error('Error fetching business listings:', error);

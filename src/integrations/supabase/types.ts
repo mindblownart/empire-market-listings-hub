@@ -9,6 +9,93 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      business_listings: {
+        Row: {
+          annual_profit: string
+          annual_revenue: string
+          asking_price: string
+          business_name: string
+          category: string
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          contact_role: string | null
+          created_at: string
+          currency_code: string
+          description: string | null
+          employees: string | null
+          gallery_images: string[] | null
+          highlights: string[] | null
+          id: string
+          is_featured: boolean
+          is_hot: boolean
+          is_new: boolean
+          is_published: boolean
+          location: string
+          primary_image_url: string | null
+          updated_at: string
+          user_id: string
+          video_url: string | null
+          year_established: number | null
+        }
+        Insert: {
+          annual_profit: string
+          annual_revenue: string
+          asking_price: string
+          business_name: string
+          category: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_role?: string | null
+          created_at?: string
+          currency_code?: string
+          description?: string | null
+          employees?: string | null
+          gallery_images?: string[] | null
+          highlights?: string[] | null
+          id?: string
+          is_featured?: boolean
+          is_hot?: boolean
+          is_new?: boolean
+          is_published?: boolean
+          location: string
+          primary_image_url?: string | null
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+          year_established?: number | null
+        }
+        Update: {
+          annual_profit?: string
+          annual_revenue?: string
+          asking_price?: string
+          business_name?: string
+          category?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_role?: string | null
+          created_at?: string
+          currency_code?: string
+          description?: string | null
+          employees?: string | null
+          gallery_images?: string[] | null
+          highlights?: string[] | null
+          id?: string
+          is_featured?: boolean
+          is_hot?: boolean
+          is_new?: boolean
+          is_published?: boolean
+          location?: string
+          primary_image_url?: string | null
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+          year_established?: number | null
+        }
+        Relationships: []
+      }
       empiremarket: {
         Row: {
           created_at: string

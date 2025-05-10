@@ -55,7 +55,7 @@ const Index = () => {
         if (error) {
           console.error('Error fetching business listings:', error);
           setBusinesses([]);
-        } else if (data) {
+        } else if (data && data.length > 0) {
           // Map the business listings to match the BusinessCard component props
           const mappedBusinesses = data.map(listing => ({
             id: listing.id,
@@ -72,6 +72,8 @@ const Index = () => {
           }));
           
           setBusinesses(mappedBusinesses);
+        } else {
+          setBusinesses([]);
         }
       } catch (error) {
         console.error('Error fetching business listings:', error);
