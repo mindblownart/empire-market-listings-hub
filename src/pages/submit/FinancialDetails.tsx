@@ -4,6 +4,13 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { BusinessFormData } from '@/contexts/FormDataContext';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 
 interface FinancialDetailsProps {
   formData: BusinessFormData;
@@ -30,28 +37,10 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({
     validateField(fieldName, value);
   };
   
-  // Handle number-only inputs like employees
-  const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    
-    if (name === 'employees' && value !== '') {
-      // Only allow numbers
-      const numericValue = value.replace(/\D/g, '');
-      updateFormData({ [name]: numericValue });
-      validateField(name, numericValue);
-      return;
-    }
-    
-    // For year established, only allow 4-digit year
-    if (name === 'yearEstablished' && value !== '') {
-      const numericValue = value.replace(/\D/g, '').slice(0, 4);
-      updateFormData({ [name]: numericValue });
-      validateField(name, numericValue);
-      return;
-    }
-    
-    updateFormData({ [name]: value });
-    validateField(name, value);
+  // Handle select changes
+  const handleSelectChange = (id: string, value: string) => {
+    updateFormData({ [id]: value });
+    validateField(id, value);
   };
 
   // Handle key press in fields to enable tabbing in the proper order
@@ -63,8 +52,41 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({
     }
   };
   
-  // Get current year for the year established max value
+  // Get current year for the year established dropdown
   const currentYear = new Date().getFullYear();
+  
+  // Generate years for dropdown (1980 to current year)
+  const years = [];
+  for (let year = currentYear; year >= 1980; year--) {
+    years.push(year.toString());
+  }
+  
+  // Generate employee count options
+  const generateEmployeeOptions = () => {
+    const options = [];
+    
+    // Individual numbers from 1-9
+    for (let i = 1; i <= 9; i++) {
+      options.push(i.toString());
+    }
+    
+    // Tens from 10-90
+    for (let i = 10; i <= 90; i += 10) {
+      options.push(i.toString());
+    }
+    
+    // Hundreds from 100-900
+    for (let i = 100; i <= 900; i += 100) {
+      options.push(i.toString());
+    }
+    
+    // Add 1000+
+    options.push("1000+");
+    
+    return options;
+  };
+  
+  const employeeOptions = generateEmployeeOptions();
   
   return (
     <div>
@@ -137,37 +159,50 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({
       <div className="grid gap-4 md:grid-cols-2 mt-4">
         <div className="space-y-2">
           <Label htmlFor="business-yearestablished">Year Established</Label>
-          <Input
-            id="business-yearestablished"
-            name="yearEstablished"
-            type="text"
-            inputMode="numeric"
+          <Select
             value={formData.yearEstablished}
-            onChange={handleTextInputChange}
-            onKeyDown={(e) => handleKeyDown(e, 'business-employees')}
-            placeholder="e.g. 2010"
-            maxLength={4}
-            className={validationErrors.yearEstablished ? "border-red-500 focus-visible:ring-red-500" : ""}
-            autoComplete="off"
-          />
+            onValueChange={(value) => handleSelectChange('yearEstablished', value)}
+          >
+            <SelectTrigger 
+              id="business-yearestablished" 
+              className={validationErrors.yearEstablished ? "border-red-500 focus-visible:ring-red-500" : ""}
+              onKeyDown={(e) => handleKeyDown(e, 'business-employees')}
+            >
+              <SelectValue placeholder="e.g. 2010" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[240px]">
+              {years.map((year) => (
+                <SelectItem key={year} value={year}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {validationErrors.yearEstablished && (
             <p className="text-sm font-medium text-red-500">{validationErrors.yearEstablished}</p>
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="business-employees">Number of Employees</Label>
-          <Input
-            id="business-employees"
-            name="employees"
-            type="text"
-            inputMode="numeric"
+          <Select
             value={formData.employees}
-            onChange={handleTextInputChange}
-            onKeyDown={(e) => handleKeyDown(e, 'description')}
-            placeholder="e.g. 25"
-            className={validationErrors.employees ? "border-red-500 focus-visible:ring-red-500" : ""}
-            autoComplete="off"
-          />
+            onValueChange={(value) => handleSelectChange('employees', value)}
+          >
+            <SelectTrigger 
+              id="business-employees" 
+              className={validationErrors.employees ? "border-red-500 focus-visible:ring-red-500" : ""}
+              onKeyDown={(e) => handleKeyDown(e, 'description')}
+            >
+              <SelectValue placeholder="e.g. 25" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[240px]">
+              {employeeOptions.map((count) => (
+                <SelectItem key={count} value={count}>
+                  {count}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {validationErrors.employees && (
             <p className="text-sm font-medium text-red-500">{validationErrors.employees}</p>
           )}

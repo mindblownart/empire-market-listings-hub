@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -41,17 +40,15 @@ const Submit = () => {
         }
         break;
       case 'yearEstablished':
-        if (value) {
-          const year = parseInt(value);
-          const currentYear = new Date().getFullYear();
-          if (!/^\d{4}$/.test(value) || year < 1800 || year > currentYear) {
-            error = `Please enter a valid year between 1800 and ${currentYear}`;
-          }
+        // For dropdown, we just check if it's selected
+        if (value === '') {
+          error = 'Please select a year';
         }
         break;
       case 'employees':
-        if (value && !/^\d+$/.test(value)) {
-          error = 'Please enter a valid number';
+        // For dropdown, we just check if it's selected
+        if (value === '') {
+          error = 'Please select employee count';
         }
         break; 
       case 'description':
