@@ -58,7 +58,12 @@ const ListingDetail = () => {
       </div>;
   }
 
-  // Use the first image from the gallery as the primary image if not explicitly set
+  // Media priority logic:
+  // 1. Use video as hero if available
+  // 2. Otherwise use explicit primaryImage if set
+  // 3. Otherwise use first gallery image
+  // 4. If no media at all, undefined will trigger fallback
+  const hasVideo = !!business.videoURL;
   const heroImage = business.primaryImage || (business.galleryImages.length > 0 ? business.galleryImages[0] : undefined);
 
   return (
