@@ -70,6 +70,23 @@ const BusinessDetails: React.FC<BusinessDetailsProps> = ({
   // Handle text input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
+    // For employees field, only allow numbers
+    if (name === 'employees' && value !== '') {
+      const numericValue = value.replace(/\D/g, '');
+      updateFormData({ [name]: numericValue });
+      validateField(name, numericValue);
+      return;
+    }
+
+    // For year established, only allow 4-digit year
+    if (name === 'yearEstablished' && value !== '') {
+      const numericValue = value.replace(/\D/g, '').slice(0, 4);
+      updateFormData({ [name]: numericValue });
+      validateField(name, numericValue);
+      return;
+    }
+    
     updateFormData({ [name]: value });
     validateField(name, value);
   };
@@ -138,7 +155,7 @@ const BusinessDetails: React.FC<BusinessDetailsProps> = ({
           )}
         </div>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 mt-4">
         <Label htmlFor="location">Location</Label>
         <SearchableSelect
           options={countryOptions}

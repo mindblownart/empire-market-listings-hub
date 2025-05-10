@@ -17,6 +17,8 @@ export type BusinessFormData = {
   email: string;
   phone: string;
   role: string;
+  yearEstablished: string;
+  employees: string;
   // Metadata for display
   locationName?: string;
   flagCode?: string;
@@ -51,6 +53,8 @@ const initialFormData: BusinessFormData = {
   email: '',
   phone: '',
   role: '',
+  yearEstablished: '',
+  employees: '',
   locationName: 'United States',
   flagCode: 'us',
   currencyCode: 'USD',

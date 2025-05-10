@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,20 @@ const Submit = () => {
           error = 'Please enter a valid number (e.g., 1000 or 1000.50)';
         }
         break;
+      case 'yearEstablished':
+        if (value) {
+          const year = parseInt(value);
+          const currentYear = new Date().getFullYear();
+          if (!/^\d{4}$/.test(value) || year < 1800 || year > currentYear) {
+            error = `Please enter a valid year between 1800 and ${currentYear}`;
+          }
+        }
+        break;
+      case 'employees':
+        if (value && !/^\d+$/.test(value)) {
+          error = 'Please enter a valid number';
+        }
+        break; 
       case 'description':
         if (value && value.trim().length < 10) {
           error = 'Description must be at least 10 characters long';
@@ -65,7 +80,9 @@ const Submit = () => {
       { name: 'askingPrice', value: formData.askingPrice },
       { name: 'annualRevenue', value: formData.annualRevenue },
       { name: 'annualProfit', value: formData.annualProfit },
-      { name: 'description', value: formData.description }
+      { name: 'description', value: formData.description },
+      { name: 'yearEstablished', value: formData.yearEstablished },
+      { name: 'employees', value: formData.employees }
     ];
     
     let isValid = true;
@@ -102,6 +119,13 @@ const Submit = () => {
   // Handle preview click
   const handlePreview = (e: React.MouseEvent) => {
     e.preventDefault();
+    
+    // We'll allow preview without validation
+    // but let's show a toast if there are major issues
+    if (!formData.businessName || !formData.industry || !formData.location) {
+      toast.warning("Your preview is missing important information. Consider adding more details.");
+    }
+    
     navigate('/preview-listing');
   };
 
