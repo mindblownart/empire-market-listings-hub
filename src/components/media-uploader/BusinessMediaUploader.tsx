@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { X } from 'lucide-react';
@@ -27,7 +26,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   const [videoUrl, setVideoUrl] = useState<string>(initialVideoUrl || '');
   const [existingImages, setExistingImages] = useState<string[]>(galleryImages || []);
   
-  // Initialize images from props
+  // Initialize images from props with improved ID handling
   useEffect(() => {
     if (Array.isArray(initialImages) && initialImages.length > 0) {
       // Filter out anything that's not a File and add IDs
@@ -35,7 +34,8 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
         .filter(img => img instanceof File)
         .map(file => {
           const mediaFile = file as MediaFile;
-          mediaFile.id = mediaFile.id || `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          // Ensure unique IDs for all media files
+          mediaFile.id = mediaFile.id || `img-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
           return mediaFile;
         });
       setImages(fileImages);
@@ -105,10 +105,21 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     }
   };
 
-  // Handle reordering of existing images
+  // Handle reordering of existing images with improved position tracking
   const handleReorderExistingImages = (reorderedImages: string[]) => {
     setExistingImages(reorderedImages);
-    // The parent component will need to update the order on save
+    
+    // If onSetPrimaryImage is provided, update the primary image index
+    // since reordering might have changed which image is primary
+    if (onSetPrimaryImage && reorderedImages.length > 0) {
+      // The first image in the reordered array becomes primary
+      const primaryImageUrl = reorderedImages[0];
+      const originalIndex = galleryImages.findIndex(url => url === primaryImageUrl);
+      
+      if (originalIndex !== -1) {
+        onSetPrimaryImage(originalIndex);
+      }
+    }
   };
 
   return (
@@ -119,10 +130,23 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
         existingVideoUrl={videoUrl}
         primaryImageIndex={0}
         onImagesChange={(newImages) => {
-          setImages(newImages);
-          if (onImagesChange) onImagesChange(newImages);
+          // Ensure all new images have unique IDs
+          const uniqueImages = newImages.map(img => {
+            if (!img.id) {
+              (img as MediaFile).id = `img-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            }
+            return img;
+          });
+          
+          setImages(uniqueImages);
+          if (onImagesChange) onImagesChange(uniqueImages);
         }}
         onVideoChange={(newVideo) => {
+          // Ensure video has a unique ID
+          if (newVideo && !newVideo.id) {
+            (newVideo as MediaFile).id = `video-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+          }
+          
           setVideo(newVideo);
           if (onVideoChange) onVideoChange(newVideo);
           

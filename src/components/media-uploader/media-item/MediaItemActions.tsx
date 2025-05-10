@@ -27,7 +27,7 @@ const MediaItemActions: React.FC<MediaItemActionsProps> = ({
     <>
       {/* Move handle only for draggable items */}
       {!isFixed && !isEmpty && type === 'image' && (
-        <div className="absolute top-2 right-10 bg-black/60 hover:bg-black/80 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-10">
+        <div className="absolute top-2 right-10 bg-black/60 hover:bg-black/80 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-20">
           <Move className="h-3.5 w-3.5 text-white" />
         </div>
       )}
@@ -36,7 +36,7 @@ const MediaItemActions: React.FC<MediaItemActionsProps> = ({
       {showDeleteButton && (
         <button
           onClick={onDelete}
-          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
           aria-label="Delete"
         >
           <X className="h-3.5 w-3.5 text-white" />

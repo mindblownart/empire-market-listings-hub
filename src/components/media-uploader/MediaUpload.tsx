@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -62,7 +61,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     }
   }, []);
   
-  // Process files when dropped or selected
+  // Process files when dropped or selected with improved deduplication
   const processFiles = useCallback((files: FileList) => {
     const imageFiles: MediaFile[] = [];
     let videoFile: MediaFile | null = null;
@@ -71,10 +70,23 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     const availableSlots = MAX_IMAGES - existingImagesCount - newImagesCount;
     let videoSlotAvailable = !hasVideo;
     
-    // Process all files
+    // Process all files with duplicate prevention
     Array.from(files).forEach(file => {
       // Process images
       if (ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        // Check for duplicates by comparing file names and sizes
+        const isDuplicate = newImages.some(existingFile => 
+          existingFile.name === file.name && 
+          existingFile.size === file.size
+        );
+        
+        if (isDuplicate) {
+          toast.warning(`Duplicate image: ${file.name}`, {
+            description: 'This image appears to already be in your gallery'
+          });
+          return;
+        }
+        
         // Check if we still have room for images
         if (imageFiles.length < availableSlots) {
           // Check file size
@@ -97,6 +109,14 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       else if (ACCEPTED_VIDEO_TYPES.includes(file.type)) {
         // Check if we already have a video
         if (videoSlotAvailable) {
+          // Check for duplicate video by name and size
+          if (newVideo && newVideo.name === file.name && newVideo.size === file.size) {
+            toast.warning(`Duplicate video: ${file.name}`, {
+              description: 'This video appears to already be uploaded'
+            });
+            return;
+          }
+          
           // Check file size
           if (file.size <= MAX_VIDEO_SIZE) {
             const mediaFile = file as MediaFile;
