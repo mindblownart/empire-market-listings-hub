@@ -143,7 +143,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
         isFixed={isFixed}
         isPrimary={!!item.isPrimary}
         type={item.type}
-        onSetPrimary={onSetPrimary}
+        onSetPrimary={onSetPrimary ? () => onSetPrimary(item.id) : undefined}
         onDelete={handleDelete}
         showSetPrimaryButton={false}
         showDeleteButton={showDeleteButton}
