@@ -27,6 +27,7 @@ const EditListing = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [originalListing, setOriginalListing] = useState<any>(null);
 
   // Fetch the listing data
   const fetchListing = async () => {
@@ -82,6 +83,9 @@ const EditListing = () => {
         navigate('/listings');
         return;
       }
+
+      // Store the original listing for reference
+      setOriginalListing(listing);
 
       // Store image URLs separately
       if (listing.gallery_images && Array.isArray(listing.gallery_images)) {
@@ -203,6 +207,20 @@ const EditListing = () => {
     fetchListing();
   };
 
+  // Handle preview click - this function will be passed to FormContainer
+  const handlePreview = () => {
+    // Store the current listing ID in localStorage so the preview page knows which listing we're editing
+    if (id) {
+      localStorage.setItem('editingListingId', id);
+      
+      // Also store image URLs since they're not in formData
+      localStorage.setItem('editingListingImages', JSON.stringify(imageUrls));
+    }
+    
+    // Navigate to preview
+    navigate('/preview-listing');
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -273,6 +291,7 @@ const EditListing = () => {
                 onSubmit={handleSubmit}
                 submitLabel={isSaving ? "Saving..." : "Save Changes"}
                 isSubmitting={isSaving}
+                onPreview={handlePreview}
               >
                 <BusinessDetails 
                   formData={formData}

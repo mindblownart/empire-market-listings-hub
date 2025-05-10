@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -8,20 +9,58 @@ import { MediaGallery } from '@/components/preview/MediaGallery';
 import { BusinessOverview } from '@/components/preview/BusinessOverview';
 import { ContactInformation } from '@/components/preview/ContactInformation';
 import { BusinessDetails } from '@/components/preview/BusinessDetails';
+import { Loader2 } from 'lucide-react';
 
 const PreviewListing = () => {
   const { formData } = useFormData();
   const navigate = useNavigate();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editListingId, setEditListingId] = useState<string | null>(null);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Check if we're editing an existing listing or creating a new one
+  useEffect(() => {
+    const storedListingId = localStorage.getItem('editingListingId');
+    if (storedListingId) {
+      setIsEditing(true);
+      setEditListingId(storedListingId);
+      
+      // Get stored image URLs if any
+      const storedImagesStr = localStorage.getItem('editingListingImages');
+      if (storedImagesStr) {
+        try {
+          const storedImages = JSON.parse(storedImagesStr);
+          if (Array.isArray(storedImages)) {
+            setGalleryImages(storedImages);
+          }
+        } catch (error) {
+          console.error('Error parsing stored images:', error);
+        }
+      }
+    }
+    setIsInitialized(true);
+  }, []);
   
   // Handle back button
   const handleBack = () => {
-    navigate('/submit');
+    if (isEditing && editListingId) {
+      navigate(`/edit-listing/${editListingId}`);
+    } else {
+      navigate('/submit');
+    }
   };
   
-  // Convert File objects to URLs for preview
+  // Convert File objects to URLs for preview (only for new listings)
   const imageURLs = React.useMemo(() => {
-    return formData.businessImages.map(file => URL.createObjectURL(file));
-  }, [formData.businessImages]);
+    if (isEditing) {
+      // Use the stored gallery images when editing
+      return galleryImages;
+    } else {
+      // For new listings, convert Files to URLs
+      return formData.businessImages.map(file => URL.createObjectURL(file));
+    }
+  }, [formData.businessImages, isEditing, galleryImages]);
   
   // Create video URL if video exists
   const videoURL = React.useMemo(() => {
@@ -32,17 +71,41 @@ const PreviewListing = () => {
   }, [formData.businessVideo, formData.businessVideoUrl]);
   
   // Clean up URLs when component unmounts
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
-      imageURLs.forEach(URL.revokeObjectURL);
-      if (videoURL && formData.businessVideo) URL.revokeObjectURL(videoURL);
+      // Only revoke object URLs that we created for File objects
+      if (!isEditing) {
+        imageURLs.forEach(url => {
+          if (url.startsWith('blob:')) {
+            URL.revokeObjectURL(url);
+          }
+        });
+      }
+      
+      if (videoURL && formData.businessVideo && videoURL.startsWith('blob:')) {
+        URL.revokeObjectURL(videoURL);
+      }
+      
+      // Clear stored editing data
+      localStorage.removeItem('editingListingId');
+      localStorage.removeItem('editingListingImages');
     };
-  }, [imageURLs, videoURL, formData.businessVideo]);
+  }, [imageURLs, videoURL, formData.businessVideo, isEditing]);
 
-  // Let's now simply pass the highlights directly from the form data instead of processing description
+  // Use the highlights directly from form data
   const highlights = formData.highlights || [];
   const primaryImage = imageURLs.length > 0 ? imageURLs[0] : '';
-  const galleryImages = imageURLs;
+
+  // Show loading state until we determine if we're editing or creating
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="flex-grow flex items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin" />
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -76,7 +139,7 @@ const PreviewListing = () => {
             <div className="lg:col-span-2 space-y-6">
               {/* Media Gallery exactly aligned with Business Overview */}
               <MediaGallery 
-                galleryImages={galleryImages} 
+                galleryImages={imageURLs} 
                 videoURL={videoURL} 
                 autoplayVideo={true} 
               />
@@ -110,7 +173,7 @@ const PreviewListing = () => {
           {/* Submit Buttons */}
           <div className="flex justify-end space-x-4 pt-6 mt-6">
             <Button variant="outline" onClick={handleBack}>
-              Back to Edit
+              {isEditing ? "Back to Edit" : "Back to Form"}
             </Button>
           </div>
         </div>

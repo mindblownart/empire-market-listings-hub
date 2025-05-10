@@ -12,13 +12,15 @@ interface FormContainerProps {
   onSubmit?: () => Promise<void>;
   submitLabel?: string;
   isSubmitting?: boolean;
+  onPreview?: () => void; // New prop for custom preview handling
 }
 
 const FormContainer: React.FC<FormContainerProps> = ({ 
   children, 
   onSubmit,
   submitLabel,
-  isSubmitting
+  isSubmitting,
+  onPreview
 }) => {
   const navigate = useNavigate();
   const { formData } = useFormData();
@@ -43,7 +45,12 @@ const FormContainer: React.FC<FormContainerProps> = ({
       toast.warning("Your preview is missing important information. Consider adding more details.");
     }
     
-    navigate('/preview-listing');
+    // Use custom preview handler if provided, otherwise use default behavior
+    if (onPreview) {
+      onPreview();
+    } else {
+      navigate('/preview-listing');
+    }
   };
 
   return (
