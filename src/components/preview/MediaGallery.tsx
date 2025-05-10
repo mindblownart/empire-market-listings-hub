@@ -2,14 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MediaGalleryProps {
@@ -35,6 +28,15 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       videoRef.current.muted = !videoRef.current.muted;
       setIsMuted(!isMuted);
     }
+  };
+  
+  // Navigation handlers
+  const goToPrevious = () => {
+    setActiveIndex(prev => (prev === 0 ? allMedia.length - 1 : prev - 1));
+  };
+  
+  const goToNext = () => {
+    setActiveIndex(prev => (prev === allMedia.length - 1 ? 0 : prev + 1));
   };
   
   // Set up autoplay when component mounts
@@ -134,17 +136,17 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                 variant="outline" 
                 size="icon" 
                 className="h-8 w-8 rounded-full"
-                onClick={() => setActiveIndex(prev => (prev === 0 ? allMedia.length - 1 : prev - 1))}
+                onClick={goToPrevious}
               >
-                <CarouselPrevious className="static transform-none h-4 w-4" />
+                <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button 
                 variant="outline" 
                 size="icon" 
                 className="h-8 w-8 rounded-full"
-                onClick={() => setActiveIndex(prev => (prev === allMedia.length - 1 ? 0 : prev + 1))}
+                onClick={goToNext}
               >
-                <CarouselNext className="static transform-none h-4 w-4" />
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           )}
