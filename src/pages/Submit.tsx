@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import {
 import { CurrencyInput } from '@/components/ui/currency-input';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import BusinessMediaUploader from '@/components/BusinessMediaUploader';
+import BusinessMediaUploader from '@/components/media-uploader';
 import { Eye } from 'lucide-react';
 import { useFormData } from '@/contexts/FormDataContext';
 import { toast } from "sonner";
