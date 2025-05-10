@@ -38,6 +38,10 @@ interface ListingData {
   video_url?: string;
   primary_image_index?: number;
   user_id: string;
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+  status?: string;
   [key: string]: any; // For any other properties we might encounter
 }
 

@@ -6,7 +6,7 @@ import { Upload, X, Info } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { MediaGallery } from './MediaGallery';
+import MediaGallery from './MediaGallery'; // Fixed import statement
 import { MediaItemType, MediaFile } from './types';
 import { extractVideoInfo } from './video-utils';
 
