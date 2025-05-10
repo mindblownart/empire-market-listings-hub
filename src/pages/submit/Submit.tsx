@@ -1,0 +1,191 @@
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Eye } from 'lucide-react';
+import { toast } from "sonner";
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import BusinessMediaUploader from '@/components/media-uploader';
+import { useFormData } from '@/contexts/FormDataContext';
+import BusinessDetails from './BusinessDetails';
+import FinancialDetails from './FinancialDetails';
+import BusinessDescription from './BusinessDescription';
+import ContactInformation from './ContactInformation';
+
+const Submit = () => {
+  const navigate = useNavigate();
+  const { formData, updateFormData } = useFormData();
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  
+  // Validate a single field
+  const validateField = (field: string, value: any) => {
+    let error = '';
+    
+    switch (field) {
+      case 'businessName':
+        if (!value.trim()) error = 'Business name is required';
+        break;
+      case 'industry':
+        if (!value) error = 'Industry is required';
+        break;
+      case 'location':
+        if (!value) error = 'Location is required';
+        break;
+      case 'askingPrice':
+      case 'annualRevenue':
+      case 'annualProfit':
+        if (value && !/^[0-9]+(\.[0-9]{1,2})?$/.test(value)) {
+          error = 'Please enter a valid number (e.g., 1000 or 1000.50)';
+        }
+        break;
+      case 'description':
+        if (value && value.trim().length < 10) {
+          error = 'Description must be at least 10 characters long';
+        }
+        break;
+      default:
+        break;
+    }
+    
+    setValidationErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
+    
+    return !error;
+  };
+
+  // Validate all fields before submission
+  const validateAllFields = () => {
+    const fields = [
+      { name: 'businessName', value: formData.businessName },
+      { name: 'industry', value: formData.industry },
+      { name: 'location', value: formData.location },
+      { name: 'askingPrice', value: formData.askingPrice },
+      { name: 'annualRevenue', value: formData.annualRevenue },
+      { name: 'annualProfit', value: formData.annualProfit },
+      { name: 'description', value: formData.description }
+    ];
+    
+    let isValid = true;
+    
+    fields.forEach(field => {
+      if (!validateField(field.name, field.value)) {
+        isValid = false;
+      }
+    });
+    
+    return isValid;
+  };
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (validateAllFields()) {
+      toast.success("Business listing submitted successfully!");
+      navigate('/');
+    } else {
+      toast.error("Please fix the errors in the form before submitting.");
+      // Focus on the first field with an error
+      const firstErrorField = Object.keys(validationErrors).find(
+        field => validationErrors[field]
+      );
+      if (firstErrorField) {
+        const element = document.getElementById(`business-${firstErrorField}`);
+        if (element) element.focus();
+      }
+    }
+  };
+
+  // Handle preview click
+  const handlePreview = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate('/preview-listing');
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      
+      <div className="py-20 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <h1 className="text-3xl font-bold mb-6 text-center">Submit Your Business</h1>
+          <p className="text-gray-600 mb-10 text-center max-w-2xl mx-auto">
+            List your business on EmpireMarket to reach qualified buyers and simplify your business sale journey.
+          </p>
+          
+          <div className="bg-white rounded-xl shadow-md p-8">
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <BusinessDetails 
+                formData={formData}
+                updateFormData={updateFormData}
+                validationErrors={validationErrors}
+                validateField={validateField}
+              />
+
+              <FinancialDetails 
+                formData={formData}
+                updateFormData={updateFormData}
+                validationErrors={validationErrors}
+                validateField={validateField}
+              />
+
+              <BusinessDescription 
+                formData={formData}
+                updateFormData={updateFormData}
+                validationErrors={validationErrors}
+                validateField={validateField}
+              />
+
+              {/* Business Media Section */}
+              <div className="pt-4 border-t border-gray-100">
+                <h2 className="text-xl font-semibold mb-4">Business Media</h2>
+                <DndProvider backend={HTML5Backend}>
+                  <BusinessMediaUploader 
+                    initialImages={formData.businessImages}
+                    initialVideo={formData.businessVideo}
+                    initialVideoUrl={formData.businessVideoUrl}
+                    onImagesChange={(images) => updateFormData({ businessImages: images })}
+                    onVideoChange={(video) => updateFormData({ businessVideo: video })}
+                    onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
+                  />
+                </DndProvider>
+              </div>
+
+              <ContactInformation 
+                formData={formData}
+                updateFormData={updateFormData}
+              />
+
+              <div className="pt-4 flex justify-center gap-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="px-10 py-6 text-lg flex items-center gap-2 transition-all hover:bg-gray-100" 
+                  onClick={handlePreview}
+                >
+                  <Eye className="h-5 w-5" /> Preview
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-primary hover:bg-primary-light px-10 py-6 text-lg transition-all focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                >
+                  Submit Business Listing
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default Submit;
