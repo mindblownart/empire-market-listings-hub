@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,108 +10,9 @@ import { Link } from 'react-router-dom';
 import BusinessCard from '@/components/BusinessCard';
 import Navbar from '@/components/Navbar';
 import HomeFooter from '@/components/HomeFooter';
+import { supabase } from '@/lib/supabase';
 
-// Sample business data, in a real app this would come from an API
-const sampleBusinesses = [{
-  id: '1',
-  title: 'Premium Coffee Shop Chain',
-  price: '$450,000',
-  description: 'Established specialty coffee shop chain with 3 prime locations in central business district. Strong brand presence and loyal customer base.',
-  category: 'Food & Beverage',
-  location: 'Singapore',
-  revenue: '$780K/year',
-  imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  isNew: true,
-  isHot: false
-}, {
-  id: '2',
-  title: 'E-commerce Fashion Retailer',
-  price: '$1,200,000',
-  description: 'Profitable online fashion business with international shipping capabilities. Premium brand identity and established supplier relationships.',
-  category: 'Retail',
-  location: 'Global',
-  revenue: '$2.4M/year',
-  imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  isNew: false,
-  isHot: true
-}, {
-  id: '3',
-  title: 'Modern Fitness Studio',
-  price: '$350,000',
-  description: 'Boutique fitness studio in upscale neighborhood with recurring membership model. Full suite of premium equipment and established clientele.',
-  category: 'Fitness',
-  location: 'Singapore',
-  revenue: '$520K/year',
-  imageUrl: 'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  isNew: true,
-  isHot: false
-}, {
-  id: '4',
-  title: 'Technology Consulting Agency',
-  price: '$800,000',
-  description: 'B2B technology consulting firm with long-term enterprise clients. Specializes in digital transformation and cloud migration services.',
-  category: 'Technology',
-  location: 'Singapore',
-  revenue: '$1.3M/year',
-  imageUrl: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  isNew: false,
-  isHot: false
-}, {
-  id: '5',
-  title: 'Manufacturing & Distribution',
-  price: '$1,800,000',
-  description: 'Established manufacturing business with proprietary product line and distribution networks across Southeast Asia.',
-  category: 'Manufacturing',
-  location: 'Regional',
-  revenue: '$3.2M/year',
-  imageUrl: 'https://images.unsplash.com/photo-1588964895597-cfccd6e2dbf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  isNew: false,
-  isHot: true
-}, {
-  id: '6',
-  title: 'Luxury Travel Agency',
-  price: '$650,000',
-  description: 'Premium travel agency specializing in luxury experiences for high-net-worth individuals. Strong industry relationships and high profit margins.',
-  category: 'Travel',
-  location: 'Global',
-  revenue: '$1.8M/year',
-  imageUrl: 'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  isNew: false,
-  isHot: false
-}, {
-  id: '7',
-  title: 'IT Support Services',
-  price: '$550,000',
-  description: 'Established IT support company with recurring contracts in the financial sector. High-margin business with stable client base.',
-  category: 'Technology',
-  location: 'Singapore',
-  revenue: '$910K/year',
-  imageUrl: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  isNew: true,
-  isHot: false
-}, {
-  id: '8',
-  title: 'Restaurant With Outdoor Seating',
-  price: '$380,000',
-  description: 'Popular restaurant located in tourist district with beautiful outdoor dining area. Strong weekend revenue and positive online reviews.',
-  category: 'Food & Beverage',
-  location: 'Singapore',
-  revenue: '$620K/year',
-  imageUrl: 'https://images.unsplash.com/photo-1555992336-fb0d29498b13?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  isNew: false,
-  isHot: false
-}, {
-  id: '9',
-  title: 'Beauty & Wellness Spa',
-  price: '$250,000',
-  description: 'Successful wellness spa in upscale shopping district offering luxury treatments and products. Dedicated client base with high retention rate.',
-  category: 'Health & Wellness',
-  location: 'Singapore',
-  revenue: '$480K/year',
-  imageUrl: 'https://images.unsplash.com/photo-1519823551278-64ac92734fb1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  isNew: false,
-  isHot: true
-}];
+// Categories and locations for filtering
 const categories = [{
   value: 'all',
   label: 'All Categories'
@@ -139,6 +41,7 @@ const categories = [{
   value: 'fitness',
   label: 'Fitness'
 }];
+
 const locations = [{
   value: 'all',
   label: 'All Locations'
@@ -152,6 +55,7 @@ const locations = [{
   value: 'regional',
   label: 'Regional'
 }];
+
 const sortOptions = [{
   value: 'newest',
   label: 'Newest'
@@ -165,6 +69,7 @@ const sortOptions = [{
   value: 'revenue-high',
   label: 'Revenue High to Low'
 }];
+
 const Listings = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('all');
@@ -172,10 +77,42 @@ const Listings = () => {
   const [priceRange, setPriceRange] = useState([0, 2000000]);
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredBusinesses, setFilteredBusinesses] = useState(sampleBusinesses);
+  const [businesses, setBusinesses] = useState([]);
+  const [filteredBusinesses, setFilteredBusinesses] = useState([]);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const itemsPerPage = 9;
   const maxPrice = 2000000;
+
+  // Fetch businesses from Supabase
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      setIsLoading(true);
+      try {
+        // In a real implementation, this would fetch from a "businesses" table
+        // For this example, we're just checking if the 'empiremarket' table exists
+        const { data, error } = await supabase
+          .from('empiremarket')
+          .select('*');
+        
+        if (error) {
+          console.error('Error fetching businesses:', error);
+          setBusinesses([]);
+        } else {
+          // The actual business data would come from a proper business table
+          // For now, we're just checking if any data exists in the database
+          setBusinesses(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching businesses:', error);
+        setBusinesses([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBusinesses();
+  }, []);
 
   // Format price display for the slider
   const formatPriceDisplay = (price: number) => {
@@ -184,25 +121,33 @@ const Listings = () => {
 
   // Apply filters and sorting
   useEffect(() => {
-    let results = [...sampleBusinesses];
+    let results = [...businesses];
 
     // Filter by search term
     if (searchTerm) {
-      results = results.filter(business => business.title.toLowerCase().includes(searchTerm.toLowerCase()) || business.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      results = results.filter(business => 
+        business.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        business.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
     // Filter by category
     if (category !== 'all') {
-      results = results.filter(business => business.category.toLowerCase().includes(category.toLowerCase()));
+      results = results.filter(business => 
+        business.category?.toLowerCase().includes(category.toLowerCase())
+      );
     }
 
     // Filter by location
     if (location !== 'all') {
-      results = results.filter(business => business.location.toLowerCase().includes(location.toLowerCase()));
+      results = results.filter(business => 
+        business.location?.toLowerCase().includes(location.toLowerCase())
+      );
     }
 
     // Filter by price range
     results = results.filter(business => {
+      if (!business.price) return true;
       const businessPrice = parseInt(business.price.replace(/[^0-9]/g, ''));
       return businessPrice >= priceRange[0] && businessPrice <= priceRange[1];
     });
@@ -213,15 +158,23 @@ const Listings = () => {
         // In a real app, would sort by date created
         break;
       case 'price-high':
-        results.sort((a, b) => parseInt(b.price.replace(/[^0-9]/g, '')) - parseInt(a.price.replace(/[^0-9]/g, '')));
+        results.sort((a, b) => {
+          const priceA = a.price ? parseInt(a.price.replace(/[^0-9]/g, '')) : 0;
+          const priceB = b.price ? parseInt(b.price.replace(/[^0-9]/g, '')) : 0;
+          return priceB - priceA;
+        });
         break;
       case 'price-low':
-        results.sort((a, b) => parseInt(a.price.replace(/[^0-9]/g, '')) - parseInt(b.price.replace(/[^0-9]/g, '')));
+        results.sort((a, b) => {
+          const priceA = a.price ? parseInt(a.price.replace(/[^0-9]/g, '')) : 0;
+          const priceB = b.price ? parseInt(b.price.replace(/[^0-9]/g, '')) : 0;
+          return priceA - priceB;
+        });
         break;
       case 'revenue-high':
         results.sort((a, b) => {
-          const revenueA = parseInt(a.revenue.replace(/[^0-9]/g, ''));
-          const revenueB = parseInt(b.revenue.replace(/[^0-9]/g, ''));
+          const revenueA = a.revenue ? parseInt(a.revenue.replace(/[^0-9]/g, '')) : 0;
+          const revenueB = b.revenue ? parseInt(b.revenue.replace(/[^0-9]/g, '')) : 0;
           return revenueB - revenueA;
         });
         break;
@@ -230,7 +183,7 @@ const Listings = () => {
     }
     setFilteredBusinesses(results);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [searchTerm, category, location, priceRange, sortBy]);
+  }, [searchTerm, category, location, priceRange, sortBy, businesses]);
 
   // Get current page items
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -300,12 +253,13 @@ const Listings = () => {
     }
     return items;
   };
+  
   const toggleFilters = () => {
     setIsFilterVisible(!isFilterVisible);
   };
 
   // Check if there are any listings available
-  const hasListings = sampleBusinesses.length > 0;
+  const hasListings = businesses.length > 0;
 
   return <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -318,7 +272,7 @@ const Listings = () => {
             <p className="text-gray-600 mb-8">Browse our curated selection of high-potential businesses for sale.</p>
             
             {/* Only show search and filters if we have listings */}
-            {hasListings && (
+            {hasListings && !isLoading && (
               <div className="bg-white mb-10">
                 <div className="p-4 flex flex-wrap items-center gap-4 px-0">
                   <div className="relative w-full md:w-auto flex-grow">
@@ -385,48 +339,57 @@ const Listings = () => {
               </div>
             )}
 
-            {/* Empty state when no listings are available */}
-            {!hasListings ? (
-              <div className="text-center py-20 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
-                <h3 className="text-xl font-medium text-gray-900 mb-4">No listings yet. Be the first to submit your business!</h3>
-                <p className="text-gray-600 mb-6 max-w-lg mx-auto">
-                  Our marketplace is ready for your business listing. Submit your business details to find the right buyer.
-                </p>
-                <Button asChild className="px-6 py-6 text-lg">
-                  <Link to="/submit">Submit a Business</Link>
-                </Button>
+            {/* Loading state */}
+            {isLoading ? (
+              <div className="text-center py-20">
+                <p className="text-gray-600">Loading listings...</p>
               </div>
             ) : (
               <>
-                {/* Listings Grid */}
-                {currentItems.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {currentItems.map(business => <BusinessCard key={business.id} {...business} />)}
+                {/* Empty state when no listings are available */}
+                {!hasListings ? (
+                  <div className="text-center py-20 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+                    <h3 className="text-xl font-medium text-gray-900 mb-4">No listings yet. Be the first to submit your business!</h3>
+                    <p className="text-gray-600 mb-6 max-w-lg mx-auto">
+                      Our marketplace is ready for your business listing. Submit your business details to find the right buyer.
+                    </p>
+                    <Button asChild className="px-6 py-6 text-lg">
+                      <Link to="/submit">Submit a Business</Link>
+                    </Button>
                   </div>
                 ) : (
-                  <div className="text-center py-16 bg-gray-50 rounded-lg">
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No listings found</h3>
-                    <p className="text-gray-600">
-                      No listings match your search. Try adjusting filters or check back later.
-                    </p>
-                  </div>
-                )}
+                  <>
+                    {/* Listings Grid */}
+                    {currentItems.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {currentItems.map(business => <BusinessCard key={business.id} {...business} />)}
+                      </div>
+                    ) : (
+                      <div className="text-center py-16 bg-gray-50 rounded-lg">
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No listings found</h3>
+                        <p className="text-gray-600">
+                          No listings match your search. Try adjusting filters or check back later.
+                        </p>
+                      </div>
+                    )}
 
-                {/* Pagination */}
-                {filteredBusinesses.length > 0 && (
-                  <Pagination className="mt-8">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} className={currentPage === 1 ? "pointer-events-none opacity-50" : ""} />
-                      </PaginationItem>
-                      
-                      {getPaginationItems()}
-                      
-                      <PaginationItem>
-                        <PaginationNext onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""} />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
+                    {/* Pagination */}
+                    {filteredBusinesses.length > 0 && (
+                      <Pagination className="mt-8">
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} className={currentPage === 1 ? "pointer-events-none opacity-50" : ""} />
+                          </PaginationItem>
+                          
+                          {getPaginationItems()}
+                          
+                          <PaginationItem>
+                            <PaginationNext onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""} />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    )}
+                  </>
                 )}
               </>
             )}
