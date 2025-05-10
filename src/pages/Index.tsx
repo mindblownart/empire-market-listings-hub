@@ -23,7 +23,7 @@ const businesses = [
     category: 'Food & Beverage',
     location: 'Singapore',
     revenue: '$780K/year',
-    imageUrl: 'https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
   },
   {
     id: '2',
