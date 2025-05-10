@@ -136,8 +136,8 @@ const MediaItem: React.FC<MediaItemProps> = ({
         type={item.type}
         onSetPrimary={handleSetPrimary}
         onDelete={handleDelete}
-        showSetPrimaryButton={showSetPrimaryButton}
-        showDeleteButton={showDeleteButton}
+        showSetPrimaryButton={!!showSetPrimaryButton}
+        showDeleteButton={!!showDeleteButton}
       />
     </div>
   );
