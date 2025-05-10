@@ -10,7 +10,7 @@ import ListingDetail from "./pages/ListingDetail";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Submit from "./pages/Submit";
+import Submit from "./pages/submit/Submit";  // Updated path to correct location
 import Pricing from "./pages/Pricing";
 import ForgotPassword from "./pages/ForgotPassword";
 import PrivacyTerms from "./pages/PrivacyTerms";
