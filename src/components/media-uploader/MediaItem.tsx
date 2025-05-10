@@ -1,7 +1,7 @@
 
 import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { Move, X, Play, Link as LinkIcon, Star } from 'lucide-react';
+import { Move, X, Play, Star, Video } from 'lucide-react';
 import { MediaItemProps } from './types';
 import { Button } from '@/components/ui/button';
 
@@ -89,7 +89,7 @@ export const MediaItem: React.FC<MediaItemProps> = ({
               </div>
               {item.url && (
                 <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md flex items-center">
-                  <LinkIcon className="w-3 h-3 mr-1" /> {item.videoInfo?.platform || 'External'} Video
+                  <Video className="w-3 h-3 mr-1" /> {item.videoInfo?.platform || 'External'} Video
                 </div>
               )}
             </div>
@@ -111,6 +111,13 @@ export const MediaItem: React.FC<MediaItemProps> = ({
       {item.isPrimary && (
         <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
           <Star className="h-3 w-3" /> Primary
+        </div>
+      )}
+      
+      {/* Badge for new media */}
+      {item.isNew && (
+        <div className="absolute top-2 right-12 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+          New
         </div>
       )}
       
@@ -145,6 +152,3 @@ export const MediaItem: React.FC<MediaItemProps> = ({
 };
 
 export default MediaItem;
-
-// Import Video component that was missing
-import { Video } from 'lucide-react';

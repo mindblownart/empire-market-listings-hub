@@ -16,7 +16,6 @@ import { toast } from 'sonner';
 import { Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFormValidation } from '@/hooks/useFormValidation';
-import MediaGallery from '@/components/media-uploader/MediaGallery';
 
 const EditListing = () => {
   const { id } = useParams<{ id: string; }>();
@@ -174,7 +173,7 @@ const EditListing = () => {
         // Keep the existing image URLs - we're not modifying them in this simplified version
         gallery_images: imageUrls,
         video_url: formData.businessVideoUrl || null,
-        // Now we also store the primary image index
+        // Store the primary image index
         primary_image_index: primaryImageIndex
       };
       
@@ -348,45 +347,26 @@ const EditListing = () => {
                 <div className="pt-4 border-t border-gray-100">
                   <h2 className="text-xl font-semibold mb-4">Business Media</h2>
                   
-                  {/* Media Gallery Section */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium mb-2">Current Images</h3>
-                    <p className="mb-4 text-sm text-gray-500">
-                      Manage your media gallery below. The first image is your primary image and will be displayed prominently.
-                      You can rearrange images by dragging them (except for the primary image and video).
-                    </p>
-                    
-                    {imageUrls.length > 0 ? (
-                      <div className="mb-6">
-                        <MediaGallery 
-                          images={imageUrls} 
-                          videoUrl={formData.businessVideoUrl} 
-                          onSetPrimaryImage={handleSetPrimaryImage}
-                        />
-                        <p className="text-xs text-gray-500 mt-2">
-                          * The primary image and video positions are fixed. Other images can be rearranged.
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-gray-500 italic">No images available</p>
-                    )}
-                  </div>
-                  
-                  {/* Video URL Section */}
-                  <div className="mt-6">
-                    <h3 className="text-lg font-medium mb-2">Video URL</h3>
-                    <p className="mb-2 text-sm text-gray-500">
-                      You can update the YouTube or Vimeo video URL for your listing.
-                    </p>
-                    <BusinessMediaUploader 
-                      initialImages={[]}
-                      initialVideo={null} 
-                      initialVideoUrl={formData.businessVideoUrl}
-                      onImagesChange={() => {}} // Disabled for now
-                      onVideoChange={(video) => updateFormData({ businessVideo: video })}
-                      onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
-                      disableImageUpload={true}
-                    />
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Media Gallery</h3>
+                      <p className="mb-4 text-sm text-gray-500">
+                        Manage your media gallery below. The primary image is displayed first. 
+                        You can change the primary image by clicking "Set Primary" on any image.
+                      </p>
+                      
+                      <BusinessMediaUploader 
+                        initialImages={[]}
+                        initialVideo={null} 
+                        initialVideoUrl={formData.businessVideoUrl}
+                        onImagesChange={() => {}} // Disabled for now
+                        onVideoChange={(video) => updateFormData({ businessVideo: video })}
+                        onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
+                        disableImageUpload={true}
+                        galleryImages={imageUrls}
+                        onSetPrimaryImage={handleSetPrimaryImage}
+                      />
+                    </div>
                   </div>
                 </div>
 
