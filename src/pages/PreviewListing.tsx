@@ -81,6 +81,8 @@ const PreviewListing = () => {
             locationName={formData.locationName}
             flagCode={formData.flagCode}
             primaryImage={primaryImage}
+            askingPrice={formData.askingPrice}
+            currencyCode={formData.currencyCode || 'USD'}
           />
           
           {/* Media Gallery Section - Directly below hero */}
@@ -106,7 +108,6 @@ const PreviewListing = () => {
             <div className="space-y-8">
               {/* Business Details Card */}
               <BusinessDetails 
-                askingPrice={formData.askingPrice}
                 annualRevenue={formData.annualRevenue}
                 annualProfit={formData.annualProfit}
                 currencyCode={formData.currencyCode || 'USD'}
