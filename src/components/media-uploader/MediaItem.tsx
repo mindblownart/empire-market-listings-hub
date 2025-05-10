@@ -83,6 +83,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
   
   if (isDragging) {
     borderColorClass = 'border-dashed border-gray-400';
+    bgClass = 'bg-gray-50/50';
   } else if (isOver) {
     borderColorClass = 'border-primary';
     bgClass = 'bg-primary/5';
@@ -95,11 +96,12 @@ const MediaItem: React.FC<MediaItemProps> = ({
       ref={ref}
       data-type={item.type}
       className={cn(
-        "relative group aspect-square rounded-md overflow-hidden border-2",
+        "relative group aspect-square rounded-md overflow-hidden border-2 transition-all",
         borderColorClass,
         bgClass,
-        isDragging ? 'opacity-50' : 'opacity-100',
-        item.isEmpty ? 'border-dashed hover:bg-gray-100 transition-colors' : ''
+        isDragging ? 'opacity-60 scale-95' : 'opacity-100',
+        item.isEmpty ? 'border-dashed hover:bg-gray-100 transition-colors' : '',
+        isFixed && !item.isEmpty ? 'cursor-default' : (item.isEmpty ? 'cursor-pointer' : 'cursor-grab')
       )}
     >
       {item.isEmpty ? (
