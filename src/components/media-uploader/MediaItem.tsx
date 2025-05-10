@@ -11,21 +11,20 @@ const MediaItem: React.FC<MediaItemProps> = ({
   moveItem, 
   onDelete,
   onVideoPreview,
-  onSetPrimary,
   isFixed = false
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
-  const [{ isDragging }, drag] = useDrag(() => ({
+  const [{ isDragging }, drag] = useDrag({
     type: 'media-item',
-    item: { id: item.id, index },
+    item: () => ({ id: item.id, index }),
     canDrag: !isFixed && !item.isEmpty && item.type === 'image',
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-  }), [index, item.id, item.isEmpty, isFixed, item.type]);
+  });
 
-  const [{ isOver }, drop] = useDrop(() => ({
+  const [{ isOver }, drop] = useDrop({
     accept: 'media-item',
     hover: (draggedItem: { id: string; index: number }, monitor) => {
       if (!ref.current) return;
@@ -57,7 +56,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
       isOver: monitor.isOver(),
       canDrop: monitor.canDrop(),
     }),
-  }), [index, item.type, moveItem]);
+  });
 
   // Apply drag and drop refs
   const dragDropRef = (node: HTMLDivElement | null) => {
@@ -143,7 +142,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
         isFixed={isFixed}
         isPrimary={!!item.isPrimary}
         type={item.type}
-        onSetPrimary={onSetPrimary ? () => onSetPrimary(item.id) : undefined}
+        onSetPrimary={null}
         onDelete={handleDelete}
         showSetPrimaryButton={false}
         showDeleteButton={showDeleteButton}

@@ -202,8 +202,8 @@ const EditListing = () => {
         // Keep the existing image URLs - we're not modifying them in this simplified version
         gallery_images: imageUrls,
         video_url: formData.businessVideoUrl || null,
-        // Store the primary image index
-        primary_image_index: primaryImageIndex
+        // Store the primary image index - always use 0 as primary now
+        primary_image_index: 0
       };
       
       console.log("Updating listing with data:", updateData);
@@ -239,16 +239,6 @@ const EditListing = () => {
     setImageUrls(prev => {
       const newImageUrls = [...prev];
       newImageUrls.splice(index, 1);
-      
-      // If we deleted the primary image, set the new first image as primary
-      if (index === primaryImageIndex) {
-        setPrimaryImageIndex(0);
-      } 
-      // If we deleted an image before the primary, adjust the primary index
-      else if (index < primaryImageIndex) {
-        setPrimaryImageIndex(prev => Math.max(0, prev - 1));
-      }
-      
       return newImageUrls;
     });
     
@@ -268,25 +258,23 @@ const EditListing = () => {
   // Handle reordering of existing images
   const handleReorderExistingImages = (reorderedImages: string[]) => {
     setImageUrls(reorderedImages);
-    
-    // Update primary image index based on the new order
-    if (reorderedImages.length > 0) {
-      const primaryImageUrl = imageUrls[primaryImageIndex];
-      const newPrimaryIndex = reorderedImages.findIndex(url => url === primaryImageUrl);
-      
-      if (newPrimaryIndex !== -1) {
-        setPrimaryImageIndex(newPrimaryIndex);
-      } else {
-        // If the primary image is no longer in the array, set the first image as primary
-        setPrimaryImageIndex(0);
-      }
-    }
+    // First image is always primary now
+    setPrimaryImageIndex(0);
   };
 
-  // Handle setting primary image
+  // Handle setting primary image - not needed anymore as first image is always primary
   const handleSetPrimaryImage = (index: number) => {
-    if (index >= 0 && index < imageUrls.length) {
-      setPrimaryImageIndex(index);
+    // This function is now mainly responsible for reordering to make the selected image primary
+    if (index !== 0 && index < imageUrls.length) {
+      setImageUrls(prev => {
+        const newImageUrls = [...prev];
+        // Move the selected image to the first position (index 0)
+        const [selectedImage] = newImageUrls.splice(index, 1);
+        newImageUrls.unshift(selectedImage);
+        return newImageUrls;
+      });
+      
+      setPrimaryImageIndex(0);
       toast.success("Primary image updated", {
         description: "This image will appear first in your listing."
       });
@@ -429,8 +417,8 @@ const EditListing = () => {
                     <div>
                       <h3 className="text-lg font-medium mb-2">Media Gallery</h3>
                       <p className="mb-4 text-sm text-gray-500">
-                        Manage your media gallery below. The primary image is displayed first.
-                        Images can be reordered by dragging and dropping (except for the video slot).
+                        Drag images to reorder. The first image is always the primary image shown in search results.
+                        The video slot is fixed in position 2.
                       </p>
                       
                       <BusinessMediaUploader 

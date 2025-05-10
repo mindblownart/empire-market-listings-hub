@@ -39,20 +39,5 @@ export interface MediaItemProps {
   moveItem: (dragIndex: number, hoverIndex: number) => void;
   onDelete: (id: string) => void;
   onVideoPreview: (item: MediaItemType) => void;
-  onSetPrimary?: (id: string) => void;
   isFixed?: boolean;
-}
-
-export interface MediaGalleryProps {
-  images?: string[];
-  newImages?: File[];
-  videoUrl?: string | null;
-  newVideo?: File | null;
-  onSetPrimaryImage?: (index: number) => void;
-  onReorderImages?: (reorderedImages: string[]) => void;
-  onReorderNewImages?: (reorderedImages: File[]) => void;
-  onDeleteImage?: (index: number) => void;
-  onDeleteNewImage?: (index: number) => void;
-  onDeleteVideo?: () => void;
-  onDeleteNewVideo?: () => void;
 }

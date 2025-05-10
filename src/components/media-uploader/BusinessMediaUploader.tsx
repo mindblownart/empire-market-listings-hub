@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { X, Upload } from 'lucide-react';
+import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import { extractVideoInfo } from './video-utils';
 import { BusinessMediaUploaderProps, MediaFile } from './types';
@@ -26,8 +26,9 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   const [video, setVideo] = useState<MediaFile | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>(initialVideoUrl || '');
   const [existingImages, setExistingImages] = useState<string[]>(galleryImages || []);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
   
-  // Initialize images from props with improved ID handling
+  // Initialize images from props
   useEffect(() => {
     if (Array.isArray(initialImages) && initialImages.length > 0) {
       // Filter out anything that's not a File and add IDs
@@ -45,6 +46,11 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     // Initialize existing images from galleryImages
     if (Array.isArray(galleryImages) && galleryImages.length > 0) {
       setExistingImages(galleryImages);
+    }
+    
+    // Check if primary image index is provided via props
+    if (onSetPrimaryImage) {
+      setPrimaryImageIndex(0); // Default to first image as primary
     }
   }, [initialImages, galleryImages]);
 
@@ -90,10 +96,26 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
 
   // Handle removing an existing image by index
   const handleDeleteExistingImage = (index: number) => {
-    // This is just for UI - the actual deletion would happen on save
     setExistingImages(prev => {
       const newExistingImages = [...prev];
       newExistingImages.splice(index, 1);
+      
+      // If we deleted the primary image, set the new first image as primary
+      if (index === primaryImageIndex) {
+        setPrimaryImageIndex(0);
+        if (onSetPrimaryImage) {
+          onSetPrimaryImage(0);
+        }
+      } 
+      // If we deleted an image before the primary, adjust the primary index
+      else if (index < primaryImageIndex) {
+        const newPrimaryIndex = Math.max(0, primaryImageIndex - 1);
+        setPrimaryImageIndex(newPrimaryIndex);
+        if (onSetPrimaryImage) {
+          onSetPrimaryImage(newPrimaryIndex);
+        }
+      }
+      
       return newExistingImages;
     });
   };
@@ -106,80 +128,58 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     }
   };
 
-  // Handle reordering of existing images with improved position tracking
+  // Handle reordering of existing images
   const handleReorderExistingImages = (reorderedImages: string[]) => {
     setExistingImages(reorderedImages);
     
-    // If onSetPrimaryImage is provided, update the primary image index
-    // since reordering might have changed which image is primary
-    if (onSetPrimaryImage && reorderedImages.length > 0) {
-      // The first image in the reordered array becomes primary
-      const primaryImageUrl = reorderedImages[0];
-      const originalIndex = galleryImages.findIndex(url => url === primaryImageUrl);
-      
-      if (originalIndex !== -1) {
-        onSetPrimaryImage(originalIndex);
+    // Image at index 0 becomes primary
+    setPrimaryImageIndex(0);
+    if (onSetPrimaryImage) {
+      onSetPrimaryImage(0);
+    }
+  };
+
+  // Handle setting primary image
+  const handleSetPrimaryImage = (index: number) => {
+    if (index >= 0 && index < existingImages.length) {
+      setPrimaryImageIndex(index);
+      if (onSetPrimaryImage) {
+        onSetPrimaryImage(index);
       }
     }
   };
 
-  const hasMediaUploaded = images.length > 0 || existingImages.length > 0 || video || videoUrl;
-
   return (
     <div className="space-y-6">
-      {/* Media Upload Component with Enhanced Empty State */}
-      <div className={`${!hasMediaUploaded ? 'border-2 border-dashed border-gray-300 rounded-lg p-6' : ''}`}>
-        <MediaUpload
-          existingImages={existingImages}
-          existingVideoUrl={videoUrl}
-          primaryImageIndex={0}
-          onImagesChange={(newImages) => {
-            // Ensure all new images have unique IDs
-            const uniqueImages = newImages.map(img => {
-              if (!img.id) {
-                (img as MediaFile).id = `img-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-              }
-              return img;
-            });
-            
-            setImages(uniqueImages);
-            if (onImagesChange) onImagesChange(uniqueImages);
-          }}
-          onVideoChange={(newVideo) => {
-            // Ensure video has a unique ID
-            if (newVideo && !newVideo.id) {
-              (newVideo as MediaFile).id = `video-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-            }
-            
-            setVideo(newVideo);
-            if (onVideoChange) onVideoChange(newVideo);
-            
-            // Clear video URL if we're setting a file
-            if (newVideo) {
-              setVideoUrl('');
-              if (onVideoUrlChange) onVideoUrlChange('');
-            }
-          }}
-          onVideoUrlChange={(url) => {
-            if (url === null) {
-              setVideoUrl('');
-              if (onVideoUrlChange) onVideoUrlChange('');
-            }
-          }}
-          onSetPrimaryImage={onSetPrimaryImage}
-          onDeleteExistingImage={handleDeleteExistingImage}
-          onDeleteExistingVideo={handleDeleteVideoUrl}
-          onImagesReorder={handleReorderExistingImages}
-        />
-
-        {!hasMediaUploaded && (
-          <div className="text-center py-8">
-            <Upload className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-            <p className="text-xl font-medium text-gray-700 mb-2">Add up to 10 photos and 1 video</p>
-            <p className="text-sm text-gray-500 mb-6">Drag and drop files here or click to browse</p>
-          </div>
-        )}
-      </div>
+      <MediaUpload
+        existingImages={existingImages}
+        existingVideoUrl={videoUrl}
+        primaryImageIndex={primaryImageIndex}
+        onImagesChange={(newImages) => {
+          setImages(newImages);
+          if (onImagesChange) onImagesChange(newImages);
+        }}
+        onVideoChange={(newVideo) => {
+          setVideo(newVideo);
+          if (onVideoChange) onVideoChange(newVideo);
+          
+          // Clear video URL if we're setting a file
+          if (newVideo) {
+            setVideoUrl('');
+            if (onVideoUrlChange) onVideoUrlChange('');
+          }
+        }}
+        onVideoUrlChange={(url) => {
+          if (url === null) {
+            setVideoUrl('');
+            if (onVideoUrlChange) onVideoUrlChange('');
+          }
+        }}
+        onSetPrimaryImage={handleSetPrimaryImage}
+        onDeleteExistingImage={handleDeleteExistingImage}
+        onDeleteExistingVideo={handleDeleteVideoUrl}
+        onImagesReorder={handleReorderExistingImages}
+      />
 
       {/* Video URL Input */}
       <div className="mt-4">

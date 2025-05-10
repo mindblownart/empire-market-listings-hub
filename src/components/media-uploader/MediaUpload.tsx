@@ -1,10 +1,10 @@
-import React, { useCallback, useState } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+
+import React, { useCallback, useState, useRef } from 'react';
 import { Info } from 'lucide-react';
 import { toast } from 'sonner';
 import MediaGallery from './MediaGallery';
-import { MediaFile } from './types';
+import { MediaFile, MediaItemType } from './types';
+import { extractVideoInfo } from './video-utils';
 
 interface MediaUploadProps {
   existingImages?: string[];
@@ -37,17 +37,122 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   onDeleteExistingVideo,
   onImagesReorder
 }) => {
-  // State for uploaded files
   const [newImages, setNewImages] = useState<MediaFile[]>([]);
   const [newVideo, setNewVideo] = useState<MediaFile | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Calculate available slots
-  const hasVideo = !!existingVideoUrl || !!newVideo;
-  const existingImagesCount = existingImages.length;
-  const newImagesCount = newImages.length;
-  const totalImagesCount = existingImagesCount + newImagesCount;
-  const availableImageSlots = MAX_IMAGES - totalImagesCount;
+  // Convert all media into a unified format
+  const allItems = React.useMemo(() => {
+    const items: MediaItemType[] = [];
+    
+    // First, add existing images - start with primary if it exists
+    if (existingImages.length > 0) {
+      // Primary image first (at index primaryImageIndex)
+      const primaryImg = existingImages[primaryImageIndex];
+      if (primaryImg) {
+        items.push({
+          id: `existing-image-${primaryImageIndex}`,
+          type: 'image',
+          preview: primaryImg,
+          isPrimary: true,
+          originalIndex: primaryImageIndex,
+          isNew: false
+        });
+      }
+      
+      // Add remaining existing images
+      existingImages.forEach((url, idx) => {
+        if (idx !== primaryImageIndex) {
+          items.push({
+            id: `existing-image-${idx}`,
+            type: 'image',
+            preview: url,
+            isPrimary: false,
+            originalIndex: idx,
+            isNew: false
+          });
+        }
+      });
+    }
+    
+    // Add newly uploaded images after existing ones
+    newImages.forEach((file, idx) => {
+      const mediaFile = file as MediaFile;
+      if (!mediaFile.id) {
+        mediaFile.id = `new-image-${idx}-${Date.now()}`;
+      }
+      
+      items.push({
+        id: `new-image-${idx}`,
+        type: 'image',
+        file: mediaFile,
+        preview: URL.createObjectURL(mediaFile),
+        isPrimary: items.length === 0, // First image is primary if no other images
+        originalIndex: idx,
+        isNew: true
+      });
+    });
+    
+    // Insert video or empty video slot at position 1
+    if (existingVideoUrl) {
+      const videoInfo = extractVideoInfo(existingVideoUrl);
+      const videoItem: MediaItemType = {
+        id: 'existing-video',
+        type: 'video',
+        url: existingVideoUrl,
+        preview: videoInfo.platform && videoInfo.id 
+          ? `https://img.youtube.com/vi/${videoInfo.id}/hqdefault.jpg`
+          : '',
+        videoInfo,
+        isNew: false
+      };
+      
+      if (items.length > 0) {
+        items.splice(1, 0, videoItem);
+      } else {
+        items.push(videoItem);
+      }
+    } else if (newVideo) {
+      const mediaFile = newVideo as MediaFile;
+      if (!mediaFile.id) {
+        mediaFile.id = `new-video-${Date.now()}`;
+      }
+      
+      const videoItem: MediaItemType = {
+        id: 'new-video',
+        type: 'video',
+        file: mediaFile,
+        preview: URL.createObjectURL(newVideo),
+        videoInfo: { platform: 'file', id: null },
+        isNew: true
+      };
+      
+      if (items.length > 0) {
+        items.splice(1, 0, videoItem);
+      } else {
+        items.push(videoItem);
+      }
+    } else {
+      // Add empty video slot at position 1
+      const emptyVideoSlot: MediaItemType = {
+        id: 'empty-video-slot',
+        type: 'video',
+        isEmpty: true,
+        preview: '',
+        videoInfo: { platform: null, id: null },
+        isNew: false
+      };
+      
+      if (items.length > 0) {
+        items.splice(1, 0, emptyVideoSlot);
+      } else {
+        items.push(emptyVideoSlot);
+      }
+    }
+    
+    return items;
+  }, [existingImages, primaryImageIndex, newImages, existingVideoUrl, newVideo]);
   
   // Handle drag events
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -61,20 +166,20 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     }
   }, []);
   
-  // Process files when dropped or selected with improved deduplication
+  // Process files when dropped or selected
   const processFiles = useCallback((files: FileList) => {
     const imageFiles: MediaFile[] = [];
     let videoFile: MediaFile | null = null;
     
     // Count available slots
-    const availableSlots = MAX_IMAGES - existingImagesCount - newImagesCount;
-    let videoSlotAvailable = !hasVideo;
+    const availableSlots = MAX_IMAGES - existingImages.length - newImages.length;
+    const videoSlotAvailable = !existingVideoUrl && !newVideo;
     
-    // Process all files with duplicate prevention
+    // Process all files
     Array.from(files).forEach(file => {
       // Process images
       if (ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        // Check for duplicates by comparing file names and sizes
+        // Check for duplicates
         const isDuplicate = newImages.some(existingFile => 
           existingFile.name === file.name && 
           existingFile.size === file.size
@@ -99,7 +204,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
               description: 'Maximum file size is 5MB'
             });
           }
-        } else if (existingImagesCount + newImagesCount + imageFiles.length >= MAX_IMAGES) {
+        } else if (existingImages.length + newImages.length + imageFiles.length >= MAX_IMAGES) {
           toast.warning('Maximum images reached', {
             description: `You can only upload a maximum of ${MAX_IMAGES} images.`
           });
@@ -109,20 +214,11 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       else if (ACCEPTED_VIDEO_TYPES.includes(file.type)) {
         // Check if we already have a video
         if (videoSlotAvailable) {
-          // Check for duplicate video by name and size
-          if (newVideo && newVideo.name === file.name && newVideo.size === file.size) {
-            toast.warning(`Duplicate video: ${file.name}`, {
-              description: 'This video appears to already be uploaded'
-            });
-            return;
-          }
-          
           // Check file size
           if (file.size <= MAX_VIDEO_SIZE) {
             const mediaFile = file as MediaFile;
             mediaFile.id = `video-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
             videoFile = mediaFile;
-            videoSlotAvailable = false;
           } else {
             toast.error(`Video too large: ${file.name}`, {
               description: 'Maximum video size is 50MB'
@@ -140,15 +236,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       }
     });
     
-    // Check if we have any valid files to add
+    // Add valid images
     if (imageFiles.length > 0) {
-      // Check if adding these would exceed the limit
-      if (existingImagesCount + newImagesCount + imageFiles.length > MAX_IMAGES) {
-        toast.warning(`Only added ${availableSlots} images`, {
-          description: `Maximum ${MAX_IMAGES} images allowed in total`
-        });
-      }
-      
       setNewImages(prev => [...prev, ...imageFiles]);
       onImagesChange([...newImages, ...imageFiles]);
     }
@@ -164,110 +253,194 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       }
     }
     
-    // Reset drag state
     setDragActive(false);
-  }, [existingImagesCount, newImagesCount, hasVideo, existingVideoUrl, newImages, onImagesChange, onVideoChange, onVideoUrlChange]);
+  }, [existingImages.length, newImages, newVideo, existingVideoUrl, onImagesChange, onVideoChange, onVideoUrlChange]);
   
-  // Handle file drop on gallery
-  const handleFilesDrop = useCallback((files: FileList) => {
-    setDragActive(false);
-    processFiles(files);
-  }, [processFiles]);
-  
-  // Handle files selection from button
-  const handleFilesSelect = useCallback((files: FileList) => {
-    processFiles(files);
-  }, [processFiles]);
-  
-  // Handle deleting a new image
-  const handleDeleteNewImage = (index: number) => {
-    setNewImages(prev => {
-      const newImagesList = [...prev];
-      newImagesList.splice(index, 1);
-      onImagesChange(newImagesList);
-      return newImagesList;
-    });
-  };
-  
-  // Handle deleting a new video
-  const handleDeleteNewVideo = () => {
-    setNewVideo(null);
-    onVideoChange(null);
-  };
-  
-  // Handle reordering of existing images
-  const handleReorderImages = (reorderedImages: string[]) => {
-    if (onImagesReorder) {
-      onImagesReorder(reorderedImages);
+  // Handle drop event
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(e.dataTransfer.files);
     }
-  };
+    
+    setDragActive(false);
+  }, [processFiles]);
   
-  // Handle reordering of new images
-  const handleReorderNewImages = (reorderedImages: File[]) => {
-    const typedImages = reorderedImages.map(file => {
-      const mediaFile = file as MediaFile;
-      if (!mediaFile.id) {
-        mediaFile.id = `reordered-image-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  // Handle file selection via button
+  const handleFileSelect = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      processFiles(e.target.files);
+      // Reset the input value to allow selecting the same file again
+      e.target.value = '';
+    }
+  }, [processFiles]);
+  
+  // Handle reordering
+  const handleReorder = useCallback((reorderedItems: MediaItemType[]) => {
+    // Separate existing images, new images, and video
+    const updatedExistingImages: string[] = [];
+    const updatedNewImages: MediaFile[] = [];
+    let updatedVideo: MediaFile | null = null;
+    let updatedVideoUrl: string | null = null;
+    let newPrimaryIndex = 0;
+    
+    // Process each item in the new order
+    reorderedItems.forEach((item, idx) => {
+      if (item.isEmpty) return; // Skip empty slots
+      
+      if (item.type === 'image') {
+        if (!item.isNew && item.preview) {
+          // This is an existing image
+          updatedExistingImages.push(item.preview);
+          
+          // If this is the primary image (always at index 0), mark its position
+          if (idx === 0) {
+            newPrimaryIndex = updatedExistingImages.length - 1;
+          }
+        } else if (item.isNew && item.file) {
+          // This is a new image
+          updatedNewImages.push(item.file);
+        }
+      } else if (item.type === 'video') {
+        if (item.isNew && item.file) {
+          updatedVideo = item.file;
+        } else if (!item.isNew && item.url) {
+          updatedVideoUrl = item.url;
+        }
       }
-      return mediaFile;
     });
     
-    setNewImages(typedImages);
-    onImagesChange(typedImages);
-  };
-
-  // Handle setting primary image
-  const handleSetPrimaryImage = (index: number) => {
-    if (onSetPrimaryImage) {
-      onSetPrimaryImage(index);
+    // Update state with the new order
+    if (updatedNewImages.length > 0 || newImages.length > 0) {
+      setNewImages(updatedNewImages);
+      onImagesChange(updatedNewImages);
     }
-  };
+    
+    if (updatedVideo !== newVideo) {
+      setNewVideo(updatedVideo);
+      onVideoChange(updatedVideo);
+    }
+    
+    if (updatedVideoUrl !== existingVideoUrl) {
+      if (updatedVideoUrl === null && existingVideoUrl !== null) {
+        onVideoUrlChange(null);
+      } else if (updatedVideoUrl !== null) {
+        onVideoUrlChange(updatedVideoUrl);
+      }
+    }
+    
+    // Update existing images with the new order
+    if (existingImages.length > 0 && 
+        (updatedExistingImages.length !== existingImages.length || 
+         !updatedExistingImages.every((url, i) => url === existingImages[i]))) {
+      if (onImagesReorder) {
+        onImagesReorder(updatedExistingImages);
+      }
+      
+      // Update primary image if it changed
+      if (onSetPrimaryImage && primaryImageIndex !== newPrimaryIndex) {
+        onSetPrimaryImage(newPrimaryIndex);
+      }
+    }
+  }, [
+    existingImages, 
+    newImages, 
+    newVideo, 
+    existingVideoUrl, 
+    primaryImageIndex, 
+    onImagesChange, 
+    onVideoChange, 
+    onVideoUrlChange, 
+    onImagesReorder, 
+    onSetPrimaryImage
+  ]);
+  
+  // Handle item deletion
+  const handleDelete = useCallback((id: string) => {
+    // Check if it's an existing image
+    if (id.startsWith('existing-image-')) {
+      const indexStr = id.replace('existing-image-', '');
+      const index = parseInt(indexStr, 10);
+      
+      if (!isNaN(index) && onDeleteExistingImage) {
+        onDeleteExistingImage(index);
+      }
+    } 
+    // Check if it's a new image
+    else if (id.startsWith('new-image-')) {
+      const indexStr = id.replace('new-image-', '').split('-')[0];
+      const index = parseInt(indexStr, 10);
+      
+      if (!isNaN(index)) {
+        setNewImages(prev => {
+          const newArr = prev.filter((_, i) => i !== index);
+          onImagesChange(newArr);
+          return newArr;
+        });
+      }
+    } 
+    // Check if it's an existing video
+    else if (id === 'existing-video') {
+      if (onDeleteExistingVideo) {
+        onDeleteExistingVideo();
+      }
+    } 
+    // Check if it's a new video
+    else if (id === 'new-video') {
+      setNewVideo(null);
+      onVideoChange(null);
+    }
+  }, [onDeleteExistingImage, onDeleteExistingVideo, onImagesChange, onVideoChange]);
   
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div 
-        className="space-y-4"
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            handleFilesDrop(e.dataTransfer.files);
+    <div 
+      className="space-y-4"
+      onDragEnter={handleDrag}
+      onDragLeave={handleDrag}
+      onDragOver={handleDrag}
+      onDrop={handleDrop}
+    >
+      <MediaGallery
+        items={allItems}
+        onReorder={handleReorder}
+        onDelete={handleDelete}
+        onVideoPreview={(item) => {
+          if (item.type === 'video' && !item.isEmpty) {
+            // Video preview logic here
           }
-          setDragActive(false);
         }}
-      >
-        <MediaGallery 
-          images={existingImages}
-          newImages={newImages}
-          videoUrl={existingVideoUrl}
-          newVideo={newVideo}
-          onSetPrimaryImage={handleSetPrimaryImage}
-          onReorderImages={handleReorderImages}
-          onReorderNewImages={handleReorderNewImages}
-          onDeleteImage={onDeleteExistingImage}
-          onDeleteNewImage={handleDeleteNewImage}
-          onDeleteVideo={onDeleteExistingVideo}
-          onDeleteNewVideo={handleDeleteNewVideo}
-          onFilesDrop={handleFilesDrop}
-          onFilesSelect={handleFilesSelect}
-          isDragging={dragActive}
-        />
-        
-        {/* Upload Tips */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-          <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-gray-700 space-y-1">
-            <p>• Images: Up to 10 images, 1200px+ width recommended for best quality (5MB max)</p>
-            <p>• Video: One video file (MP4, 50MB max) or YouTube/Vimeo URL</p>
-            <p>• First image is always the Primary Image. Video is fixed in the second position.</p>
-            <p>• You can drag and drop to reorder images (except video) or drop files directly onto the gallery.</p>
-          </div>
+        onFileSelect={handleFileSelect}
+        onDrop={handleDrop}
+        isDragging={dragActive}
+      />
+      
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileInputChange}
+        className="hidden"
+        accept={[...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES].join(',')}
+        multiple
+      />
+      
+      {/* Upload Tips */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
+        <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-gray-700 space-y-1">
+          <p>• Images: Up to 10 images, 1200px+ width recommended for best quality (5MB max)</p>
+          <p>• Video: One video file (MP4, 50MB max) or YouTube/Vimeo URL</p>
+          <p>• First image is always the Primary Image. Video is fixed in the second position.</p>
+          <p>• You can drag and drop to reorder images or drop files directly onto the gallery.</p>
         </div>
       </div>
-    </DndProvider>
+    </div>
   );
 };
 
