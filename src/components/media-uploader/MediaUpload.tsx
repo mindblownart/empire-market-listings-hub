@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Info } from 'lucide-react';
@@ -38,40 +39,46 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Convert existing images to MediaItem format
-  const images: MediaItem[] = [
-    // Existing images first
-    ...existingImages.map((url, index): MediaItem => ({
+  // Convert to MediaItem format - with correct typing
+  const items: MediaItem[] = [];
+  
+  // Add existing images first
+  existingImages.forEach((url, index) => {
+    items.push({
       id: `existing-image-${index}`,
       type: 'image',
       preview: url,
       url: url,
       isPrimary: index === 0,
-    })),
-    // Then newly uploaded images
-    ...newImages.map((file, index): MediaItem => {
-      const mediaFile = file as MediaFile;
-      return {
-        id: mediaFile.id || `new-image-${index}`,
-        type: 'image',
-        file: mediaFile,
-        preview: URL.createObjectURL(mediaFile),
-        isPrimary: existingImages.length === 0 && index === 0,
-        isNew: true
-      };
-    })
-  ];
+    });
+  });
+  
+  // Add newly uploaded images
+  newImages.forEach((file, index) => {
+    const mediaFile = file as MediaFile;
+    items.push({
+      id: mediaFile.id || `new-image-${index}`,
+      type: 'image',
+      file: mediaFile,
+      preview: URL.createObjectURL(mediaFile),
+      isPrimary: existingImages.length === 0 && index === 0,
+      isNew: true
+    });
+  });
+  
+  // Make sure the video is at position 1 if it exists
+  const allItems = [...items];
   
   // Process video item
   const videoItem: MediaItem | null = existingVideoUrl ? {
     id: 'existing-video',
     type: 'video',
     url: existingVideoUrl,
-    preview: extractVideoInfo(existingVideoUrl).platform === 'youtube' 
-      ? `https://img.youtube.com/vi/${extractVideoInfo(existingVideoUrl).id}/hqdefault.jpg`
+    preview: extractVideoInfo(existingVideoUrl)?.platform === 'youtube' 
+      ? `https://img.youtube.com/vi/${extractVideoInfo(existingVideoUrl)?.id || ''}/hqdefault.jpg`
       : 'https://via.placeholder.com/400x300?text=Video+Thumbnail',
     isPrimary: false,
-    videoInfo: extractVideoInfo(existingVideoUrl)
+    videoInfo: extractVideoInfo(existingVideoUrl) || { platform: null, id: null }
   } : newVideo ? {
     id: `new-video-${newVideo.name}`,
     type: 'video',
@@ -80,6 +87,41 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     isPrimary: false,
     videoInfo: { platform: 'file', id: null }
   } : null;
+  
+  // Insert video at position 1 if it exists
+  if (videoItem) {
+    // If there are no items or just 1 item, we need to ensure correct positioning
+    if (allItems.length === 0) {
+      // Add an empty slot for primary image
+      allItems.push({
+        id: 'empty-primary',
+        type: 'empty',
+        preview: '',
+        isPrimary: true,
+        isEmpty: true
+      });
+      // Then add video
+      allItems.push(videoItem);
+    } else if (allItems.length === 1) {
+      // Already have primary image, add video at position 1
+      allItems.splice(1, 0, videoItem);
+    } else {
+      // Replace whatever is at position 1 with the video
+      // But first check if position 1 is already a video
+      if (allItems[1]?.type !== 'video') {
+        // It's not a video, so insert and push everything else down
+        allItems.splice(1, 0, videoItem);
+        
+        // Make sure we don't exceed the limit
+        if (allItems.length > maxImages + 2) { // +2 because of primary and video
+          allItems.pop();
+        }
+      } else {
+        // Already a video at position 1, replace it
+        allItems[1] = videoItem;
+      }
+    }
+  }
   
   // Handle drag events
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -99,8 +141,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     let videoFile: MediaFile | null = null;
     
     // Calculate available slots
-    const availableImageSlots = maxImages - images.length;
-    const videoSlotAvailable = !videoItem;
+    const availableImageSlots = maxImages - (existingImages.length + newImages.length);
+    const videoSlotAvailable = !existingVideoUrl && !newVideo;
     
     // Process all files
     Array.from(files).forEach(file => {
@@ -116,10 +158,11 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
               description: 'Maximum file size is 5MB'
             });
           }
-        } else if (imageFiles.length + images.length >= maxImages) {
+        } else {
           toast.warning('Maximum images reached', {
             description: `You can only upload up to ${maxImages} images`
           });
+          break;
         }
       } 
       // Process video
@@ -164,7 +207,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     }
     
     setDragActive(false);
-  }, [images.length, maxImages, newImages, videoItem, existingVideoUrl, onImagesChange, onVideoChange, onVideoUrlChange]);
+  }, [existingImages.length, maxImages, newImages, existingVideoUrl, newVideo, onImagesChange, onVideoChange, onVideoUrlChange]);
   
   // Handle drop event
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -193,7 +236,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   }, [processFiles]);
   
   // Handle image reordering
-  const handleImagesChange = useCallback((updatedItems: MediaItem[]) => {
+  const handleReorder = useCallback((updatedItems: MediaItem[]) => {
     // Split items into existing and new
     const updatedExistingImages: string[] = [];
     const updatedNewImages: MediaFile[] = [];
@@ -221,40 +264,32 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     }
   }, [onImagesChange, onImagesReorder]);
   
-  // Handle video change
-  const handleVideoChange = useCallback((updatedVideo: MediaItem | null) => {
-    if (!updatedVideo) {
-      if (existingVideoUrl && onDeleteExistingVideo) {
-        // Delete existing video URL
-        onDeleteExistingVideo();
-      } else if (newVideo) {
-        // Delete new video file
-        setNewVideo(null);
-        onVideoChange(null);
-      }
-    }
-    // We don't need to handle the case of adding a video here
-    // as that's handled by processFiles
-  }, [existingVideoUrl, newVideo, onDeleteExistingVideo, onVideoChange]);
-  
-  // Handle image deletion
-  const handleDeleteImage = useCallback((index: number) => {
-    const existingCount = existingImages.length;
-    
-    if (index < existingCount) {
-      // It's an existing image
+  // Handle item deletion
+  const handleDelete = useCallback((id: string) => {
+    if (id.startsWith('existing-image-')) {
+      // Handle existing image deletion
+      const index = parseInt(id.replace('existing-image-', ''), 10);
       if (onDeleteExistingImage) {
         onDeleteExistingImage(index);
       }
+    } else if (id.startsWith('existing-video')) {
+      // Handle existing video deletion
+      if (onDeleteExistingVideo) {
+        onDeleteExistingVideo();
+      }
+    } else if (id.startsWith('new-video-')) {
+      // Handle new video deletion
+      setNewVideo(null);
+      onVideoChange(null);
     } else {
-      // It's a new image
-      const newIndex = index - existingCount;
-      const updatedNewImages = [...newImages];
-      updatedNewImages.splice(newIndex, 1);
+      // Handle new image deletion
+      const updatedNewImages = newImages.filter(img => 
+        img.id !== id && id !== `new-image-${img.name}`
+      );
       setNewImages(updatedNewImages);
       onImagesChange(updatedNewImages);
     }
-  }, [existingImages.length, newImages, onDeleteExistingImage, onImagesChange]);
+  }, [newImages, onDeleteExistingImage, onDeleteExistingVideo, onImagesChange, onVideoChange]);
 
   return (
     <div 
@@ -262,10 +297,9 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       onDragEnter={handleDrag}
     >
       <MediaGallery
-        images={images}
-        videoItem={videoItem}
-        onImagesChange={handleImagesChange}
-        onVideoChange={handleVideoChange}
+        items={allItems}
+        onReorder={handleReorder}
+        onDelete={handleDelete}
         onFileSelect={handleFileSelect}
         onDrop={handleDrop}
         isDragging={dragActive}
@@ -289,7 +323,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           <p>• Images: Up to {maxImages} images, 1200px+ width recommended for best quality (5MB max)</p>
           <p>• Video: One video file (MP4, 50MB max) or YouTube/Vimeo URL</p>
           <p>• First image is always the Primary Image</p>
-          <p>• You can drag and drop to reorder images (video stays in fixed position)</p>
+          <p>• You can drag and drop to reorder images (video always stays in fixed position)</p>
         </div>
       </div>
     </div>

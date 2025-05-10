@@ -11,7 +11,7 @@ interface MediaItemProps {
   moveItem: (dragIndex: number, hoverIndex: number) => void;
   onDelete: () => void;
   onPreview?: () => void;
-  isVideoSlot?: boolean;
+  isFixed?: boolean;
 }
 
 // Item type for drag and drop
@@ -23,15 +23,15 @@ const MediaItem: React.FC<MediaItemProps> = ({
   moveItem, 
   onDelete,
   onPreview,
-  isVideoSlot = false
+  isFixed = false
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Set up drag functionality - not allowed for video slot
+  // Set up drag functionality - not allowed for fixed items or empty slots
   const [{ isDragging }, drag] = useDrag({
     type: ITEM_TYPE,
     item: () => ({ id: item.id, index, type: item.type }) as DragItem,
-    canDrag: !isVideoSlot && item.type === 'image',
+    canDrag: !isFixed && !item.isEmpty && item.type !== 'empty',
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -46,8 +46,8 @@ const MediaItem: React.FC<MediaItemProps> = ({
       // Don't replace items with themselves
       if (draggedItem.index === index) return;
       
-      // Don't allow dropping into video slot position
-      if (isVideoSlot) return;
+      // Don't allow dropping into fixed position
+      if (isFixed) return;
       
       // Only perform the move when the mouse has crossed half of the item height
       const hoverBoundingRect = ref.current.getBoundingClientRect();
@@ -79,24 +79,50 @@ const MediaItem: React.FC<MediaItemProps> = ({
   });
   
   // Apply the ref to both drag source and drop target
-  const dragDropRef = isVideoSlot ? drop(ref) : drag(drop(ref));
+  const dragDropRef = isFixed ? drop(ref) : drag(drop(ref));
   
+  // Determine if this is an empty slot
+  const isEmpty = item.isEmpty || item.type === 'empty';
+
   // Determine the class names based on state
   const itemClasses = cn(
     "relative rounded-md overflow-hidden aspect-square border-2",
     isDragging ? "opacity-50 border-dashed border-gray-400" : "border-gray-200",
     isOver ? "border-primary bg-primary/5" : "",
     item.isPrimary ? "border-primary" : "",
-    isVideoSlot ? "cursor-default" : "cursor-move",
+    isEmpty ? "border-dashed border-gray-300" : "",
+    isFixed ? "cursor-default" : isEmpty ? "cursor-pointer" : "cursor-move",
     "group"
   );
   
   // Handle click for videos
   const handleClick = () => {
-    if (item.type === 'video' && onPreview) {
+    if (item.type === 'video' && onPreview && !isEmpty) {
       onPreview();
     }
   };
+
+  // Render empty slot
+  if (isEmpty) {
+    return (
+      <div className={itemClasses}>
+        <div className="w-full h-full flex items-center justify-center">
+          {index === 1 ? (
+            <div className="text-center p-2">
+              <Play className="h-8 w-8 mx-auto text-gray-300 mb-1" />
+              <p className="text-xs text-gray-400">Video</p>
+              <p className="text-xs text-gray-300">(Optional)</p>
+            </div>
+          ) : (
+            <div className="text-center p-2">
+              <span className="text-2xl text-gray-300">+</span>
+              <p className="text-xs text-gray-400">Add image</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -134,14 +160,14 @@ const MediaItem: React.FC<MediaItemProps> = ({
       )}
       
       {/* Video badge */}
-      {isVideoSlot && item.type === 'video' && (
+      {index === 1 && item.type === 'video' && (
         <div className="absolute top-2 left-2 bg-gray-700/80 text-white text-xs px-2 py-1 rounded-full z-20">
           Video
         </div>
       )}
       
       {/* Grip handle for draggable items */}
-      {!isVideoSlot && item.type === 'image' && (
+      {!isFixed && (
         <div className="absolute top-2 right-10 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="bg-black/70 rounded-full p-1.5 cursor-grab">
             <GripVertical className="h-3.5 w-3.5 text-white" />
@@ -161,7 +187,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
       </button>
       
       {/* Drop indicator */}
-      {isOver && !isDragging && !isVideoSlot && (
+      {isOver && !isDragging && !isFixed && (
         <div className="absolute inset-0 bg-primary/10 border-2 border-primary border-dashed rounded-md z-10" />
       )}
     </div>

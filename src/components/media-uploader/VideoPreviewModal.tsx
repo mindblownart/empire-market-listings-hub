@@ -1,51 +1,70 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { X } from 'lucide-react';
-import { VideoInfo } from './types';
+import { XCircle } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { getVideoEmbedUrl } from './video-utils';
 
-interface VideoPreviewModalProps {
+export interface VideoPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  videoUrl: string;
-  videoInfo: VideoInfo | undefined;
+  url?: string;
+  platform: string | null;
 }
 
-const VideoPreviewModal: React.FC<VideoPreviewModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  videoUrl,
-  videoInfo
+const VideoPreviewModal: React.FC<VideoPreviewModalProps> = ({
+  isOpen,
+  onClose,
+  url = '',
+  platform
 }) => {
-  if (!videoUrl) return null;
+  // Get the actual embed URL for the video
+  let embedUrl = '';
+  let videoId = '';
+  
+  if (url) {
+    if (platform === 'youtube') {
+      videoId = url.includes('v=') ? url.split('v=')[1] : url.split('/').pop() || '';
+      embedUrl = getVideoEmbedUrl('youtube', videoId);
+    } else if (platform === 'vimeo') {
+      videoId = url.split('/').pop() || '';
+      embedUrl = `https://player.vimeo.com/video/${videoId}`;
+    } else {
+      // Direct file URL
+      embedUrl = url;
+    }
+  }
   
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 overflow-hidden">
-        <DialogHeader className="p-4 flex flex-row items-center justify-between">
-          <DialogTitle>Video Preview</DialogTitle>
-          <button className="rounded-full hover:bg-gray-100 p-2" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </button>
-        </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black">
+        <button
+          onClick={onClose}
+          className="absolute right-2 top-2 rounded-full bg-white p-1 z-10"
+          aria-label="Close"
+        >
+          <XCircle className="h-6 w-6" />
+        </button>
         
-        <div className="w-full aspect-video">
-          {videoInfo?.platform === 'file' ? (
-            <video 
-              src={videoUrl} 
-              controls 
-              autoPlay 
-              className="w-full h-full object-contain bg-black"
-            />
-          ) : (
-            <iframe 
-              src={videoUrl} 
-              title="Video Preview" 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
+        <div className="aspect-video w-full">
+          {platform === 'youtube' || platform === 'vimeo' ? (
+            <iframe
+              src={embedUrl}
               className="w-full h-full"
-            />
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          ) : url ? (
+            <video
+              src={url}
+              controls
+              autoPlay
+              className="w-full h-full object-contain bg-black"
+            ></video>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-black text-white">
+              No video to preview
+            </div>
           )}
         </div>
       </DialogContent>

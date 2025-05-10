@@ -11,22 +11,26 @@ export interface VideoInfo {
 
 export interface MediaItem {
   id: string;
-  type: 'image' | 'video';
+  type: 'image' | 'video' | 'empty';
   file?: MediaFile;
   url?: string;
   preview: string;
   isPrimary: boolean;
   isNew?: boolean;
+  isEmpty?: boolean;
   videoInfo?: VideoInfo;
 }
 
 export interface MediaUploadProps {
-  images: MediaItem[];
-  videoItem: MediaItem | null;
-  onImagesChange: (images: MediaItem[]) => void;
-  onVideoChange: (video: MediaItem | null) => void;
+  existingImages?: string[];
+  existingVideoUrl?: string | null;
+  onImagesChange: (images: MediaFile[]) => void;
+  onVideoChange: (video: MediaFile | null) => void;
   onVideoUrlChange: (url: string | null) => void;
   maxImages?: number;
+  onDeleteExistingImage?: (index: number) => void;
+  onDeleteExistingVideo?: () => void;
+  onImagesReorder?: (images: string[]) => void;
 }
 
 export interface BusinessMediaUploaderProps {

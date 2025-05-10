@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { extractVideoInfo } from './video-utils';
 import { BusinessMediaUploaderProps, MediaFile } from './types';
 import MediaUpload from './MediaUpload';
+import DragContext from './DragContext';
 
 const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   initialImages = [],
@@ -115,34 +116,36 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
 
   return (
     <div className="space-y-6">
-      <MediaUpload
-        existingImages={existingImages}
-        existingVideoUrl={videoUrl}
-        onImagesChange={(newImages) => {
-          setImages(newImages);
-          if (onImagesChange) onImagesChange(newImages);
-        }}
-        onVideoChange={(newVideo) => {
-          setVideo(newVideo);
-          if (onVideoChange) onVideoChange(newVideo);
-          
-          // Clear video URL if we're setting a file
-          if (newVideo) {
-            setVideoUrl('');
-            if (onVideoUrlChange) onVideoUrlChange('');
-          }
-        }}
-        onVideoUrlChange={(url) => {
-          if (url === null) {
-            setVideoUrl('');
-            if (onVideoUrlChange) onVideoUrlChange('');
-          }
-        }}
-        maxImages={maxImages}
-        onDeleteExistingImage={handleDeleteExistingImage}
-        onDeleteExistingVideo={handleDeleteVideoUrl}
-        onImagesReorder={handleReorderExistingImages}
-      />
+      <DragContext>
+        <MediaUpload
+          existingImages={existingImages}
+          existingVideoUrl={videoUrl}
+          onImagesChange={(newImages) => {
+            setImages(newImages);
+            if (onImagesChange) onImagesChange(newImages);
+          }}
+          onVideoChange={(newVideo) => {
+            setVideo(newVideo);
+            if (onVideoChange) onVideoChange(newVideo);
+            
+            // Clear video URL if we're setting a file
+            if (newVideo) {
+              setVideoUrl('');
+              if (onVideoUrlChange) onVideoUrlChange('');
+            }
+          }}
+          onVideoUrlChange={(url) => {
+            if (url === null) {
+              setVideoUrl('');
+              if (onVideoUrlChange) onVideoUrlChange('');
+            }
+          }}
+          maxImages={maxImages}
+          onDeleteExistingImage={handleDeleteExistingImage}
+          onDeleteExistingVideo={handleDeleteVideoUrl}
+          onImagesReorder={handleReorderExistingImages}
+        />
+      </DragContext>
 
       {/* Video URL Input */}
       <div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
@@ -5,38 +6,36 @@ import { Button } from '@/components/ui/button';
 import { Image, Video, Plus } from 'lucide-react';
 import MediaItem from './MediaItem';
 import VideoPreviewModal from './VideoPreviewModal';
-import { MediaItemType } from './types';
+import { MediaItem as MediaItemType } from './types';
+import { extractVideoInfo } from './video-utils';
 
 interface MediaGalleryProps {
   items: MediaItemType[];
   onReorder: (reorderedItems: MediaItemType[]) => void;
   onDelete: (id: string) => void;
-  onVideoPreview?: (item: MediaItemType) => void;
   onFileSelect: () => void;
   onDrop: (e: React.DragEvent) => void;
   isDragging?: boolean;
+  maxImages?: number;
 }
 
 const MediaGallery: React.FC<MediaGalleryProps> = ({ 
   items = [], 
   onReorder,
   onDelete,
-  onVideoPreview,
   onFileSelect,
   onDrop,
   isDragging = false,
+  maxImages = 10,
 }) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [currentVideoPreview, setCurrentVideoPreview] = useState<{
-    embedUrl: string;
-    platform: string | null;
-  } | null>(null);
+  const [currentVideoUrl, setCurrentVideoUrl] = useState<string>('');
+  const [videoType, setVideoType] = useState<string | null>(null);
   
   // Calculate media counts
-  const mediaItems = [...items];
-  const imageCount = mediaItems.filter(item => !item.isEmpty && item.type === 'image').length;
-  const hasVideo = mediaItems.some(item => !item.isEmpty && item.type === 'video');
-  const totalMediaCount = imageCount + (hasVideo ? 1 : 0);
+  const imageItems = items.filter(item => !item.isEmpty && item.type === 'image');
+  const videoItem = items.find(item => !item.isEmpty && item.type === 'video');
+  const totalMediaCount = imageItems.length + (videoItem ? 1 : 0);
   
   // Handle video preview
   const handleVideoPreview = useCallback((item: MediaItemType) => {
@@ -44,17 +43,12 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
       if (item.videoInfo?.platform === 'file' && item.file) {
         // Local file video preview
         const url = URL.createObjectURL(item.file);
-        setCurrentVideoPreview({
-          embedUrl: url,
-          platform: 'file'
-        });
-      } else if (item.videoInfo) {
+        setCurrentVideoUrl(url);
+        setVideoType('file');
+      } else if (item.videoInfo && item.url) {
         // YouTube/Vimeo video preview
-        const embedUrl = item.url || '';
-        setCurrentVideoPreview({
-          embedUrl,
-          platform: item.videoInfo.platform
-        });
+        setCurrentVideoUrl(item.url);
+        setVideoType(item.videoInfo.platform || null);
       }
       setIsVideoModalOpen(true);
     }
@@ -66,13 +60,13 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     if (dragIndex === 1 || hoverIndex === 1) return;
     
     // Create a new array to avoid direct mutation
-    const newItems = [...mediaItems];
+    const newItems = [...items];
     
     // Get the item being dragged
     const draggedItem = newItems[dragIndex];
     
-    // Don't proceed if it's an empty or non-draggable item
-    if (draggedItem.type === 'empty' || draggedItem.isEmpty) return;
+    // Don't proceed if it's an empty slot
+    if (draggedItem.isEmpty) return;
     
     // Remove the item from its original position
     newItems.splice(dragIndex, 1);
@@ -88,7 +82,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     
     // Update state via callback
     onReorder(newItems);
-  }, [mediaItems, onReorder]);
+  }, [items, onReorder]);
   
   // Handle slot drop
   const handleSlotDrop = useCallback((e: React.DragEvent, index: number) => {
@@ -100,19 +94,19 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   // Create empty grid placeholders to ensure we always have 12 items (3x4 grid)
   // Making sure video slot is always at index 1
   const ensureCompleteGrid = () => {
-    const result = [...mediaItems];
+    const result = [...items];
     
     // Check if we need to add or ensure a video slot at index 1
     if (result.length >= 1) {
       // If index 1 doesn't exist or isn't a video slot
-      if (result.length === 1 || (result[1]?.type !== 'video')) {
+      if (result.length === 1 || (result[1]?.type !== 'video' && result[1]?.type !== 'empty')) {
         // Create empty video slot for position 1
         const videoSlot: MediaItemType = {
           id: `empty-video-slot-${Date.now()}`,
-          type: 'video',
+          type: 'empty',
           isEmpty: true,
           preview: '',
-          isNew: false
+          isPrimary: false
         };
         
         // Insert at index 1
@@ -127,7 +121,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
         type: 'empty',
         isEmpty: true,
         preview: '',
-        isNew: false
+        isPrimary: false
       });
     }
     
@@ -230,8 +224,8 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
                     item={item}
                     index={index}
                     moveItem={moveItem}
-                    onDelete={onDelete}
-                    onVideoPreview={handleVideoPreview}
+                    onDelete={() => onDelete(item.id)}
+                    onPreview={() => handleVideoPreview(item)}
                     // Only the video slot (index 1) is fixed
                     isFixed={index === 1}
                   />
@@ -253,7 +247,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
         <div className="flex justify-between items-center mt-1">
           <div className="text-sm text-gray-500">
             <span className="font-medium">{totalMediaCount}</span> of <span className="font-medium">11</span> media slots used 
-            {imageCount > 0 && <span> ({imageCount} images{hasVideo ? ', 1 video' : ''})</span>}
+            {imageItems.length > 0 && <span> ({imageItems.length} images{videoItem ? ', 1 video' : ''})</span>}
           </div>
           
           <Button 
@@ -269,8 +263,8 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
         <VideoPreviewModal
           isOpen={isVideoModalOpen}
           onClose={() => setIsVideoModalOpen(false)}
-          embedUrl={currentVideoPreview?.embedUrl || ''}
-          platform={currentVideoPreview?.platform || null}
+          url={currentVideoUrl}
+          platform={videoType}
         />
       </div>
     </TooltipProvider>
