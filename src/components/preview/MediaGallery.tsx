@@ -4,17 +4,20 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
+import { getVideoEmbedUrl } from '@/components/media-uploader/video-utils';
 
 interface MediaGalleryProps {
   galleryImages: string[];
   videoURL?: string | null;
   autoplayVideo?: boolean;
+  primaryImageIndex?: number;
 }
 
 export const MediaGallery: React.FC<MediaGalleryProps> = ({
-  galleryImages,
+  galleryImages = [],
   videoURL,
-  autoplayVideo = false
+  autoplayVideo = false,
+  primaryImageIndex = 0
 }) => {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -23,6 +26,22 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const hasVideo = !!videoURL;
   const hasImages = Array.isArray(galleryImages) && galleryImages.length > 0;
   const hasMedia = hasVideo || hasImages;
+  
+  // Organize images by priority
+  const organizedImages = React.useMemo(() => {
+    if (!hasImages) return [];
+    
+    // If primaryImageIndex is valid, move that image to first position
+    if (typeof primaryImageIndex === 'number' && 
+        primaryImageIndex >= 0 && 
+        primaryImageIndex < galleryImages.length) {
+      const images = [...galleryImages];
+      const primaryImage = images.splice(primaryImageIndex, 1)[0];
+      return [primaryImage, ...images];
+    }
+    
+    return galleryImages;
+  }, [galleryImages, primaryImageIndex, hasImages]);
 
   // Handle mute toggle
   const toggleMute = () => {
@@ -66,46 +85,81 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     <div className="w-full rounded-lg overflow-hidden shadow-md">
       <Carousel className="w-full">
         <CarouselContent>
-          {/* Video (if available) as the first item - PRIORITY #1 */}
+          {/* Primary image is always first */}
+          {hasImages && organizedImages.length > 0 && (
+            <CarouselItem>
+              <AspectRatio ratio={16 / 9} className="bg-gray-100 overflow-hidden">
+                <img 
+                  src={organizedImages[0]} 
+                  alt="Primary business image" 
+                  className="w-full h-full object-cover" 
+                  loading="eager"
+                />
+              </AspectRatio>
+            </CarouselItem>
+          )}
+          
+          {/* Video (if available) as the second item */}
           {hasVideo && (
             <CarouselItem>
               <AspectRatio ratio={16 / 9} className="bg-gray-100 overflow-hidden">
                 <div className="relative w-full h-full">
-                  <video 
-                    ref={videoRef} 
-                    src={videoURL!} 
-                    controls={false} 
-                    loop 
-                    muted={isMuted} 
-                    playsInline 
-                    className="w-full h-full object-cover" 
-                  />
-                  
-                  {/* Video Controls */}
-                  <div className="absolute bottom-4 right-4">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="bg-white/80 backdrop-blur-sm hover:bg-white rounded-full" 
-                      onClick={toggleMute}
-                    >
-                      {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                    </Button>
-                  </div>
+                  {videoURL && videoURL.includes('youtube.com') || videoURL?.includes('youtu.be') ? (
+                    // YouTube embed
+                    <iframe 
+                      src={getVideoEmbedUrl('youtube', videoURL.split('v=')[1] || videoURL.split('/').pop() || '')} 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  ) : videoURL && videoURL.includes('vimeo.com') ? (
+                    // Vimeo embed
+                    <iframe 
+                      src={`https://player.vimeo.com/video/${videoURL.split('/').pop()}`}
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  ) : (
+                    // Direct video file
+                    <>
+                      <video 
+                        ref={videoRef} 
+                        src={videoURL!} 
+                        controls={false} 
+                        loop 
+                        muted={isMuted} 
+                        playsInline 
+                        className="w-full h-full object-cover" 
+                      />
+                      
+                      {/* Video Controls */}
+                      <div className="absolute bottom-4 right-4">
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="bg-white/80 backdrop-blur-sm hover:bg-white rounded-full" 
+                          onClick={toggleMute}
+                        >
+                          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </AspectRatio>
             </CarouselItem>
           )}
           
-          {/* Images - Display after video or as primary if no video */}
-          {hasImages && galleryImages.map((imageUrl, index) => (
-            <CarouselItem key={index}>
+          {/* Remaining images - Skip first image as it's already shown */}
+          {hasImages && organizedImages.length > 1 && organizedImages.slice(1).map((imageUrl, index) => (
+            <CarouselItem key={index + 1}>
               <AspectRatio ratio={16 / 9} className="bg-gray-100 overflow-hidden">
                 <img 
                   src={imageUrl} 
-                  alt={`Business media ${index + 1}`} 
+                  alt={`Business media ${index + 2}`} 
                   className="w-full h-full object-cover" 
-                  loading={index === 0 && !hasVideo ? "eager" : "lazy"}
+                  loading="lazy"
                 />
               </AspectRatio>
             </CarouselItem>
@@ -113,12 +167,12 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
         </CarouselContent>
         
         {/* Navigation Controls - Only show if we have more than one media item */}
-        {(hasVideo && hasImages) || galleryImages.length > 1 ? (
+        {((hasVideo && hasImages) || organizedImages.length > 1) && (
           <>
             <CarouselPrevious className="left-2 bg-white/70 hover:bg-white" />
             <CarouselNext className="right-2 bg-white/70 hover:bg-white" />
           </>
-        ) : null}
+        )}
       </Carousel>
     </div>
   );

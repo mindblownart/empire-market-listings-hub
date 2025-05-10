@@ -117,6 +117,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
       <MediaUpload
         existingImages={existingImages}
         existingVideoUrl={videoUrl}
+        primaryImageIndex={0}
         onImagesChange={(newImages) => {
           setImages(newImages);
           if (onImagesChange) onImagesChange(newImages);
@@ -143,7 +144,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
         onImagesReorder={handleReorderExistingImages}
       />
 
-      {/* Video URL Input - Show regardless of whether video file is selected */}
+      {/* Video URL Input */}
       <div className="mt-4">
         <label htmlFor="video-url" className="block text-sm font-medium mb-1">
           Video URL (YouTube or Vimeo)

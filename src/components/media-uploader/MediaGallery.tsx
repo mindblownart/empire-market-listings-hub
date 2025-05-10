@@ -9,7 +9,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { Image, Video } from 'lucide-react';
 
 interface MediaGalleryProps {
-  images: string[];
+  images?: string[];
   newImages?: File[];
   videoUrl?: string | null;
   newVideo?: File | null;
@@ -77,6 +77,16 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
         isPrimary: true,
         originalIndex: 0,
         isNew: true
+      });
+    } else {
+      // Add empty primary slot
+      items.push({
+        id: 'empty-primary-slot',
+        type: 'image',
+        isEmpty: true,
+        preview: '',
+        isPrimary: true,
+        isNew: false
       });
     }
     
@@ -172,7 +182,9 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     // Cleanup function for URL.createObjectURL
     return () => {
       newImages.forEach(file => {
-        URL.revokeObjectURL(URL.createObjectURL(file));
+        if (file instanceof File) {
+          URL.revokeObjectURL(URL.createObjectURL(file));
+        }
       });
       
       if (newVideo) {
@@ -270,6 +282,31 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
       }
     }
   };
+
+  // Handle set primary
+  const handleSetPrimary = (id: string) => {
+    const index = mediaItems.findIndex(item => item.id === id);
+    if (index === -1 || index <= 1) return;
+    
+    const item = mediaItems[index];
+    if (item.isEmpty || item.type !== 'image') return;
+    
+    // Find the original index for this image
+    let originalIndex;
+    if (item.isNew) {
+      // For new images
+      const match = id.match(/new-image-(\d+)/);
+      originalIndex = match ? parseInt(match[1]) : null;
+    } else {
+      // For existing images
+      const match = id.match(/existing-image-(\d+)/);
+      originalIndex = match ? parseInt(match[1]) : null;
+    }
+    
+    if (originalIndex !== null && onSetPrimaryImage) {
+      onSetPrimaryImage(originalIndex);
+    }
+  };
   
   // If no items yet, show empty state
   if (totalMediaCount === 0) {
@@ -291,17 +328,18 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   return (
     <TooltipProvider>
       <div className="space-y-4">
-        <div className="flex gap-2 overflow-x-auto pb-2" style={{ minHeight: '150px' }}>
-          {mediaItems.map((item, index) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+          {mediaItems.slice(0, 10).map((item, index) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
-                <div className="flex-shrink-0 w-[150px]">
+                <div>
                   <MediaItem
                     item={item}
                     index={index}
                     moveItem={moveItem}
-                    onDelete={() => handleDelete(item.id)}
-                    onVideoPreview={() => handleVideoPreview(item)}
+                    onDelete={handleDelete}
+                    onVideoPreview={handleVideoPreview}
+                    onSetPrimary={handleSetPrimary}
                     isFixed={index <= 1} // Primary image and video are fixed
                   />
                 </div>

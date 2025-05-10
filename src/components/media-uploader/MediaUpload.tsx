@@ -2,12 +2,11 @@
 import React, { useState, useCallback } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Upload, X, Info } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Upload, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import MediaGallery from './MediaGallery'; 
-import { MediaItemType, MediaFile } from './types';
+import { MediaFile } from './types';
 import { extractVideoInfo } from './video-utils';
 
 interface MediaUploadProps {
@@ -205,28 +204,33 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     setNewImages(typedImages);
     onImagesChange(typedImages);
   };
+
+  // Handle setting primary image
+  const handleSetPrimaryImage = (index: number) => {
+    if (onSetPrimaryImage) {
+      onSetPrimaryImage(index);
+    }
+  };
   
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="space-y-4">
         {/* Media Gallery for existing and new files */}
-        <ScrollArea className="w-full pb-4">
-          <div className="overflow-x-auto pb-2">
-            <MediaGallery 
-              images={existingImages}
-              newImages={newImages}
-              videoUrl={existingVideoUrl}
-              newVideo={newVideo}
-              onSetPrimaryImage={onSetPrimaryImage}
-              onReorderImages={handleReorderImages}
-              onReorderNewImages={handleReorderNewImages}
-              onDeleteImage={onDeleteExistingImage}
-              onDeleteNewImage={handleDeleteNewImage}
-              onDeleteVideo={onDeleteExistingVideo}
-              onDeleteNewVideo={handleDeleteNewVideo}
-            />
-          </div>
-        </ScrollArea>
+        <div>
+          <MediaGallery 
+            images={existingImages}
+            newImages={newImages}
+            videoUrl={existingVideoUrl}
+            newVideo={newVideo}
+            onSetPrimaryImage={handleSetPrimaryImage}
+            onReorderImages={handleReorderImages}
+            onReorderNewImages={handleReorderNewImages}
+            onDeleteImage={onDeleteExistingImage}
+            onDeleteNewImage={handleDeleteNewImage}
+            onDeleteVideo={onDeleteExistingVideo}
+            onDeleteNewVideo={handleDeleteNewVideo}
+          />
+        </div>
         
         {/* Upload Area */}
         <div 
@@ -243,7 +247,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
             </div>
             
             <div className="space-y-1">
-              <h3 className="font-medium">Drag and drop your files</h3>
+              <h3 className="font-medium">Drag & Drop or</h3>
               <p className="text-sm text-gray-500">
                 {availableImageSlots > 0 
                   ? `You can add up to ${availableImageSlots} more images${!hasVideo ? ' and 1 video' : ''}`
@@ -251,26 +255,24 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
               </p>
               
               <div className="flex justify-center">
-                <label>
-                  <Button 
-                    variant="outline" 
-                    className="mt-2"
-                    onClick={() => document.getElementById('file-upload')?.click()}
-                    disabled={(availableImageSlots <= 0) && hasVideo}
-                    type="button"
-                  >
-                    Select files
-                  </Button>
-                  <input
-                    id="file-upload"
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={handleFileInputChange}
-                    accept={[...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES].join(',')}
-                    disabled={(availableImageSlots <= 0) && hasVideo}
-                  />
-                </label>
+                <Button 
+                  variant="outline" 
+                  className="mt-2"
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                  disabled={(availableImageSlots <= 0) && hasVideo}
+                  type="button"
+                >
+                  Select files
+                </Button>
+                <input
+                  id="file-upload"
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileInputChange}
+                  accept={[...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES].join(',')}
+                  disabled={(availableImageSlots <= 0) && hasVideo}
+                />
               </div>
             </div>
           </div>

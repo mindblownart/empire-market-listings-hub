@@ -2,18 +2,9 @@
 import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { Move, X, Play, Star, Video, Image, Plus } from 'lucide-react';
-import { MediaItemType } from './types';
+import { MediaItemProps, MediaItemType } from './types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-
-interface MediaItemProps { 
-  item: MediaItemType; 
-  index: number; 
-  moveItem: (dragIndex: number, hoverIndex: number) => void;
-  onDelete: () => void;
-  onVideoPreview?: () => void;
-  isFixed?: boolean;
-}
 
 const MediaItem: React.FC<MediaItemProps> = ({ 
   item, 
@@ -21,6 +12,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
   moveItem, 
   onDelete,
   onVideoPreview,
+  onSetPrimary,
   isFixed = false
 }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -73,12 +65,19 @@ const MediaItem: React.FC<MediaItemProps> = ({
 
   const handleVideoClick = () => {
     if (item.type === 'video' && !item.isEmpty && onVideoPreview) {
-      onVideoPreview();
+      onVideoPreview(item);
+    }
+  };
+
+  const handleSetPrimary = () => {
+    if (onSetPrimary && !item.isPrimary && item.type === 'image') {
+      onSetPrimary(item.id);
     }
   };
 
   // Don't render delete button for empty slots
   const showDeleteButton = !item.isEmpty;
+  const showSetPrimaryButton = !item.isEmpty && !item.isPrimary && item.type === 'image' && onSetPrimary;
   
   // Determine border color and opacity based on state
   let borderColorClass = 'border-gray-200';
@@ -180,6 +179,16 @@ const MediaItem: React.FC<MediaItemProps> = ({
         </div>
       )}
       
+      {/* Set Primary button */}
+      {showSetPrimaryButton && (
+        <button
+          onClick={handleSetPrimary}
+          className="absolute bottom-2 left-2 bg-primary hover:bg-primary/90 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <Star className="h-3.5 w-3.5 text-white" />
+        </button>
+      )}
+      
       {/* Move handle only for draggable items */}
       {!isFixed && !item.isEmpty && item.type === 'image' && (
         <div className="absolute top-2 right-10 bg-black/60 hover:bg-black/80 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move">
@@ -190,7 +199,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
       {/* Delete button */}
       {showDeleteButton && (
         <button
-          onClick={onDelete}
+          onClick={() => onDelete(item.id)}
           className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <X className="h-3.5 w-3.5 text-white" />
