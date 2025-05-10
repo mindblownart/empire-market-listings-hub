@@ -29,6 +29,7 @@ export interface BusinessListing {
   is_featured: boolean;
   is_new: boolean;
   is_hot: boolean;
+  primary_image_index?: number;
 }
 
 // Extend the existing Database type to include our business_listings table

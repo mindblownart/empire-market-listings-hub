@@ -113,42 +113,43 @@ const EditListing = () => {
       }
 
       // Store the original listing for reference
-      setOriginalListing(listing as ListingData);
+      const typedListing = listing as unknown as ListingData;
+      setOriginalListing(typedListing);
 
       // Store image URLs separately
-      if (listing.gallery_images && Array.isArray(listing.gallery_images)) {
-        setImageUrls(listing.gallery_images);
+      if (typedListing.gallery_images && Array.isArray(typedListing.gallery_images)) {
+        setImageUrls(typedListing.gallery_images);
         // Check if primary_image_index is set
-        if (typeof listing.primary_image_index === 'number') {
-          setPrimaryImageIndex(listing.primary_image_index);
+        if (typeof typedListing.primary_image_index === 'number') {
+          setPrimaryImageIndex(typedListing.primary_image_index);
         }
       }
       
       // Format the data for the form - use the properties that match BusinessFormData
       updateFormData({
-        businessName: listing.business_name,
-        industry: listing.category,
-        location: listing.location,
-        yearEstablished: listing.year_established?.toString() || '',
-        employees: listing.employees || '',
-        askingPrice: listing.asking_price,
-        annualRevenue: listing.annual_revenue,
-        annualProfit: listing.annual_profit,
-        currencyCode: listing.currency_code,
-        description: listing.description || '',
-        highlights: listing.highlights || [],
+        businessName: typedListing.business_name,
+        industry: typedListing.category,
+        location: typedListing.location,
+        yearEstablished: typedListing.year_established?.toString() || '',
+        employees: typedListing.employees || '',
+        askingPrice: typedListing.asking_price,
+        annualRevenue: typedListing.annual_revenue,
+        annualProfit: typedListing.annual_profit,
+        currencyCode: typedListing.currency_code,
+        description: typedListing.description || '',
+        highlights: typedListing.highlights || [],
         businessImages: [],  // We'll handle the URLs separately
         businessVideo: null,
-        businessVideoUrl: listing.video_url || '',
-        fullName: listing.contact_name || '',
-        email: listing.contact_email || '',
-        phone: listing.contact_phone || '',
-        role: listing.contact_role || '',
+        businessVideoUrl: typedListing.video_url || '',
+        fullName: typedListing.contact_name || '',
+        email: typedListing.contact_email || '',
+        phone: typedListing.contact_phone || '',
+        role: typedListing.contact_role || '',
         originalValues: {
-          askingPrice: listing.asking_price,
-          annualRevenue: listing.annual_revenue,
-          annualProfit: listing.annual_profit,
-          currencyCode: listing.currency_code,
+          askingPrice: typedListing.asking_price,
+          annualRevenue: typedListing.annual_revenue,
+          annualProfit: typedListing.annual_profit,
+          currencyCode: typedListing.currency_code,
         }
       });
       
