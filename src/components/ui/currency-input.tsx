@@ -4,6 +4,7 @@ import { Input } from "./input";
 import { formatLiveCurrency, unformatNumber } from "@/lib/formatters";
 import { convertCurrencyLive } from "@/lib/exchangeRates";
 import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
 
 // Create a useMergedRef hook to combine multiple refs
 function useMergedRef<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
