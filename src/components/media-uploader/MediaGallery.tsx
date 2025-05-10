@@ -1,3 +1,4 @@
+
 import React from 'react';
 import MediaItem from './MediaItem';
 import VideoPreviewModal from './VideoPreviewModal';
@@ -56,7 +57,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   React.useEffect(() => {
     const items: MediaItemType[] = [];
     
-    // Add primary image first (either first existing image or first new image)
+    // Always add primary slot first (either with image or empty)
     if (images.length > 0) {
       items.push({
         id: `existing-image-0`,
@@ -93,7 +94,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
       });
     }
     
-    // Always add video slot (either with video or empty)
+    // Always add video slot second (either with video or empty)
     if (videoUrl) {
       const videoInfo = extractVideoInfo(videoUrl);
       items.push({
@@ -101,13 +102,12 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
         type: 'video',
         url: videoUrl,
         preview: videoInfo.platform && videoInfo.id 
-          ? `https://img.youtube.com/vi/${videoInfo.id}/hqdefault.jpg` // Simplified thumbnail logic
+          ? `https://img.youtube.com/vi/${videoInfo.id}/hqdefault.jpg`
           : '',
         videoInfo,
         isNew: false
       });
     } else if (newVideo) {
-      // Add ID to newVideo as well
       const mediaFile = newVideo as MediaFile;
       if (!mediaFile.id) {
         mediaFile.id = `new-video-${Date.now()}`;
@@ -168,11 +168,13 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
       }
     }
     
-    // Add empty slots to reach 11 total slots (10 images + 1 video)
-    const emptySlots = Math.max(0, 11 - items.length);
+    // Always add empty slots to reach exactly 11 total slots (10 images + 1 video)
+    const currentItemCount = items.length;
+    const emptySlots = Math.max(0, 11 - currentItemCount);
+    
     for (let i = 0; i < emptySlots; i++) {
       items.push({
-        id: `empty-slot-${i}`,
+        id: `empty-slot-${i}-${Date.now()}`,
         type: 'empty',
         isEmpty: true,
         preview: '',
@@ -180,7 +182,9 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
       });
     }
     
-    setMediaItems(items);
+    // Ensure we have exactly 11 slots total (trim if needed)
+    const finalItems = items.slice(0, 11);
+    setMediaItems(finalItems);
     
     // Cleanup function for URL.createObjectURL
     return () => {
@@ -220,6 +224,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   
   // Handle reordering of items
   const moveItem = (dragIndex: number, hoverIndex: number) => {
+    // Don't allow moving to/from first two positions
     if (dragIndex <= 1 || hoverIndex <= 1) return;
     
     const draggedItem = mediaItems[dragIndex];
@@ -234,8 +239,15 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
         const existingImages: string[] = [];
         const newImageFiles: File[] = [];
         
-        newItems.forEach(item => {
-          if (item.type === 'image' && !item.isPrimary) {
+        // First image is always primary
+        if (images.length > 0) {
+          existingImages.push(images[0]);
+        }
+        
+        // Collect reordered images
+        newItems.forEach((item, idx) => {
+          // Skip first two positions (primary and video)
+          if (idx > 1 && item.type === 'image' && !item.isEmpty) {
             if (!item.isNew && item.preview) {
               existingImages.push(item.preview);
             } else if (item.isNew && item.file) {
@@ -244,7 +256,8 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
           }
         });
         
-        if (onReorderImages) onReorderImages([images[0], ...existingImages]);
+        // Update parent components if needed
+        if (onReorderImages) onReorderImages([...existingImages]);
         if (onReorderNewImages) onReorderNewImages(newImageFiles);
       }
       
@@ -320,24 +333,73 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   };
   
-  // If no items yet, show empty state
+  // If no items yet, show empty state with 11 slots
   if (totalMediaCount === 0) {
     return (
-      <div 
-        className="min-h-[200px] border-2 border-dashed rounded-lg flex items-center justify-center p-6 text-center"
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => handleSlotDrop(e, 0)}
-      >
-        <div>
-          <div className="flex justify-center items-center mb-3">
-            <div className="bg-gray-100 rounded-full p-4">
-              <Image className="h-6 w-6 text-gray-400" />
-            </div>
-          </div>
-          <p className="text-gray-600">Add photos and video to showcase your business</p>
-          <p className="text-xs text-gray-500 mt-1">Drag files here or use the Select files button below</p>
+      <TooltipProvider>
+        <div className="grid grid-cols-5 gap-3" onDragOver={e => e.preventDefault()}>
+          {/* Primary Image Slot */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div 
+                className="relative aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center"
+                onDrop={(e) => handleSlotDrop(e, 0)}
+                onDragOver={(e) => e.preventDefault()}
+              >
+                <div className="text-center p-2">
+                  <Image className="w-8 h-8 mx-auto text-gray-300 mb-1" />
+                  <p className="text-xs text-gray-400">Primary Image</p>
+                </div>
+                <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
+                  Primary
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top">Drop files here for primary image</TooltipContent>
+          </Tooltip>
+          
+          {/* Video Slot */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div 
+                className="relative aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center"
+                onDrop={(e) => handleSlotDrop(e, 1)}
+                onDragOver={(e) => e.preventDefault()}
+              >
+                <div className="text-center p-2">
+                  <Video className="w-8 h-8 mx-auto text-gray-300 mb-1" />
+                  <p className="text-xs text-gray-400">Video</p>
+                  <p className="text-xs text-gray-300">(Optional)</p>
+                </div>
+                <div className="absolute top-2 left-2 bg-gray-500/70 text-white text-xs px-2 py-1 rounded-full">
+                  Video Slot
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top">Drop video file here</TooltipContent>
+          </Tooltip>
+          
+          {/* 9 Empty Image Slots */}
+          {Array.from({ length: 9 }).map((_, i) => (
+            <Tooltip key={i}>
+              <TooltipTrigger asChild>
+                <div 
+                  className="aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center"
+                  onDrop={(e) => handleSlotDrop(e, i + 2)}
+                  onDragOver={(e) => e.preventDefault()}
+                >
+                  <div className="text-center p-2">
+                    <Plus className="w-6 h-6 mx-auto text-gray-300 mb-1" />
+                    <p className="text-xs text-gray-400">Add image</p>
+                    <p className="text-xs text-gray-300">Drop files here</p>
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top">Drop files here</TooltipContent>
+            </Tooltip>
+          ))}
         </div>
-      </div>
+      </TooltipProvider>
     );
   }
   
@@ -345,10 +407,10 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     <TooltipProvider>
       <div className="space-y-4">
         <div 
-          className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-1' : ''}`}
+          className={`grid grid-cols-5 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
           onDragOver={(e) => e.preventDefault()}
         >
-          {mediaItems.slice(0, 10).map((item, index) => (
+          {mediaItems.map((item, index) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
                 <div 

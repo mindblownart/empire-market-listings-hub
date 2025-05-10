@@ -113,7 +113,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Unified Media Upload Component */}
+      {/* MediaUpload Component with Integrated Gallery */}
       <MediaUpload
         existingImages={existingImages}
         existingVideoUrl={videoUrl}

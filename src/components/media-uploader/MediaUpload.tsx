@@ -1,13 +1,11 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Upload, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Info } from 'lucide-react';
 import { toast } from 'sonner';
-import MediaGallery from './MediaGallery'; 
+import MediaGallery from './MediaGallery';
 import { MediaFile } from './types';
-import { extractVideoInfo } from './video-utils';
 
 interface MediaUploadProps {
   existingImages?: string[];
@@ -52,7 +50,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const totalImagesCount = existingImagesCount + newImagesCount;
   const availableImageSlots = MAX_IMAGES - totalImagesCount;
   
-  // Handle drag events - now for the entire component
+  // Handle drag events
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -107,7 +105,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
             });
           }
         } else {
-          toast.error('Only one video allowed', {
+          toast.warning('Only one video allowed', {
             description: 'Please remove the existing video first'
           });
         }
@@ -148,19 +146,6 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     setDragActive(false);
     processFiles(files);
   }, [processFiles]);
-  
-  // Handle file input change
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const { files } = e.target;
-    
-    if (files && files.length > 0) {
-      processFiles(files);
-    }
-    
-    // Reset input value to allow selecting the same file again
-    e.target.value = '';
-  };
   
   // Handle deleting a new image
   const handleDeleteNewImage = (index: number) => {
@@ -212,50 +197,21 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         className="space-y-4"
         onDragEnter={handleDrag}
       >
-        {/* Media Gallery for existing and new files - now accepts drops directly */}
-        <div 
-          onDragOver={(e) => e.preventDefault()}
-          onDragLeave={handleDrag}
-        >
-          <MediaGallery 
-            images={existingImages}
-            newImages={newImages}
-            videoUrl={existingVideoUrl}
-            newVideo={newVideo}
-            onSetPrimaryImage={handleSetPrimaryImage}
-            onReorderImages={handleReorderImages}
-            onReorderNewImages={handleReorderNewImages}
-            onDeleteImage={onDeleteExistingImage}
-            onDeleteNewImage={handleDeleteNewImage}
-            onDeleteVideo={onDeleteExistingVideo}
-            onDeleteNewVideo={handleDeleteNewVideo}
-            onFilesDrop={handleFilesDrop}
-            isDragging={dragActive}
-          />
-        </div>
-        
-        {/* File Select Button */}
-        <div className="flex justify-center">
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => document.getElementById('file-upload')?.click()}
-            disabled={(availableImageSlots <= 0) && hasVideo}
-            type="button"
-          >
-            <Upload className="h-4 w-4" />
-            Select Files
-          </Button>
-          <input
-            id="file-upload"
-            type="file"
-            multiple
-            className="hidden"
-            onChange={handleFileInputChange}
-            accept={[...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES].join(',')}
-            disabled={(availableImageSlots <= 0) && hasVideo}
-          />
-        </div>
+        <MediaGallery 
+          images={existingImages}
+          newImages={newImages}
+          videoUrl={existingVideoUrl}
+          newVideo={newVideo}
+          onSetPrimaryImage={handleSetPrimaryImage}
+          onReorderImages={handleReorderImages}
+          onReorderNewImages={handleReorderNewImages}
+          onDeleteImage={onDeleteExistingImage}
+          onDeleteNewImage={handleDeleteNewImage}
+          onDeleteVideo={onDeleteExistingVideo}
+          onDeleteNewVideo={handleDeleteNewVideo}
+          onFilesDrop={handleFilesDrop}
+          isDragging={dragActive}
+        />
         
         {/* Upload Tips */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">

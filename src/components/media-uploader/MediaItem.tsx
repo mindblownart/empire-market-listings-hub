@@ -36,9 +36,9 @@ const MediaItem: React.FC<MediaItemProps> = ({
       // Don't replace items with themselves
       if (dragIndex === hoverIndex) return;
       
-      // If this is the video slot (index 1) or trying to move to primary slot (index 0), prevent it
-      if (hoverIndex <= 1) return;
-      if (dragIndex <= 1) return;
+      // If this is the video slot (index 1) or primary slot (index 0), prevent hover
+      if (hoverIndex === 0 || hoverIndex === 1) return;
+      if (dragIndex === 0 || dragIndex === 1) return;
       
       // Don't allow dropping onto empty slots beyond the first available one
       if (item.type === 'empty' && hoverIndex > 0) {
@@ -83,7 +83,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
   };
 
   // Don't render delete button for empty slots
-  const showDeleteButton = !item.isEmpty;
+  const showDeleteButton = !item.isEmpty && !isFixed;
   const showSetPrimaryButton = !item.isEmpty && !item.isPrimary && item.type === 'image' && onSetPrimary;
   
   // Determine border color and opacity based on state
@@ -108,7 +108,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
         borderColorClass,
         bgClass,
         isDragging ? 'opacity-50' : 'opacity-100',
-        item.type === 'empty' ? 'border-dashed hover:bg-gray-100 transition-colors' : ''
+        item.isEmpty ? 'border-dashed hover:bg-gray-100 transition-colors' : ''
       )}
     >
       {item.isEmpty ? (
