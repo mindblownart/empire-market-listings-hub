@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -13,7 +14,7 @@ import BusinessHighlights from './submit/BusinessHighlights';
 import ContactInformation from './submit/ContactInformation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFormValidation } from '@/hooks/useFormValidation';
 
@@ -28,97 +29,99 @@ const EditListing = () => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   // Fetch the listing data
-  useEffect(() => {
-    const fetchListing = async () => {
-      if (!id) {
-        setError('No listing ID provided');
+  const fetchListing = async () => {
+    if (!id) {
+      setError('No listing ID provided');
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Verify user has permission to edit this listing
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast("Authentication required", {
+          description: "Please log in to edit listings.",
+        });
+        navigate('/login');
+        return;
+      }
+      
+      // Fetch the listing data
+      const { data: listing, error } = await supabase
+        .from('business_listings')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching listing:', error);
+        throw error;
+      }
+      
+      if (!listing) {
+        setError('Listing not found');
         setIsLoading(false);
         return;
       }
       
-      try {
-        setIsLoading(true);
-        
-        // Verify user has permission to edit this listing
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) {
-          toast("Authentication required", {
-            description: "Please log in to edit listings.",
-          });
-          navigate('/login');
-          return;
-        }
-        
-        // Fetch the listing data
-        const { data: listing, error } = await supabase
-          .from('business_listings')
-          .select('*')
-          .eq('id', id)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching listing:', error);
-          throw error;
-        }
-        
-        if (!listing) {
-          setError('Listing not found');
-          setIsLoading(false);
-          return;
-        }
-        
-        // Check if the current user is the owner
-        if (listing.user_id !== session.user.id) {
-          toast("Access denied", {
-            description: "You don't have permission to edit this listing.",
-          });
-          navigate('/listings');
-          return;
-        }
+      // Check if the current user is the owner
+      if (listing.user_id !== session.user.id) {
+        toast("Access denied", {
+          description: "You don't have permission to edit this listing.",
+        });
+        navigate('/listings');
+        return;
+      }
 
-        // Store image URLs separately
-        if (listing.gallery_images && Array.isArray(listing.gallery_images)) {
-          setImageUrls(listing.gallery_images);
-        }
-        
-        // Format the data for the form - use the properties that match BusinessFormData
-        updateFormData({
-          businessName: listing.business_name,
-          industry: listing.category,
-          location: listing.location,
-          yearEstablished: listing.year_established?.toString() || '',
-          employees: listing.employees || '',
+      // Store image URLs separately
+      if (listing.gallery_images && Array.isArray(listing.gallery_images)) {
+        setImageUrls(listing.gallery_images);
+      }
+      
+      // Format the data for the form - use the properties that match BusinessFormData
+      updateFormData({
+        businessName: listing.business_name,
+        industry: listing.category,
+        location: listing.location,
+        yearEstablished: listing.year_established?.toString() || '',
+        employees: listing.employees || '',
+        askingPrice: listing.asking_price,
+        annualRevenue: listing.annual_revenue,
+        annualProfit: listing.annual_profit,
+        currencyCode: listing.currency_code,
+        description: listing.description || '',
+        highlights: listing.highlights || [],
+        businessImages: [],  // We'll handle the URLs separately
+        businessVideo: null,
+        businessVideoUrl: listing.video_url || '',
+        fullName: listing.contact_name || '',
+        email: listing.contact_email || '',
+        phone: listing.contact_phone || '',
+        role: listing.contact_role || '',
+        originalValues: {
           askingPrice: listing.asking_price,
           annualRevenue: listing.annual_revenue,
           annualProfit: listing.annual_profit,
           currencyCode: listing.currency_code,
-          description: listing.description || '',
-          highlights: listing.highlights || [],
-          businessImages: [],  // We'll handle the URLs separately
-          businessVideo: null,
-          businessVideoUrl: listing.video_url || '',
-          fullName: listing.contact_name || '',
-          email: listing.contact_email || '',
-          phone: listing.contact_phone || '',
-          role: listing.contact_role || '',
-          originalValues: {
-            askingPrice: listing.asking_price,
-            annualRevenue: listing.annual_revenue,
-            annualProfit: listing.annual_profit,
-            currencyCode: listing.currency_code,
-          }
-        });
-      } catch (error) {
-        console.error('Error fetching listing:', error);
-        setError('Failed to load listing. Please try again.');
-        toast("Error loading listing", {
-          description: "There was a problem loading this business listing. Please try again."
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching listing:', error);
+      setError('Failed to load listing. Please try again.');
+      toast("Error loading listing", {
+        description: "There was a problem loading this business listing. Please try again."
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch the listing data on mount
+  useEffect(() => {
     fetchListing();
     
     // Reset form when unmounting
@@ -185,6 +188,10 @@ const EditListing = () => {
     navigate(`/business/${id}`);
   };
 
+  const handleRetry = () => {
+    fetchListing();
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -209,12 +216,20 @@ const EditListing = () => {
           <div className="text-center">
             <h2 className="text-2xl font-bold text-red-500">Error</h2>
             <p className="mt-2 text-gray-600">{error}</p>
-            <Button 
-              className="mt-6" 
-              onClick={() => navigate('/listings')}
-            >
-              Return to Listings
-            </Button>
+            <div className="flex gap-3 mt-6 justify-center">
+              <Button 
+                onClick={handleRetry}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" /> Retry
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/listings')}
+              >
+                Return to Listings
+              </Button>
+            </div>
           </div>
         </div>
         <Footer />
