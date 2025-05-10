@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -36,6 +37,7 @@ const businessesData = {
   }
   // Would add other listings here
 };
+
 const ListingDetail = () => {
   const {
     id
@@ -43,6 +45,7 @@ const ListingDetail = () => {
     id: string;
   }>();
   const business = id ? businessesData[id as keyof typeof businessesData] : null;
+
   if (!business) {
     return <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -58,6 +61,7 @@ const ListingDetail = () => {
         <Footer />
       </div>;
   }
+
   return <div className="min-h-screen flex flex-col">
       <Navbar />
       
@@ -72,16 +76,16 @@ const ListingDetail = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
             {/* Left Column - Media Gallery and Business Overview */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Media Gallery centered with proper alignment */}
-              <div className="px-0 py-0 my-0 mx-[138px]">
+              {/* Media Gallery - properly aligned with Business Overview */}
+              <div className="w-full">
                 <MediaGallery galleryImages={business.galleryImages} videoURL={business.videoURL} autoplayVideo={true} />
               </div>
               
-              {/* Business Overview & Highlights - aligned perfectly with media gallery */}
+              {/* Business Overview & Highlights */}
               <BusinessOverview description={business.description} highlights={business.highlights} />
             </div>
             
-            {/* Right Column - Business Details & Contact Information moved up */}
+            {/* Right Column - Business Details & Contact Information */}
             <div className="space-y-6">
               <BusinessDetails annualRevenue={business.revenue} annualProfit={business.profit} currencyCode={business.currencyCode} locationName={business.location} industry={business.industry} yearEstablished={business.established} employees={business.employees} />
               
@@ -99,4 +103,5 @@ const ListingDetail = () => {
       <Footer />
     </div>;
 };
+
 export default ListingDetail;
