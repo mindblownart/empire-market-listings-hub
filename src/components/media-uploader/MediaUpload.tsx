@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Info } from 'lucide-react';
@@ -70,22 +69,23 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const allItems = [...items];
   
   // Process video item
+  const videoInfo = existingVideoUrl ? extractVideoInfo(existingVideoUrl) : null;
   const videoItem: MediaItem | null = existingVideoUrl ? {
     id: 'existing-video',
     type: 'video',
     url: existingVideoUrl,
-    preview: extractVideoInfo(existingVideoUrl)?.platform === 'youtube' 
-      ? `https://img.youtube.com/vi/${extractVideoInfo(existingVideoUrl)?.id || ''}/hqdefault.jpg`
+    preview: videoInfo?.platform === 'youtube' 
+      ? `https://img.youtube.com/vi/${videoInfo?.id || ''}/hqdefault.jpg`
       : 'https://via.placeholder.com/400x300?text=Video+Thumbnail',
     isPrimary: false,
-    videoInfo: extractVideoInfo(existingVideoUrl) || { platform: null, id: null }
+    videoInfo: videoInfo as VideoInfo
   } : newVideo ? {
     id: `new-video-${newVideo.name}`,
     type: 'video',
     file: newVideo,
     preview: URL.createObjectURL(newVideo),
     isPrimary: false,
-    videoInfo: { platform: 'file' as const, id: null }
+    videoInfo: { platform: 'file', id: null }
   } : null;
   
   // Insert video at position 1 if it exists

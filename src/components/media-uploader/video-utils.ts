@@ -1,6 +1,6 @@
 
 // Function to extract video ID from YouTube and Vimeo URLs
-export const extractVideoInfo = (url: string): { platform: string | null; id: string | null } => {
+export const extractVideoInfo = (url: string): { platform: 'youtube' | 'vimeo' | null; id: string | null } => {
   if (!url) return { platform: null, id: null };
 
   // YouTube patterns - handle both standard and shortened URLs
