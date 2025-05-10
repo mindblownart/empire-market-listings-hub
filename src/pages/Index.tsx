@@ -1,4 +1,6 @@
+
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Select, 
   SelectContent, 
@@ -100,6 +102,8 @@ const Index = () => {
   const handleSearch = () => {
     // This would typically trigger a search with the filter parameters
     console.log({ industry, country, minRevenue, maxRevenue });
+    // Redirect to listings page with search params
+    window.location.href = '/listings';
   };
 
   return (
@@ -270,9 +274,11 @@ const Index = () => {
             ))}
           </div>
           <div className="mt-12 text-center">
-            <Button className="bg-primary hover:bg-primary-light px-8">
-              View All Listings
-            </Button>
+            <Link to="/listings">
+              <Button className="bg-primary hover:bg-primary-light px-8">
+                View All Listings
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

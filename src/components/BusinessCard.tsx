@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Bookmark, BookmarkCheck } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 
 interface BusinessCardProps {
@@ -15,6 +16,8 @@ interface BusinessCardProps {
   revenue: string;
   imageUrl: string;
   currencyCode?: string;
+  isNew?: boolean;
+  isHot?: boolean;
 }
 
 const BusinessCard = ({
@@ -28,16 +31,37 @@ const BusinessCard = ({
   imageUrl,
   currencyCode = 'USD'
 }: BusinessCardProps) => {
+  const [isFavorite, setIsFavorite] = useState(false);
+  
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsFavorite(!isFavorite);
+  };
+
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-lg">
+    <Card className="overflow-hidden transition-all hover:shadow-lg h-full flex flex-col">
       <div className="relative h-48 overflow-hidden">
+        {/* Favorite button */}
+        <button 
+          className="absolute top-2 right-2 z-10 p-1.5 bg-white/80 hover:bg-white rounded-full shadow-sm"
+          onClick={toggleFavorite}
+          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+        >
+          {isFavorite ? (
+            <BookmarkCheck className="h-5 w-5 text-primary" />
+          ) : (
+            <Bookmark className="h-5 w-5 text-gray-500" />
+          )}
+        </button>
+        
         <img 
           src={imageUrl} 
           alt={title} 
           className="w-full h-full object-cover"
         />
       </div>
-      <CardContent className="p-5">
+      <CardContent className="p-5 flex-grow">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-semibold line-clamp-1">{title}</h3>
           <span className="text-primary font-bold">{formatCurrency(price, currencyCode)}</span>
@@ -61,7 +85,7 @@ const BusinessCard = ({
           </div>
         </div>
       </CardContent>
-      <CardFooter className="p-5 pt-0">
+      <CardFooter className="p-5 pt-0 mt-auto">
         <Link to={`/listing/${id}`} className="w-full">
           <Button variant="default" className="w-full bg-primary hover:bg-primary-light">
             View Details

@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import Index from "./pages/Index";
+import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
@@ -34,6 +35,7 @@ const App = () => {
               <Sonner />
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/listings" element={<Listings />} />
                 <Route path="/listing/:id" element={<ListingDetail />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
