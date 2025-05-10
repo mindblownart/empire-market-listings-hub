@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import BusinessMediaUploader from '@/components/media-uploader';
 import { useFormData } from '@/contexts/FormDataContext';
 import AuthCheck from '@/components/auth/AuthCheck';
 import FormContainer from '@/components/submit/FormContainer';
@@ -16,7 +15,8 @@ import { toast } from 'sonner';
 import { Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFormValidation } from '@/hooks/useFormValidation';
-import MediaUpload from '@/components/media-uploader';
+import { MediaUpload } from '@/components/media-uploader';
+import DragContext from '@/components/media-uploader/DragContext';
 
 // Define interface for the listing data to handle primary_image_index
 interface ListingData {
@@ -406,18 +406,20 @@ const EditListing = () => {
                       Add photos and videos of your business. The first image will be your primary image
                       shown in search results. You can drag and drop to reorder images.
                     </p>
-                      
-                    <MediaUpload 
-                      existingImages={imageUrls}
-                      existingVideoUrl={formData.businessVideoUrl}
-                      onImagesChange={(images) => updateFormData({ businessImages: images })}
-                      onVideoChange={(video) => updateFormData({ businessVideo: video })}
-                      onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url || '' })}
-                      maxImages={10}
-                      onDeleteExistingImage={handleDeleteExistingImage}
-                      onDeleteExistingVideo={handleDeleteExistingVideo}
-                      onImagesReorder={handleReorderExistingImages}
-                    />
+                    
+                    <DragContext>
+                      <MediaUpload 
+                        existingImages={imageUrls}
+                        existingVideoUrl={formData.businessVideoUrl}
+                        onImagesChange={(images) => updateFormData({ businessImages: images })}
+                        onVideoChange={(video) => updateFormData({ businessVideo: video })}
+                        onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url || '' })}
+                        maxImages={10}
+                        onDeleteExistingImage={handleDeleteExistingImage}
+                        onDeleteExistingVideo={handleDeleteExistingVideo}
+                        onImagesReorder={handleReorderExistingImages}
+                      />
+                    </DragContext>
                   </div>
                 </div>
 
