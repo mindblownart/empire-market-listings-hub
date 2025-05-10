@@ -285,7 +285,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
         </div>
         
         {/* Video URL Input field remains - can be kept in BusinessMediaUploader */}
-      </div>
+      </DndProvider>
     </div>
   );
 };
