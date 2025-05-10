@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -40,14 +41,14 @@ const Submit = () => {
         }
         break;
       case 'yearEstablished':
-        // For dropdown, we just check if it's selected
-        if (value === '') {
+        // For yearEstablished dropdown
+        if (!value) {
           error = 'Please select a year';
         }
         break;
       case 'employees':
-        // For dropdown, we just check if it's selected
-        if (value === '') {
+        // For employees dropdown
+        if (!value) {
           error = 'Please select employee count';
         }
         break; 

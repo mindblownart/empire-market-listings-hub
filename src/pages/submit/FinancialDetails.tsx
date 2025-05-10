@@ -5,12 +5,16 @@ import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { BusinessFormData } from '@/contexts/FormDataContext';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Check, ChevronDown, Search } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface FinancialDetailsProps {
   formData: BusinessFormData;
@@ -55,37 +59,41 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({
   // Get current year for the year established dropdown
   const currentYear = new Date().getFullYear();
   
-  // Generate years for dropdown (1980 to current year)
-  const years = [];
-  for (let year = currentYear; year >= 1980; year--) {
-    years.push(year.toString());
-  }
+  // Generate years for dropdown (1950 to current year, in descending order)
+  const generateYearOptions = () => {
+    const options = [];
+    for (let year = currentYear; year >= 1950; year--) {
+      options.push({ value: year.toString(), label: year.toString() });
+    }
+    return options;
+  };
   
-  // Generate employee count options
+  // Generate employee count options with steps (1-50: step 1, 51-200: step 10, 201-1000: step 100, and 1000+)
   const generateEmployeeOptions = () => {
     const options = [];
     
-    // Individual numbers from 1-9
-    for (let i = 1; i <= 9; i++) {
-      options.push(i.toString());
+    // 1-50: step of 1
+    for (let i = 1; i <= 50; i++) {
+      options.push({ value: i.toString(), label: i.toString() });
     }
     
-    // Tens from 10-90
-    for (let i = 10; i <= 90; i += 10) {
-      options.push(i.toString());
+    // 51-200: step of 10
+    for (let i = 60; i <= 200; i += 10) {
+      options.push({ value: i.toString(), label: i.toString() });
     }
     
-    // Hundreds from 100-900
-    for (let i = 100; i <= 900; i += 100) {
-      options.push(i.toString());
+    // 201-1000: step of 100
+    for (let i = 300; i <= 1000; i += 100) {
+      options.push({ value: i.toString(), label: i.toString() });
     }
     
     // Add 1000+
-    options.push("1000+");
+    options.push({ value: "1000+", label: "1000+" });
     
     return options;
   };
   
+  const yearOptions = generateYearOptions();
   const employeeOptions = generateEmployeeOptions();
   
   return (
@@ -159,50 +167,98 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({
       <div className="grid gap-4 md:grid-cols-2 mt-4">
         <div className="space-y-2">
           <Label htmlFor="business-yearestablished">Year Established</Label>
-          <Select
-            value={formData.yearEstablished}
-            onValueChange={(value) => handleSelectChange('yearEstablished', value)}
-          >
-            <SelectTrigger 
-              id="business-yearestablished" 
-              className={validationErrors.yearEstablished ? "border-red-500 focus-visible:ring-red-500" : ""}
-              onKeyDown={(e) => handleKeyDown(e, 'business-employees')}
-            >
-              <SelectValue placeholder="e.g. 2010" />
-            </SelectTrigger>
-            <SelectContent className="max-h-[240px]">
-              {years.map((year) => (
-                <SelectItem key={year} value={year}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                id="business-yearestablished"
+                type="button"
+                role="combobox"
+                aria-expanded="false"
+                className={cn(
+                  "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                  validationErrors.yearEstablished ? "border-red-500 focus-visible:ring-red-500" : ""
+                )}
+                onKeyDown={(e) => handleKeyDown(e, 'business-employees')}
+              >
+                {formData.yearEstablished || <span className="text-muted-foreground">e.g. 2010</span>}
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search year..." className="h-9" />
+                <CommandList>
+                  <CommandEmpty>No year found.</CommandEmpty>
+                  <CommandGroup className="max-h-[300px] overflow-auto">
+                    {yearOptions.map((year) => (
+                      <CommandItem
+                        key={year.value}
+                        value={year.value}
+                        onSelect={() => {
+                          handleSelectChange('yearEstablished', year.value);
+                          document.getElementById('business-employees')?.focus();
+                        }}
+                      >
+                        {year.label}
+                        {formData.yearEstablished === year.value && (
+                          <Check className="ml-auto h-4 w-4" />
+                        )}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
           {validationErrors.yearEstablished && (
             <p className="text-sm font-medium text-red-500">{validationErrors.yearEstablished}</p>
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="business-employees">Number of Employees</Label>
-          <Select
-            value={formData.employees}
-            onValueChange={(value) => handleSelectChange('employees', value)}
-          >
-            <SelectTrigger 
-              id="business-employees" 
-              className={validationErrors.employees ? "border-red-500 focus-visible:ring-red-500" : ""}
-              onKeyDown={(e) => handleKeyDown(e, 'description')}
-            >
-              <SelectValue placeholder="e.g. 25" />
-            </SelectTrigger>
-            <SelectContent className="max-h-[240px]">
-              {employeeOptions.map((count) => (
-                <SelectItem key={count} value={count}>
-                  {count}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                id="business-employees"
+                type="button"
+                role="combobox"
+                aria-expanded="false"
+                className={cn(
+                  "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                  validationErrors.employees ? "border-red-500 focus-visible:ring-red-500" : ""
+                )}
+                onKeyDown={(e) => handleKeyDown(e, 'description')}
+              >
+                {formData.employees || <span className="text-muted-foreground">e.g. 25</span>}
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search number..." className="h-9" />
+                <CommandList>
+                  <CommandEmpty>No number found.</CommandEmpty>
+                  <CommandGroup className="max-h-[300px] overflow-auto">
+                    {employeeOptions.map((option) => (
+                      <CommandItem
+                        key={option.value}
+                        value={option.value}
+                        onSelect={() => {
+                          handleSelectChange('employees', option.value);
+                          document.getElementById('description')?.focus();
+                        }}
+                      >
+                        {option.label}
+                        {formData.employees === option.value && (
+                          <Check className="ml-auto h-4 w-4" />
+                        )}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
           {validationErrors.employees && (
             <p className="text-sm font-medium text-red-500">{validationErrors.employees}</p>
           )}
