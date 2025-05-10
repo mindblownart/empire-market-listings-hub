@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -42,19 +43,37 @@ const Index = () => {
     const fetchBusinesses = async () => {
       setIsLoading(true);
       try {
+        // Query the business_listings table for featured and published listings
         const { data, error } = await supabase
-          .from('empiremarket')
+          .from('business_listings')
           .select('*')
+          .eq('is_published', true)
+          .order('is_featured', { ascending: false }) // Featured listings first
           .limit(6); // Limit to 6 businesses for the homepage
         
         if (error) {
-          console.error('Error fetching businesses:', error);
+          console.error('Error fetching business listings:', error);
           setBusinesses([]);
-        } else {
-          setBusinesses(data || []);
+        } else if (data) {
+          // Map the business listings to match the BusinessCard component props
+          const mappedBusinesses = data.map(listing => ({
+            id: listing.id,
+            title: listing.business_name,
+            price: listing.asking_price,
+            description: listing.description,
+            category: listing.category,
+            location: listing.location,
+            revenue: listing.annual_revenue,
+            imageUrl: listing.primary_image_url || '/placeholder.svg',
+            currencyCode: listing.currency_code,
+            isNew: listing.is_new,
+            isHot: listing.is_hot
+          }));
+          
+          setBusinesses(mappedBusinesses);
         }
       } catch (error) {
-        console.error('Error fetching businesses:', error);
+        console.error('Error fetching business listings:', error);
         setBusinesses([]);
       } finally {
         setIsLoading(false);
@@ -66,7 +85,13 @@ const Index = () => {
 
   const handleSearch = () => {
     // Redirect to listings page with search params
-    window.location.href = '/listings';
+    const searchParams = new URLSearchParams();
+    if (industry) searchParams.append('category', industry);
+    if (country) searchParams.append('location', country);
+    if (minRevenue) searchParams.append('minRevenue', minRevenue);
+    if (maxRevenue) searchParams.append('maxRevenue', maxRevenue);
+    
+    window.location.href = `/listings?${searchParams.toString()}`;
   };
 
   return (

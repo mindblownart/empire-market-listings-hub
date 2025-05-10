@@ -81,27 +81,63 @@ const Listings = () => {
   const [filteredBusinesses, setFilteredBusinesses] = useState([]);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userSession, setUserSession] = useState(null);
   const itemsPerPage = 9;
   const maxPrice = 2000000;
+
+  // Check user authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUserSession(data.session);
+    };
+    
+    checkAuth();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUserSession(session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Fetch businesses from Supabase
   useEffect(() => {
     const fetchBusinesses = async () => {
       setIsLoading(true);
       try {
-        // In a real implementation, this would fetch from a "businesses" table
+        // Query business_listings table - RLS will automatically filter results
+        // The policy allows viewing published listings OR own listings
         const { data, error } = await supabase
-          .from('empiremarket')
+          .from('business_listings')
           .select('*');
         
         if (error) {
-          console.error('Error fetching businesses:', error);
+          console.error('Error fetching business listings:', error);
           setBusinesses([]);
-        } else {
-          setBusinesses(data || []);
+        } else if (data) {
+          // Map the business listings to match the BusinessCard component props
+          const mappedBusinesses = data.map(listing => ({
+            id: listing.id,
+            title: listing.business_name,
+            price: listing.asking_price,
+            description: listing.description,
+            category: listing.category,
+            location: listing.location,
+            revenue: listing.annual_revenue,
+            imageUrl: listing.primary_image_url || '/placeholder.svg',
+            currencyCode: listing.currency_code,
+            isNew: listing.is_new,
+            isHot: listing.is_hot
+          }));
+          
+          setBusinesses(mappedBusinesses);
         }
       } catch (error) {
-        console.error('Error fetching businesses:', error);
+        console.error('Error fetching business listings:', error);
         setBusinesses([]);
       } finally {
         setIsLoading(false);
@@ -109,7 +145,7 @@ const Listings = () => {
     };
 
     fetchBusinesses();
-  }, []);
+  }, [userSession]); // Re-fetch when user session changes
 
   // Format price display for the slider
   const formatPriceDisplay = (price: number) => {
@@ -258,7 +294,8 @@ const Listings = () => {
   // Check if there are any listings available
   const hasListings = businesses.length > 0;
 
-  return <div className="min-h-screen flex flex-col">
+  return (
+    <div className="min-h-screen flex flex-col">
       <Navbar />
 
       {/* Main content with improved spacing */}
@@ -283,9 +320,11 @@ const Listings = () => {
                         <SelectValue placeholder="Sort by" />
                       </SelectTrigger>
                       <SelectContent>
-                        {sortOptions.map(option => <SelectItem key={option.value} value={option.value}>
+                        {sortOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
                             {option.label}
-                          </SelectItem>)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
 
@@ -297,7 +336,8 @@ const Listings = () => {
                 </div>
 
                 {/* Advanced Filters - Collapsible */}
-                {isFilterVisible && <div className="border-t border-gray-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                {isFilterVisible && (
+                  <div className="border-t border-gray-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                       <Select value={category} onValueChange={setCategory}>
@@ -305,9 +345,11 @@ const Listings = () => {
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categories.map(cat => <SelectItem key={cat.value} value={cat.value}>
+                          {categories.map(cat => (
+                            <SelectItem key={cat.value} value={cat.value}>
                               {cat.label}
-                            </SelectItem>)}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -319,9 +361,11 @@ const Listings = () => {
                           <SelectValue placeholder="Select location" />
                         </SelectTrigger>
                         <SelectContent>
-                          {locations.map(loc => <SelectItem key={loc.value} value={loc.value}>
+                          {locations.map(loc => (
+                            <SelectItem key={loc.value} value={loc.value}>
                               {loc.label}
-                            </SelectItem>)}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -332,13 +376,15 @@ const Listings = () => {
                       </label>
                       <Slider defaultValue={[0, maxPrice]} min={0} max={maxPrice} step={50000} value={priceRange} onValueChange={setPriceRange} className="py-4" />
                     </div>
-                  </div>}
+                  </div>
+                )}
               </div>
             )}
 
             {/* Loading state */}
             {isLoading ? (
               <div className="text-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-gray-600">Loading listings...</p>
               </div>
             ) : (
@@ -395,7 +441,8 @@ const Listings = () => {
       </main>
 
       <HomeFooter />
-    </div>;
+    </div>
+  );
 };
 
 export default Listings;

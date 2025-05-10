@@ -21,6 +21,7 @@ const Submit = () => {
   const { formData, updateFormData } = useFormData();
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Check if the user is authenticated
   useEffect(() => {
@@ -114,12 +115,121 @@ const Submit = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (validateAllFields()) {
-      toast.success("Business listing submitted successfully!");
-      navigate('/');
+      setIsSubmitting(true);
+      
+      try {
+        // Get the current user
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          toast.error("You must be logged in to submit a business listing");
+          navigate('/login', { state: { redirect: '/submit' } });
+          return;
+        }
+        
+        // Prepare business listing data
+        const businessData = {
+          user_id: session.user.id,
+          business_name: formData.businessName,
+          category: formData.industry,
+          location: formData.location,
+          year_established: formData.yearEstablished,
+          employees: formData.employees,
+          asking_price: formData.askingPrice,
+          annual_revenue: formData.annualRevenue,
+          annual_profit: formData.annualProfit,
+          currency_code: formData.currencyCode || 'USD',
+          description: formData.description,
+          highlights: formData.highlights || [],
+          contact_name: formData.fullName,
+          contact_email: formData.email,
+          contact_phone: formData.phone,
+          contact_role: formData.role,
+          is_published: true, // Ensure the listing is published by default
+          is_new: true
+        };
+        
+        // Handle image uploads if there are any
+        let primaryImageUrl = '';
+        let galleryImages = [];
+        
+        if (formData.businessImages && formData.businessImages.length > 0) {
+          // Upload the first image as the primary image
+          const primaryImage = formData.businessImages[0];
+          const primaryImageFileName = `${Date.now()}_${primaryImage.name}`;
+          
+          const { data: primaryImageData, error: primaryImageError } = await supabase.storage
+            .from('business_media')
+            .upload(primaryImageFileName, primaryImage);
+            
+          if (primaryImageError) {
+            console.error('Error uploading primary image:', primaryImageError);
+            toast.error("There was an error uploading your primary image.");
+          } else {
+            // Get the public URL of the uploaded image
+            const { data: publicUrlData } = supabase.storage
+              .from('business_media')
+              .getPublicUrl(primaryImageFileName);
+              
+            primaryImageUrl = publicUrlData.publicUrl;
+            
+            // Upload any additional images
+            if (formData.businessImages.length > 1) {
+              const additionalImages = formData.businessImages.slice(1);
+              const imageUploadPromises = additionalImages.map(async (image, index) => {
+                const fileName = `${Date.now()}_${index}_${image.name}`;
+                
+                const { data, error } = await supabase.storage
+                  .from('business_media')
+                  .upload(fileName, image);
+                  
+                if (error) {
+                  console.error(`Error uploading image ${index}:`, error);
+                  return null;
+                }
+                
+                const { data: urlData } = supabase.storage
+                  .from('business_media')
+                  .getPublicUrl(fileName);
+                  
+                return urlData.publicUrl;
+              });
+              
+              const uploadedImageUrls = await Promise.all(imageUploadPromises);
+              galleryImages = uploadedImageUrls.filter(url => url !== null);
+            }
+          }
+        }
+        
+        // Add media URLs to business data
+        businessData.primary_image_url = primaryImageUrl;
+        businessData.gallery_images = galleryImages;
+        businessData.video_url = formData.businessVideoUrl || '';
+        
+        // Insert the business listing into the database
+        const { data: insertedBusiness, error: insertError } = await supabase
+          .from('business_listings')
+          .insert([businessData])
+          .select()
+          .single();
+          
+        if (insertError) {
+          console.error('Error inserting business listing:', insertError);
+          toast.error("There was an error submitting your business listing.");
+        } else {
+          toast.success("Business listing submitted successfully!");
+          navigate(`/listing/${insertedBusiness.id}`);
+        }
+      } catch (error) {
+        console.error('Error submitting business listing:', error);
+        toast.error("There was an unexpected error. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       toast.error("Please fix the errors in the form before submitting.");
       // Focus on the first field with an error
@@ -190,13 +300,11 @@ const Submit = () => {
                 validateField={validateField}
               />
               
-              {/* Add the Business Highlights component */}
               <BusinessHighlights
                 formData={formData}
                 updateFormData={updateFormData}
               />
 
-              {/* Business Media Section */}
               <div className="pt-4 border-t border-gray-100">
                 <h2 className="text-xl font-semibold mb-4">Business Media</h2>
                 <BusinessMediaUploader 
@@ -226,8 +334,9 @@ const Submit = () => {
                 <Button 
                   type="submit" 
                   className="bg-primary hover:bg-primary-light px-10 py-6 text-lg transition-all focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  disabled={isSubmitting}
                 >
-                  Submit Business Listing
+                  {isSubmitting ? 'Submitting...' : 'Submit Business Listing'}
                 </Button>
               </div>
             </form>
