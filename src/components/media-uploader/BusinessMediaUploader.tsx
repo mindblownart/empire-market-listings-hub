@@ -40,7 +40,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
         .filter(img => img instanceof File)
         .map(file => {
           const mediaFile = file as MediaFile;
-          mediaFile.id = `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          mediaFile.id = mediaFile.id || `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
           return mediaFile;
         });
       setImages(fileImages);
@@ -56,7 +56,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   useEffect(() => {
     if (initialVideo) {
       const mediaFile = initialVideo as MediaFile;
-      mediaFile.id = `video-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      mediaFile.id = mediaFile.id || `video-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       setVideo(mediaFile);
     }
     
@@ -243,9 +243,19 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
 
   // Handle reordering of new images
   const handleReorderNewImages = (reorderedImages: File[]) => {
-    setImages(reorderedImages);
+    // Convert File[] to MediaFile[] to fix the type error
+    const typedImages = reorderedImages.map(file => {
+      const mediaFile = file as MediaFile;
+      if (!mediaFile.id) {
+        mediaFile.id = `reordered-image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      }
+      return mediaFile;
+    });
+    
+    setImages(typedImages);
+    
     if (onImagesChange) {
-      onImagesChange(reorderedImages);
+      onImagesChange(typedImages);
     }
   };
 
