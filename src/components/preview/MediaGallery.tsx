@@ -46,7 +46,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   if (!hasMedia) return null;
   
   return (
-    <div className="relative mb-6 max-w-5xl mx-auto">
+    <div className="relative mb-6 max-w-full mx-auto">
       <Carousel className="w-full">
         <CarouselContent>
           {/* Video (if available) as the first item */}

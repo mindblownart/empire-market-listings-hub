@@ -36,7 +36,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-          <div className="absolute bottom-0 left-0 w-full p-8">
+          <div className="absolute bottom-8 left-8">
             <Badge className="mb-2 bg-blue-600">{industry || 'Uncategorized'}</Badge>
             <h1 className="text-4xl font-bold text-white mb-2">{businessName || 'Unnamed Business'}</h1>
             {locationName && (
@@ -58,9 +58,9 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
             )}
           </div>
           
-          {/* Asking Price Box */}
+          {/* Asking Price Box - positioned at bottom right */}
           {askingPrice && (
-            <div className="absolute top-8 right-8">
+            <div className="absolute bottom-8 right-8">
               <div className="bg-white rounded-lg shadow-md p-4">
                 <div className="text-sm font-medium text-gray-600">Asking Price</div>
                 <div className="text-2xl font-bold text-blue-600">

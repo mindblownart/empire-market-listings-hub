@@ -86,22 +86,20 @@ const PreviewListing = () => {
           />
           
           {/* Media Gallery Section - Directly below hero */}
-          <MediaGallery galleryImages={galleryImages} videoURL={videoURL} />
+          <div className="mx-auto max-w-3xl py-4">
+            <MediaGallery 
+              galleryImages={galleryImages} 
+              videoURL={videoURL} 
+              autoplayVideo={true} 
+            />
+          </div>
             
           {/* Main content */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6">
             {/* Left Column - Business Overview */}
             <div className="md:col-span-2 space-y-8">
               {/* Business Overview */}
               <BusinessOverview description={formData.description} highlights={highlights} />
-              
-              {/* Contact Information */}
-              <ContactInformation 
-                fullName={formData.fullName}
-                email={formData.email}
-                phone={formData.phone}
-                role={formData.role}
-              />
             </div>
             
             {/* Right Column - Business Details */}
@@ -116,6 +114,14 @@ const PreviewListing = () => {
                 yearEstablished={formData.yearEstablished}
                 employees={formData.employees}
                 originalValues={formData.originalValues}
+              />
+              
+              {/* Contact Information */}
+              <ContactInformation 
+                fullName={formData.fullName}
+                email={formData.email}
+                phone={formData.phone}
+                role={formData.role}
               />
             </div>
           </div>

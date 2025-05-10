@@ -94,8 +94,8 @@ const ListingDetail = () => {
             />
           </div>
           
-          {/* 2. Media Gallery Section - Compact height */}
-          <div className="my-6">
+          {/* 2. Media Gallery Section - Centered and compact */}
+          <div className="mx-auto max-w-3xl py-4">
             <MediaGallery 
               galleryImages={business.galleryImages}
               videoURL={business.videoURL}
@@ -104,17 +104,17 @@ const ListingDetail = () => {
           </div>
           
           {/* 3. Two-column layout for content */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column (8/12) - Business Overview & Highlights */}
-            <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            {/* Left Column - Business Overview & Highlights */}
+            <div className="lg:col-span-2 space-y-6">
               <BusinessOverview 
                 description={business.description}
                 highlights={business.highlights}
               />
             </div>
             
-            {/* Right Column (4/12) - Business Details & Contact Information */}
-            <div className="lg:col-span-5 xl:col-span-4 space-y-6">
+            {/* Right Column - Business Details & Contact Information */}
+            <div className="space-y-6">
               <BusinessDetails 
                 annualRevenue={business.revenue}
                 annualProfit={business.profit}
