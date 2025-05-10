@@ -1,8 +1,7 @@
 
 import * as React from "react";
 import { Input } from "./input";
-import { formatNumberWithCommas, unformatNumber } from "@/lib/formatters";
-import { convertCurrency } from "@/lib/exchangeRates";
+import { formatLiveCurrency, unformatNumber } from "@/lib/formatters";
 
 // Create a useMergedRef hook to combine multiple refs
 function useMergedRef<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
@@ -27,24 +26,6 @@ export interface CurrencyInputProps
   originalCurrency?: string;
 }
 
-// Map of currency codes to their symbols
-const currencySymbols: Record<string, string> = {
-  USD: "$",
-  SGD: "S$",
-  GBP: "£",
-  EUR: "€",
-  JPY: "¥",
-  AUD: "A$",
-  CAD: "C$",
-  INR: "₹",
-  MYR: "RM",
-};
-
-// Function to get the display prefix for a currency
-const getCurrencyPrefix = (currencyCode: string): string => {
-  return `${currencyCode} ${currencySymbols[currencyCode] || ""}`;
-};
-
 export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
   ({ 
     value, 
@@ -58,121 +39,128 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
   }, ref) => {
     // Store both raw value and formatted display value
     const [displayValue, setDisplayValue] = React.useState<string>("");
-    const [isFirstMount, setIsFirstMount] = React.useState(true);
     const [cursorPosition, setCursorPosition] = React.useState<number | null>(null);
-    const prevCurrencyRef = React.useRef<string>(currencyCode);
+    const [isFocused, setIsFocused] = React.useState<boolean>(false);
     const inputRef = React.useRef<HTMLInputElement>(null);
     const mergedRef = useMergedRef(ref, inputRef);
     
-    // Format initial value and handle external value changes
+    // Update display value whenever value changes from outside
     React.useEffect(() => {
       if (value !== undefined) {
-        const formattedValue = formatWithCurrency(value, currencyCode, locale);
+        const formattedValue = formatLiveCurrency(value, currencyCode, locale);
         setDisplayValue(formattedValue);
       }
-    }, [value, locale, currencyCode]);
-    
-    // Handle currency code changes and perform conversion if needed
-    React.useEffect(() => {
-      // Skip on first mount to prevent unnecessary conversions
-      if (isFirstMount) {
-        setIsFirstMount(false);
-        prevCurrencyRef.current = currencyCode;
-        return;
-      }
-      
-      // If currency changed and we have original values
-      if (prevCurrencyRef.current !== currencyCode && 
-          originalValue && originalValue !== "" && 
-          originalCurrency && originalCurrency !== "") {
-        
-        // Convert from original currency to new currency
-        const convertedValue = convertCurrency(
-          originalValue,
-          originalCurrency,
-          currencyCode
-        );
-        
-        // Update display value with proper formatting
-        const formattedValue = formatWithCurrency(convertedValue, currencyCode, locale);
-        setDisplayValue(formattedValue);
-        
-        // Pass the raw numeric value to parent
-        onChange(convertedValue);
-      }
-      
-      // Store current currency for next comparison
-      prevCurrencyRef.current = currencyCode;
-    }, [currencyCode, originalValue, originalCurrency, onChange, locale, isFirstMount]);
-    
-    // Format a numeric value with currency prefix
-    const formatWithCurrency = (numericValue: string, currency: string, loc: string): string => {
-      if (!numericValue || numericValue === "") return "";
-      
-      try {
-        const num = parseFloat(numericValue);
-        if (isNaN(num)) return "";
-        
-        // Format with currency symbol and thousands separators
-        return `${getCurrencyPrefix(currency)} ${new Intl.NumberFormat(loc, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }).format(num)}`;
-      } catch (error) {
-        console.error("Error formatting currency:", error);
-        return numericValue;
-      }
-    };
-    
-    // Extract numeric value from formatted string
-    const extractNumericValue = (formattedValue: string): string => {
-      // Remove everything except digits and decimal point
-      return formattedValue.replace(/[^\d.]/g, '');
-    };
+    }, [value, currencyCode, locale]);
     
     // Calculate cursor position after formatting
     const calculateCursorPosition = (
       previousValue: string,
       newValue: string,
-      previousPosition: number | null
+      previousPosition: number,
+      operation: 'insert' | 'delete'
     ): number => {
       if (previousPosition === null) return newValue.length;
       
-      // Count additional chars added before cursor position
-      const previousClean = previousValue.substring(0, previousPosition).replace(/[^\d.]/g, '');
-      const additionalChars = newValue.length - previousValue.replace(/[^\d.]/g, '').length;
+      const prevValueBeforeCursor = previousValue.substring(0, previousPosition);
+      const prevCleanValue = unformatNumber(prevValueBeforeCursor);
       
-      return previousPosition + additionalChars;
+      // Calculate how many formatting characters have been added
+      const formattingCharsBeforeCursor = prevValueBeforeCursor.length - prevCleanValue.length;
+      
+      // Determine offset based on operation type
+      const offset = operation === 'insert' ? 1 : -1;
+      
+      // Currency code + symbol + space adds chars at the beginning
+      const prefixLength = currencyCode.length + 2; // "USD $" format
+      
+      // Calculate new cursor position considering prefixes and formatting
+      const currencyPrefixOffset = prefixLength;
+      
+      // Determine position in the new formatted value
+      let newPosition = prevCleanValue.length + currencyPrefixOffset + formattingCharsBeforeCursor;
+      
+      // Adjust for operation
+      if (operation === 'insert') {
+        // Count how many formatting chars are added before the insertion point
+        const newFormattedValue = formatLiveCurrency(value, currencyCode, locale);
+        const newCleanValue = unformatNumber(newFormattedValue);
+        
+        // Calculate formatting chars in the new value
+        const formattingCharsInNewValue = newFormattedValue.length - newCleanValue.length - currencyPrefixOffset;
+        
+        // Adjust for additional formatting chars (like commas) that might have been added
+        const additionalFormattingChars = formattingCharsInNewValue - formattingCharsBeforeCursor;
+        newPosition += Math.max(0, additionalFormattingChars);
+      }
+      
+      return Math.max(currencyPrefixOffset, Math.min(newPosition, newValue.length));
     };
     
-    // Handle input changes with formatting
+    // Handle input changes with live formatting
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const inputValue = e.target.value;
-      const cursorPos = e.target.selectionStart;
+      const newInputValue = e.target.value;
+      const cursorPos = e.target.selectionStart || 0;
+      const operation = newInputValue.length > displayValue.length ? 'insert' : 'delete';
       
-      // Extract numeric value
-      const numericValue = extractNumericValue(inputValue);
+      // Extract the numeric value (remove all formatting)
+      let numericValue = unformatNumber(newInputValue);
       
+      // Safety check: ensure we're working with valid numbers or empty string
       if (numericValue === "" || /^[0-9]*\.?[0-9]*$/.test(numericValue)) {
-        // Format the value
-        const formattedValue = formatWithCurrency(numericValue, currencyCode, locale);
+        // Format the value for display
+        const formattedValue = formatLiveCurrency(numericValue, currencyCode, locale);
         
-        // Save cursor position for restoration
-        setCursorPosition(calculateCursorPosition(displayValue, formattedValue, cursorPos));
+        // Calculate cursor position to prevent jumps
+        const newCursorPos = calculateCursorPosition(
+          displayValue,
+          formattedValue,
+          cursorPos,
+          operation
+        );
         
-        // Update display and parent value
+        // Update state
         setDisplayValue(formattedValue);
+        setCursorPosition(newCursorPos);
+        
+        // Pass the raw numeric value to parent
         onChange(numericValue);
+      }
+    };
+    
+    // Handle focus events
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(true);
+      if (props.onFocus) {
+        props.onFocus(e);
+      }
+    };
+    
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false);
+      
+      // Ensure proper formatting on blur
+      const numericValue = value;
+      const formattedValue = formatLiveCurrency(numericValue, currencyCode, locale);
+      setDisplayValue(formattedValue);
+      
+      if (props.onBlur) {
+        props.onBlur(e);
       }
     };
     
     // Restore cursor position after render
     React.useEffect(() => {
-      if (cursorPosition !== null && inputRef.current) {
+      if (cursorPosition !== null && inputRef.current && isFocused) {
         inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
         setCursorPosition(null);
       }
-    }, [displayValue, cursorPosition]);
+    }, [displayValue, cursorPosition, isFocused]);
+    
+    // Get placeholder with currency code
+    const getPlaceholder = () => {
+      if (props.placeholder) return props.placeholder;
+      return `Enter amount`;
+    };
     
     return (
       <Input
@@ -180,9 +168,11 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
         ref={mergedRef}
         value={displayValue}
         onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         inputMode="decimal"
         className={className}
-        placeholder={props.placeholder || `${getCurrencyPrefix(currencyCode)} 0.00`}
+        placeholder={getPlaceholder()}
       />
     );
   }

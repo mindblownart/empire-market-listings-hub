@@ -65,3 +65,80 @@ export function unformatNumber(formattedValue: string): string {
   // Replace all non-digit characters except decimal point
   return formattedValue.replace(/[^\d.]/g, '');
 }
+
+/**
+ * Get currency symbol for a currency code
+ * @param currencyCode - The currency code (USD, EUR, etc.)
+ * @returns The currency symbol ($, €, etc.)
+ */
+export function getCurrencySymbol(currencyCode: string): string {
+  switch (currencyCode) {
+    case 'USD': return '$';
+    case 'EUR': return '€';
+    case 'GBP': return '£';
+    case 'JPY': return '¥';
+    case 'AUD': return 'A$';
+    case 'CAD': return 'C$';
+    case 'SGD': return 'S$';
+    case 'INR': return '₹';
+    case 'MYR': return 'RM';
+    default: return '$';
+  }
+}
+
+/**
+ * Format a number as currency with live typing support
+ * @param value - The numeric string to format
+ * @param currencyCode - The currency code to use
+ * @param locale - The locale to use
+ * @returns Formatted currency string
+ */
+export function formatLiveCurrency(value: string, currencyCode: string, locale: string = 'en-US'): string {
+  if (!value) return '';
+  
+  try {
+    // Remove any existing formatting (commas, currency symbols, etc.)
+    const cleanValue = unformatNumber(value);
+    if (cleanValue === '') return '';
+    
+    // Check if the value is a valid number
+    const numValue = parseFloat(cleanValue);
+    if (isNaN(numValue)) return '';
+    
+    // Get currency display prefix
+    const currencySymbol = getCurrencySymbol(currencyCode);
+    const prefix = `${currencyCode} ${currencySymbol}`;
+    
+    // Format the number with proper commas and decimals
+    let formattedAmount: string;
+    
+    // Handle special case when user is typing decimals
+    if (cleanValue.endsWith('.')) {
+      // Allow typing a decimal point
+      formattedAmount = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(numValue) + '.';
+    } else if (cleanValue.includes('.')) {
+      // Handle decimal values with specific decimal places
+      const parts = cleanValue.split('.');
+      const decimalDigits = parts[1].length;
+      
+      formattedAmount = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: decimalDigits,
+        maximumFractionDigits: decimalDigits
+      }).format(numValue);
+    } else {
+      // Regular whole numbers
+      formattedAmount = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(numValue);
+    }
+    
+    return `${prefix} ${formattedAmount}`;
+  } catch (error) {
+    console.error('Error formatting live currency:', error);
+    return value;
+  }
+}
