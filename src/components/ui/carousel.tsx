@@ -1,4 +1,5 @@
 
+// Export all carousel components from the carousel directory
 export {
   type CarouselApi,
   useCarousel,
@@ -7,5 +8,4 @@ export {
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
-} from "./carousel";
-
+} from "./carousel/index";
