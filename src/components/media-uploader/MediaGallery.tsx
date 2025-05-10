@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
@@ -41,54 +41,6 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   const hasVideo = mediaItems.some(item => !item.isEmpty && item.type === 'video');
   const totalMediaCount = imageCount + (hasVideo ? 1 : 0);
   
-  // Make sure we always have exactly 12 slots (3x4 grid)
-  while (mediaItems.length < 12) {
-    mediaItems.push({
-      id: `empty-slot-${mediaItems.length}`,
-      type: 'empty',
-      isEmpty: true,
-      preview: '',
-      isNew: false
-    });
-  }
-  
-  // Ensure video slot is always at index 1
-  useEffect(() => {
-    const videoIndex = mediaItems.findIndex(item => item.type === 'video' && !item.isEmpty);
-    const emptyVideoSlotIndex = mediaItems.findIndex(item => item.type === 'video' && item.isEmpty);
-    
-    // If no video item or empty video slot exists, create one at index 1
-    if (videoIndex === -1 && emptyVideoSlotIndex === -1) {
-      const newItems = [...mediaItems];
-      newItems.splice(1, 0, {
-        id: 'empty-video-slot',
-        type: 'video',
-        isEmpty: true,
-        preview: '',
-        isNew: false
-      });
-      // Remove the last empty slot to maintain 12 total
-      if (newItems.length > 12) {
-        newItems.pop();
-      }
-      onReorder(newItems);
-    }
-    // If video is not at index 1, move it there
-    else if (videoIndex !== -1 && videoIndex !== 1) {
-      const newItems = [...mediaItems];
-      const videoItem = newItems.splice(videoIndex, 1)[0];
-      newItems.splice(1, 0, videoItem);
-      onReorder(newItems);
-    }
-    // If empty video slot is not at index 1, move it there
-    else if (emptyVideoSlotIndex !== -1 && emptyVideoSlotIndex !== 1) {
-      const newItems = [...mediaItems];
-      const emptyVideoSlot = newItems.splice(emptyVideoSlotIndex, 1)[0];
-      newItems.splice(1, 0, emptyVideoSlot);
-      onReorder(newItems);
-    }
-  }, []);
-
   // Handle video preview
   const handleVideoPreview = useCallback((item: MediaItemType) => {
     if (item.type === 'video' && !item.isEmpty) {
@@ -111,7 +63,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, []);
   
-  // Handle reordering of items
+  // Handle reordering of items with proper swapping
   const moveItem = useCallback((dragIndex: number, hoverIndex: number) => {
     // Don't allow moving to/from video slot (index 1)
     if (dragIndex === 1 || hoverIndex === 1) return;
@@ -121,6 +73,8 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     
     // Get the item being dragged
     const draggedItem = newItems[dragIndex];
+    
+    // Don't proceed if it's an empty or non-draggable item
     if (draggedItem.type === 'empty' || draggedItem.isEmpty) return;
     
     // Remove the item from its original position
@@ -129,18 +83,14 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     // Insert the item at the new position
     newItems.splice(hoverIndex, 0, draggedItem);
     
-    // Automatically update primary status based on position
+    // Update primary status based on position
+    // First image (index 0) is always primary
     newItems.forEach((item, idx) => {
-      if (idx === 0 && item.type === 'image' && !item.isEmpty) {
-        item.isPrimary = true;
-      } else if (item.isPrimary) {
-        item.isPrimary = false;
-      }
+      item.isPrimary = idx === 0 && item.type === 'image' && !item.isEmpty;
     });
     
     // Update state via callback
     onReorder(newItems);
-    
   }, [mediaItems, onReorder]);
   
   // Handle slot drop
@@ -149,6 +99,47 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     e.stopPropagation();
     onDrop(e);
   }, [onDrop]);
+
+  // Create empty grid placeholders to ensure we always have 12 items (3x4 grid)
+  // Making sure video slot is always at index 1
+  const ensureCompleteGrid = () => {
+    const result = [...mediaItems];
+    
+    // Check if we need to add or ensure a video slot at index 1
+    if (result.length >= 1) {
+      // If index 1 doesn't exist or isn't a video slot
+      if (result.length === 1 || (result[1]?.type !== 'video')) {
+        // Create empty video slot for position 1
+        const videoSlot: MediaItemType = {
+          id: `empty-video-slot-${Date.now()}`,
+          type: 'video',
+          isEmpty: true,
+          preview: '',
+          isNew: false
+        };
+        
+        // Insert at index 1
+        result.splice(1, 0, videoSlot);
+      }
+    }
+    
+    // Fill remaining slots with empty placeholders up to 12
+    while (result.length < 12) {
+      result.push({
+        id: `empty-slot-${result.length}-${Date.now()}`,
+        type: 'empty',
+        isEmpty: true,
+        preview: '',
+        isNew: false
+      });
+    }
+    
+    // Trim to exactly 12 items
+    return result.slice(0, 12);
+  };
+  
+  // Get the complete grid with all slots properly filled
+  const completeGrid = ensureCompleteGrid();
 
   // Handle empty state
   if (totalMediaCount === 0) {
@@ -233,7 +224,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
             onDragOver={(e) => e.preventDefault()}
             style={{ minHeight: '200px' }}
           >
-            {mediaItems.slice(0, 12).map((item, index) => (
+            {completeGrid.slice(0, 12).map((item, index) => (
               <Tooltip key={item.id}>
                 <TooltipTrigger asChild>
                   <div 

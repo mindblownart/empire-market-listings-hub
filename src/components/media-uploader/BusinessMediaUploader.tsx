@@ -26,7 +26,6 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   const [video, setVideo] = useState<MediaFile | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>(initialVideoUrl || '');
   const [existingImages, setExistingImages] = useState<string[]>(galleryImages || []);
-  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
   
   // Initialize images from props
   useEffect(() => {
@@ -46,11 +45,6 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     // Initialize existing images from galleryImages
     if (Array.isArray(galleryImages) && galleryImages.length > 0) {
       setExistingImages(galleryImages);
-    }
-    
-    // Check if primary image index is provided via props
-    if (onSetPrimaryImage) {
-      setPrimaryImageIndex(0); // Default to first image as primary
     }
   }, [initialImages, galleryImages]);
 
@@ -99,23 +93,6 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     setExistingImages(prev => {
       const newExistingImages = [...prev];
       newExistingImages.splice(index, 1);
-      
-      // If we deleted the primary image, set the new first image as primary
-      if (index === primaryImageIndex) {
-        setPrimaryImageIndex(0);
-        if (onSetPrimaryImage) {
-          onSetPrimaryImage(0);
-        }
-      } 
-      // If we deleted an image before the primary, adjust the primary index
-      else if (index < primaryImageIndex) {
-        const newPrimaryIndex = Math.max(0, primaryImageIndex - 1);
-        setPrimaryImageIndex(newPrimaryIndex);
-        if (onSetPrimaryImage) {
-          onSetPrimaryImage(newPrimaryIndex);
-        }
-      }
-      
       return newExistingImages;
     });
   };
@@ -132,8 +109,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   const handleReorderExistingImages = (reorderedImages: string[]) => {
     setExistingImages(reorderedImages);
     
-    // Image at index 0 becomes primary
-    setPrimaryImageIndex(0);
+    // Image at index 0 is always primary
     if (onSetPrimaryImage) {
       onSetPrimaryImage(0);
     }
@@ -141,11 +117,8 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
 
   // Handle setting primary image
   const handleSetPrimaryImage = (index: number) => {
-    if (index >= 0 && index < existingImages.length) {
-      setPrimaryImageIndex(index);
-      if (onSetPrimaryImage) {
-        onSetPrimaryImage(index);
-      }
+    if (index >= 0 && index < existingImages.length && onSetPrimaryImage) {
+      onSetPrimaryImage(index);
     }
   };
 
@@ -154,7 +127,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
       <MediaUpload
         existingImages={existingImages}
         existingVideoUrl={videoUrl}
-        primaryImageIndex={primaryImageIndex}
+        primaryImageIndex={0} // First image is always primary
         onImagesChange={(newImages) => {
           setImages(newImages);
           if (onImagesChange) onImagesChange(newImages);

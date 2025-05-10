@@ -13,7 +13,6 @@ export interface BusinessMediaUploaderProps {
   initialVideoUrl?: string | null;
   disableImageUpload?: boolean;
   galleryImages?: string[];
-  onSetPrimaryImage?: (index: number) => void;
   maxImages?: number;
 }
 
@@ -38,6 +37,6 @@ export interface MediaItemProps {
   index: number; 
   moveItem: (dragIndex: number, hoverIndex: number) => void;
   onDelete: (id: string) => void;
-  onVideoPreview: (item: MediaItemType) => void;
+  onVideoPreview?: (item: MediaItemType) => void;
   isFixed?: boolean;
 }

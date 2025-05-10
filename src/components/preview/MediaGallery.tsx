@@ -48,10 +48,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, [autoplayVideo, isMuted]);
   
-  // Organize images - primary image is always first (index 0)
+  // Organize images to ensure primary is first
   const organizedImages = React.useMemo(() => {
     if (!hasImages) return [];
-    return [...galleryImages]; // Primary is already at index 0
+    
+    // With the updated structure, the primary is always the first image
+    // so we just return the gallery images as-is
+    return [...galleryImages];
   }, [galleryImages, hasImages]);
 
   if (!hasMedia) {
@@ -89,7 +92,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
             </CarouselItem>
           )}
           
-          {/* Video (if available) as the second item */}
+          {/* Video (if available) */}
           {hasVideo && (
             <CarouselItem>
               <AspectRatio ratio={16 / 9} className="bg-gray-100 overflow-hidden">

@@ -55,7 +55,6 @@ const EditListing = () => {
   const [error, setError] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [originalListing, setOriginalListing] = useState<ListingData | null>(null);
-  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
   // Fetch the listing data
   const fetchListing = async () => {
@@ -116,13 +115,21 @@ const EditListing = () => {
       const typedListing = listing as unknown as ListingData;
       setOriginalListing(typedListing);
 
-      // Store image URLs separately
+      // Store image URLs separately and process primary image
       if (typedListing.gallery_images && Array.isArray(typedListing.gallery_images)) {
-        setImageUrls(typedListing.gallery_images);
-        // Check if primary_image_index is set
-        if (typeof typedListing.primary_image_index === 'number') {
-          setPrimaryImageIndex(typedListing.primary_image_index);
+        let imageArray = [...typedListing.gallery_images];
+        
+        // Ensure primary image is first in the array
+        if (typeof typedListing.primary_image_index === 'number' && 
+            typedListing.primary_image_index < imageArray.length &&
+            typedListing.primary_image_index !== 0) {
+          // Move primary image to index 0
+          const primaryImage = imageArray[typedListing.primary_image_index];
+          imageArray.splice(typedListing.primary_image_index, 1);
+          imageArray.unshift(primaryImage);
         }
+        
+        setImageUrls(imageArray);
       }
       
       // Format the data for the form - use the properties that match BusinessFormData
@@ -202,7 +209,7 @@ const EditListing = () => {
         // Keep the existing image URLs - we're not modifying them in this simplified version
         gallery_images: imageUrls,
         video_url: formData.businessVideoUrl || null,
-        // Store the primary image index - always use 0 as primary now
+        // No need for primary_image_index since primary is always first
         primary_image_index: 0
       };
       
@@ -257,30 +264,10 @@ const EditListing = () => {
 
   // Handle reordering of existing images
   const handleReorderExistingImages = (reorderedImages: string[]) => {
+    // First image becomes primary automatically
     setImageUrls(reorderedImages);
-    // First image is always primary now
-    setPrimaryImageIndex(0);
   };
 
-  // Handle setting primary image - not needed anymore as first image is always primary
-  const handleSetPrimaryImage = (index: number) => {
-    // This function is now mainly responsible for reordering to make the selected image primary
-    if (index !== 0 && index < imageUrls.length) {
-      setImageUrls(prev => {
-        const newImageUrls = [...prev];
-        // Move the selected image to the first position (index 0)
-        const [selectedImage] = newImageUrls.splice(index, 1);
-        newImageUrls.unshift(selectedImage);
-        return newImageUrls;
-      });
-      
-      setPrimaryImageIndex(0);
-      toast.success("Primary image updated", {
-        description: "This image will appear first in your listing."
-      });
-    }
-  };
-  
   const handleBackClick = () => {
     navigate(`/business/${id}`);
   };
@@ -295,10 +282,10 @@ const EditListing = () => {
     if (id) {
       localStorage.setItem('editingListingId', id);
       
-      // Also store image URLs since they're not in formData, including the primary image index
+      // Store image URLs since they're not in formData
       const imageData = {
         urls: imageUrls,
-        primaryIndex: primaryImageIndex
+        primaryIndex: 0 // First image is always primary
       };
       localStorage.setItem('editingListingImages', JSON.stringify(imageData));
       
@@ -413,26 +400,24 @@ const EditListing = () => {
                 <div className="pt-4 border-t border-gray-100">
                   <h2 className="text-xl font-semibold mb-4">Business Media</h2>
                   
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Media Gallery</h3>
-                      <p className="mb-4 text-sm text-gray-500">
-                        Drag images to reorder. The first image is always the primary image shown in search results.
-                        The video slot is fixed in position 2.
-                      </p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 mb-4">
+                      Add photos and videos of your business. The first image will be your primary image
+                      shown in search results. You can drag and drop to reorder images.
+                    </p>
                       
-                      <BusinessMediaUploader 
-                        initialImages={[]}
-                        initialVideo={null} 
-                        initialVideoUrl={formData.businessVideoUrl}
-                        onImagesChange={() => {}} // Disabled for now
-                        onVideoChange={(video) => updateFormData({ businessVideo: video })}
-                        onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
-                        disableImageUpload={false}
-                        galleryImages={imageUrls}
-                        onSetPrimaryImage={handleSetPrimaryImage}
-                      />
-                    </div>
+                    <BusinessMediaUploader 
+                      initialImages={[]}
+                      initialVideo={null} 
+                      initialVideoUrl={formData.businessVideoUrl}
+                      onImagesChange={() => {}} // Disabled for now
+                      onVideoChange={(video) => updateFormData({ businessVideo: video })}
+                      onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
+                      disableImageUpload={false}
+                      galleryImages={imageUrls}
+                      onSetPrimaryImage={() => {}} // First is always primary now
+                      maxImages={10}
+                    />
                   </div>
                 </div>
 

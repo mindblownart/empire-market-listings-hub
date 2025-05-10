@@ -59,6 +59,10 @@ const Submit = () => {
 
                 <div className="pt-4 border-t border-gray-100">
                   <h2 className="text-xl font-semibold mb-4">Business Media</h2>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Add photos and videos of your business. The first image will be your primary image
+                    shown in search results. You can drag and drop to reorder images.
+                  </p>
                   <BusinessMediaUploader 
                     initialImages={formData.businessImages}
                     initialVideo={formData.businessVideo}
@@ -66,6 +70,7 @@ const Submit = () => {
                     onImagesChange={(images) => updateFormData({ businessImages: images })}
                     onVideoChange={(video) => updateFormData({ businessVideo: video })}
                     onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
+                    maxImages={10}
                   />
                 </div>
 

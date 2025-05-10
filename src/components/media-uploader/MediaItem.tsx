@@ -45,7 +45,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
       // Get horizontal position
       const hoverClientX = clientOffset ? clientOffset.x - hoverBoundingRect.left : 0;
       
-      // Only perform the move when crossing half of the item
+      // Only perform the move when the mouse has crossed half of the items height/width
       if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) return;
       if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) return;
 
@@ -127,7 +127,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
       ) : item.type === 'image' ? (
         <ImageItem item={item} />
       ) : (
-        <VideoItem item={item} onVideoPreview={onVideoPreview} />
+        <VideoItem item={item} onVideoPreview={onVideoPreview ? onVideoPreview : () => {}} />
       )}
       
       <MediaItemBadges 

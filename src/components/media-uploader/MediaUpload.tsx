@@ -42,15 +42,19 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Convert all media into a unified format
+  // Convert all media into a unified format - This is the SINGLE SOURCE OF TRUTH for media
   const allItems = React.useMemo(() => {
     const items: MediaItemType[] = [];
     
-    // First, add existing images - start with primary if it exists
-    if (existingImages.length > 0) {
-      // Primary image first (at index primaryImageIndex)
-      const primaryImg = existingImages[primaryImageIndex];
-      if (primaryImg) {
+    // First, add existing images - we'll reorganize them with primary first
+    const existingImagesCopy = [...existingImages]; 
+    
+    // Primary image first (at index 0)
+    if (existingImagesCopy.length > 0) {
+      // If primaryImageIndex is set and valid, put that image first
+      if (primaryImageIndex >= 0 && primaryImageIndex < existingImagesCopy.length) {
+        // Add the primary image first
+        const primaryImg = existingImagesCopy[primaryImageIndex];
         items.push({
           id: `existing-image-${primaryImageIndex}`,
           type: 'image',
@@ -59,20 +63,21 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           originalIndex: primaryImageIndex,
           isNew: false
         });
+        
+        // Remove it so we don't add it again
+        existingImagesCopy.splice(primaryImageIndex, 1);
       }
       
       // Add remaining existing images
-      existingImages.forEach((url, idx) => {
-        if (idx !== primaryImageIndex) {
-          items.push({
-            id: `existing-image-${idx}`,
-            type: 'image',
-            preview: url,
-            isPrimary: false,
-            originalIndex: idx,
-            isNew: false
-          });
-        }
+      existingImagesCopy.forEach((url, idx) => {
+        items.push({
+          id: `existing-image-${idx + (primaryImageIndex < idx ? 0 : 1)}`,
+          type: 'image',
+          preview: url,
+          isPrimary: false,
+          originalIndex: idx + (primaryImageIndex < idx ? 0 : 1),
+          isNew: false
+        });
       });
     }
     
@@ -84,17 +89,28 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       }
       
       items.push({
-        id: `new-image-${idx}`,
+        id: mediaFile.id,
         type: 'image',
         file: mediaFile,
         preview: URL.createObjectURL(mediaFile),
         isPrimary: items.length === 0, // First image is primary if no other images
-        originalIndex: idx,
         isNew: true
       });
     });
     
     // Insert video or empty video slot at position 1
+    // First ensure we have at least 1 slot before inserting at index 1
+    if (items.length === 0) {
+      items.push({
+        id: `empty-image-slot-${Date.now()}`,
+        type: 'empty', 
+        isEmpty: true,
+        preview: '',
+        isNew: false
+      });
+    }
+    
+    // Now check for video content
     if (existingVideoUrl) {
       const videoInfo = extractVideoInfo(existingVideoUrl);
       const videoItem: MediaItemType = {
@@ -120,7 +136,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       }
       
       const videoItem: MediaItemType = {
-        id: 'new-video',
+        id: mediaFile.id,
         type: 'video',
         file: mediaFile,
         preview: URL.createObjectURL(newVideo),
@@ -151,6 +167,11 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       }
     }
     
+    // Set isPrimary flag for the first item if it's an image
+    if (items.length > 0 && items[0].type === 'image' && !items[0].isEmpty) {
+      items[0].isPrimary = true;
+    }
+    
     return items;
   }, [existingImages, primaryImageIndex, newImages, existingVideoUrl, newVideo]);
   
@@ -171,8 +192,12 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     const imageFiles: MediaFile[] = [];
     let videoFile: MediaFile | null = null;
     
-    // Count available slots
-    const availableSlots = MAX_IMAGES - existingImages.length - newImages.length;
+    // Count existing images (both stored and newly uploaded)
+    const existingImageCount = existingImages.length;
+    const totalNewImages = newImages.length;
+    const availableSlots = MAX_IMAGES - existingImageCount - totalNewImages;
+    
+    // Check if video slot is available
     const videoSlotAvailable = !existingVideoUrl && !newVideo;
     
     // Process all files
@@ -204,7 +229,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
               description: 'Maximum file size is 5MB'
             });
           }
-        } else if (existingImages.length + newImages.length + imageFiles.length >= MAX_IMAGES) {
+        } else if (existingImageCount + totalNewImages + imageFiles.length >= MAX_IMAGES) {
           toast.warning('Maximum images reached', {
             description: `You can only upload a maximum of ${MAX_IMAGES} images.`
           });
@@ -240,6 +265,13 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     if (imageFiles.length > 0) {
       setNewImages(prev => [...prev, ...imageFiles]);
       onImagesChange([...newImages, ...imageFiles]);
+      
+      // If this is our first image, make it primary
+      if (existingImageCount === 0 && totalNewImages === 0 && imageFiles.length > 0) {
+        if (onSetPrimaryImage) {
+          onSetPrimaryImage(0);
+        }
+      }
     }
     
     // Add video if valid
@@ -254,7 +286,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     }
     
     setDragActive(false);
-  }, [existingImages.length, newImages, newVideo, existingVideoUrl, onImagesChange, onVideoChange, onVideoUrlChange]);
+  }, [existingImages.length, newImages, newVideo, existingVideoUrl, onImagesChange, onVideoChange, onVideoUrlChange, onSetPrimaryImage]);
   
   // Handle drop event
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -288,21 +320,15 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     const updatedNewImages: MediaFile[] = [];
     let updatedVideo: MediaFile | null = null;
     let updatedVideoUrl: string | null = null;
-    let newPrimaryIndex = 0;
     
     // Process each item in the new order
-    reorderedItems.forEach((item, idx) => {
+    reorderedItems.forEach((item) => {
       if (item.isEmpty) return; // Skip empty slots
       
       if (item.type === 'image') {
         if (!item.isNew && item.preview) {
           // This is an existing image
           updatedExistingImages.push(item.preview);
-          
-          // If this is the primary image (always at index 0), mark its position
-          if (idx === 0) {
-            newPrimaryIndex = updatedExistingImages.length - 1;
-          }
         } else if (item.isNew && item.file) {
           // This is a new image
           updatedNewImages.push(item.file);
@@ -343,9 +369,16 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         onImagesReorder(updatedExistingImages);
       }
       
-      // Update primary image if it changed
-      if (onSetPrimaryImage && primaryImageIndex !== newPrimaryIndex) {
-        onSetPrimaryImage(newPrimaryIndex);
+      // First image is always primary - find its original index
+      if (onSetPrimaryImage && updatedExistingImages.length > 0) {
+        const primaryUrl = updatedExistingImages[0];
+        const originalPrimaryIndex = existingImages.findIndex(url => url === primaryUrl);
+        if (originalPrimaryIndex !== -1) {
+          onSetPrimaryImage(originalPrimaryIndex);
+        } else {
+          // If not found (shouldn't happen), default to 0
+          onSetPrimaryImage(0);
+        }
       }
     }
   }, [
@@ -353,7 +386,6 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     newImages, 
     newVideo, 
     existingVideoUrl, 
-    primaryImageIndex, 
     onImagesChange, 
     onVideoChange, 
     onVideoUrlChange, 
@@ -373,17 +405,12 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       }
     } 
     // Check if it's a new image
-    else if (id.startsWith('new-image-')) {
-      const indexStr = id.replace('new-image-', '').split('-')[0];
-      const index = parseInt(indexStr, 10);
-      
-      if (!isNaN(index)) {
-        setNewImages(prev => {
-          const newArr = prev.filter((_, i) => i !== index);
-          onImagesChange(newArr);
-          return newArr;
-        });
-      }
+    else if (id.startsWith('new-image-') || id.startsWith('image-')) {
+      setNewImages(prev => {
+        const newArr = prev.filter(img => (img as MediaFile).id !== id);
+        onImagesChange(newArr);
+        return newArr;
+      });
     } 
     // Check if it's an existing video
     else if (id === 'existing-video') {
@@ -392,7 +419,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       }
     } 
     // Check if it's a new video
-    else if (id === 'new-video') {
+    else if (id === 'new-video' || id.startsWith('video-')) {
       setNewVideo(null);
       onVideoChange(null);
     }
@@ -410,11 +437,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         items={allItems}
         onReorder={handleReorder}
         onDelete={handleDelete}
-        onVideoPreview={(item) => {
-          if (item.type === 'video' && !item.isEmpty) {
-            // Video preview logic here
-          }
-        }}
+        onVideoPreview={handleVideoPreview}
         onFileSelect={handleFileSelect}
         onDrop={handleDrop}
         isDragging={dragActive}
