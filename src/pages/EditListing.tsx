@@ -43,12 +43,14 @@ const EditListing = () => {
       // Verify user has permission to edit this listing
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
-        toast("Authentication required", {
+        toast.error("Authentication required", {
           description: "Please log in to edit listings.",
         });
         navigate('/login');
         return;
       }
+      
+      console.log("Fetching listing with ID:", id);
       
       // Fetch the listing data
       const { data: listing, error } = await supabase
@@ -59,8 +61,12 @@ const EditListing = () => {
       
       if (error) {
         console.error('Error fetching listing:', error);
-        throw error;
+        setError(`Error fetching listing: ${error.message}`);
+        setIsLoading(false);
+        return;
       }
+      
+      console.log("Listing data retrieved:", listing);
       
       if (!listing) {
         setError('Listing not found');
@@ -70,7 +76,7 @@ const EditListing = () => {
       
       // Check if the current user is the owner
       if (listing.user_id !== session.user.id) {
-        toast("Access denied", {
+        toast.error("Access denied", {
           description: "You don't have permission to edit this listing.",
         });
         navigate('/listings');
@@ -109,26 +115,29 @@ const EditListing = () => {
           currencyCode: listing.currency_code,
         }
       });
+      
+      setIsLoading(false);
+      
     } catch (error) {
-      console.error('Error fetching listing:', error);
+      console.error('Error in fetchListing:', error);
       setError('Failed to load listing. Please try again.');
-      toast("Error loading listing", {
+      toast.error("Error loading listing", {
         description: "There was a problem loading this business listing. Please try again."
       });
-    } finally {
       setIsLoading(false);
     }
   };
 
   // Fetch the listing data on mount
   useEffect(() => {
+    console.log("EditListing mounted, ID:", id);
     fetchListing();
     
     // Reset form when unmounting
     return () => {
       resetFormData();
     };
-  }, [id, navigate, updateFormData, resetFormData]);
+  }, [id]);
   
   // Handle form submission
   const handleSubmit = async () => {
@@ -158,6 +167,8 @@ const EditListing = () => {
         video_url: formData.businessVideoUrl || null,
       };
       
+      console.log("Updating listing with data:", updateData);
+      
       // Update the listing in Supabase
       const { error } = await supabase
         .from('business_listings')
@@ -168,7 +179,7 @@ const EditListing = () => {
         throw error;
       }
       
-      toast("Listing updated successfully", {
+      toast.success("Listing updated successfully", {
         description: "Your business listing has been updated."
       });
       
@@ -176,7 +187,7 @@ const EditListing = () => {
       navigate(`/business/${id}`);
     } catch (error) {
       console.error('Error updating listing:', error);
-      toast("Error updating listing", {
+      toast.error("Error updating listing", {
         description: "There was a problem updating your listing. Please try again."
       });
     } finally {
