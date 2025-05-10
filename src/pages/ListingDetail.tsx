@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -37,16 +36,13 @@ const businessesData = {
   }
   // Would add other listings here
 };
-
 const ListingDetail = () => {
   const {
     id
   } = useParams<{
     id: string;
   }>();
-  
   const business = id ? businessesData[id as keyof typeof businessesData] : null;
-  
   if (!business) {
     return <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -62,7 +58,6 @@ const ListingDetail = () => {
         <Footer />
       </div>;
   }
-  
   return <div className="min-h-screen flex flex-col">
       <Navbar />
       
@@ -70,15 +65,7 @@ const ListingDetail = () => {
         <div className="container mx-auto max-w-7xl">
           {/* 1. Hero Section with Business Header and Asking Price */}
           <div className="mb-6">
-            <BusinessHeader 
-              businessName={business.title} 
-              industry={business.category} 
-              locationName={business.location} 
-              flagCode={business.flagCode} 
-              primaryImage={business.primaryImage} 
-              askingPrice={business.price} 
-              currencyCode={business.currencyCode} 
-            />
+            <BusinessHeader businessName={business.title} industry={business.category} locationName={business.location} flagCode={business.flagCode} primaryImage={business.primaryImage} askingPrice={business.price} currencyCode={business.currencyCode} />
           </div>
           
           {/* Revised layout with 2 columns starting right below the hero */}
@@ -86,39 +73,19 @@ const ListingDetail = () => {
             {/* Left Column - Media Gallery and Business Overview */}
             <div className="lg:col-span-2 space-y-6">
               {/* Media Gallery centered with proper alignment */}
-              <div className="mx-auto">
-                <MediaGallery 
-                  galleryImages={business.galleryImages} 
-                  videoURL={business.videoURL} 
-                  autoplayVideo={true} 
-                />
+              <div className="px-0 py-0 my-0 mx-[138px]">
+                <MediaGallery galleryImages={business.galleryImages} videoURL={business.videoURL} autoplayVideo={true} />
               </div>
               
               {/* Business Overview & Highlights - aligned perfectly with media gallery */}
-              <BusinessOverview 
-                description={business.description} 
-                highlights={business.highlights} 
-              />
+              <BusinessOverview description={business.description} highlights={business.highlights} />
             </div>
             
             {/* Right Column - Business Details & Contact Information moved up */}
             <div className="space-y-6">
-              <BusinessDetails 
-                annualRevenue={business.revenue}
-                annualProfit={business.profit}
-                currencyCode={business.currencyCode}
-                locationName={business.location}
-                industry={business.industry}
-                yearEstablished={business.established}
-                employees={business.employees}
-              />
+              <BusinessDetails annualRevenue={business.revenue} annualProfit={business.profit} currencyCode={business.currencyCode} locationName={business.location} industry={business.industry} yearEstablished={business.established} employees={business.employees} />
               
-              <ContactInformation 
-                fullName={business.sellerInfo.name}
-                email={business.sellerInfo.email}
-                phone={business.sellerInfo.phone}
-                role={business.sellerInfo.role}
-              />
+              <ContactInformation fullName={business.sellerInfo.name} email={business.sellerInfo.email} phone={business.sellerInfo.phone} role={business.sellerInfo.role} />
               
               {/* Contact Seller Button */}
               <Button className="w-full bg-[#9b87f5] hover:bg-[#8673e0] py-6 h-auto text-white text-lg font-medium">
@@ -132,5 +99,4 @@ const ListingDetail = () => {
       <Footer />
     </div>;
 };
-
 export default ListingDetail;
