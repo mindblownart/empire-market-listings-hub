@@ -1,24 +1,8 @@
 
-import React, { useEffect } from 'react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SearchableSelect
-} from '@/components/ui/select';
+import React from 'react';
 import { BusinessFormData } from '@/contexts/FormDataContext';
-import { toast } from 'sonner';
-import { AlertTriangle } from 'lucide-react';
-
-type CountryData = {
-  name: string;
-  flagCode: string;
-  currencyCode: string;
-};
+import { BusinessNameField, IndustryField, CountrySelector } from '@/components/submit';
+import { findCountryByFlagCode } from '@/components/submit/countries';
 
 interface BusinessDetailsProps {
   formData: BusinessFormData;
@@ -33,30 +17,39 @@ const BusinessDetails: React.FC<BusinessDetailsProps> = ({
   validationErrors,
   validateField
 }) => {
-  // Country data with flag codes and currency codes
-  const countries: CountryData[] = [
-    { name: "United States", flagCode: "us", currencyCode: "USD" },
-    { name: "United Kingdom", flagCode: "gb", currencyCode: "GBP" },
-    { name: "Singapore", flagCode: "sg", currencyCode: "SGD" },
-    { name: "Australia", flagCode: "au", currencyCode: "AUD" },
-    { name: "Canada", flagCode: "ca", currencyCode: "CAD" },
-    { name: "Germany", flagCode: "de", currencyCode: "EUR" },
-    { name: "France", flagCode: "fr", currencyCode: "EUR" },
-    { name: "Japan", flagCode: "jp", currencyCode: "JPY" },
-    { name: "India", flagCode: "in", currencyCode: "INR" },
-    { name: "Malaysia", flagCode: "my", currencyCode: "MYR" }
-  ];
+  // Handle text input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    // For employees field, only allow numbers
+    if (name === 'employees' && value !== '') {
+      const numericValue = value.replace(/\D/g, '');
+      updateFormData({ [name]: numericValue });
+      validateField(name, numericValue);
+      return;
+    }
+
+    // For year established, only allow 4-digit year
+    if (name === 'yearEstablished' && value !== '') {
+      const numericValue = value.replace(/\D/g, '').slice(0, 4);
+      updateFormData({ [name]: numericValue });
+      validateField(name, numericValue);
+      return;
+    }
+    
+    updateFormData({ [name]: value });
+    validateField(name, value);
+  };
   
-  // Country options for SearchableSelect
-  const countryOptions = countries.map(country => ({
-    value: country.flagCode,
-    label: country.name,
-    flagCode: country.flagCode
-  }));
-  
+  // Handle select changes
+  const handleSelectChange = (id: string, value: string) => {
+    updateFormData({ [id]: value });
+    validateField(id, value);
+  };
+
   // Handle country change
   const handleCountryChange = (value: string) => {
-    const selectedCountry = countries.find(c => c.flagCode === value);
+    const selectedCountry = findCountryByFlagCode(value);
     
     // Check if this is actually a change in currency
     const newCurrencyCode = selectedCountry?.currencyCode;
@@ -92,36 +85,6 @@ const BusinessDetails: React.FC<BusinessDetailsProps> = ({
     validateField('location', value);
   };
 
-  // Handle text input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    // For employees field, only allow numbers
-    if (name === 'employees' && value !== '') {
-      const numericValue = value.replace(/\D/g, '');
-      updateFormData({ [name]: numericValue });
-      validateField(name, numericValue);
-      return;
-    }
-
-    // For year established, only allow 4-digit year
-    if (name === 'yearEstablished' && value !== '') {
-      const numericValue = value.replace(/\D/g, '').slice(0, 4);
-      updateFormData({ [name]: numericValue });
-      validateField(name, numericValue);
-      return;
-    }
-    
-    updateFormData({ [name]: value });
-    validateField(name, value);
-  };
-  
-  // Handle select changes
-  const handleSelectChange = (id: string, value: string) => {
-    updateFormData({ [id]: value });
-    validateField(id, value);
-  };
-
   // Handle key press in fields to enable tabbing in the proper order
   const handleKeyDown = (e: React.KeyboardEvent, nextFieldId: string) => {
     if (e.key === 'Enter') {
@@ -135,63 +98,27 @@ const BusinessDetails: React.FC<BusinessDetailsProps> = ({
     <>
       <h2 className="text-xl font-semibold mb-4">Business Details</h2>
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="business-name">Business Name</Label>
-          <Input 
-            id="business-name" 
-            name="businessName"
-            type="text" 
-            placeholder="Enter business name"
-            value={formData.businessName}
-            onChange={handleInputChange}
-            onKeyDown={(e) => handleKeyDown(e, 'industry')}
-            aria-invalid={!!validationErrors.businessName}
-            className={validationErrors.businessName ? "border-red-500 focus-visible:ring-red-500" : ""}
-            autoComplete="off"
-          />
-          {validationErrors.businessName && (
-            <p className="text-sm font-medium text-red-500">{validationErrors.businessName}</p>
-          )}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="industry">Industry</Label>
-          <Select
-            value={formData.industry}
-            onValueChange={(value) => handleSelectChange('industry', value)}
-          >
-            <SelectTrigger 
-              id="industry" 
-              className={validationErrors.industry ? "border-red-500 focus-visible:ring-red-500" : ""}
-              onKeyDown={(e) => handleKeyDown(e, 'location')}
-            >
-              <SelectValue placeholder="Select industry" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="tech">Technology</SelectItem>
-              <SelectItem value="food">Food & Beverage</SelectItem>
-              <SelectItem value="retail">Retail</SelectItem>
-              <SelectItem value="manufacturing">Manufacturing</SelectItem>
-              <SelectItem value="health">Health & Wellness</SelectItem>
-              <SelectItem value="service">Professional Services</SelectItem>
-            </SelectContent>
-          </Select>
-          {validationErrors.industry && (
-            <p className="text-sm font-medium text-red-500">{validationErrors.industry}</p>
-          )}
-        </div>
-      </div>
-      <div className="space-y-2 mt-4">
-        <Label htmlFor="location">Location</Label>
-        <SearchableSelect
-          options={countryOptions}
-          value={formData.location}
-          onValueChange={handleCountryChange}
-          placeholder="Select your country"
-          required
+        <BusinessNameField 
+          value={formData.businessName}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          error={validationErrors.businessName}
         />
-        {validationErrors.location && (
-          <p className="text-sm font-medium text-red-500">{validationErrors.location}</p>
-        )}
+        
+        <IndustryField 
+          value={formData.industry}
+          onChange={(value) => handleSelectChange('industry', value)}
+          onKeyDown={handleKeyDown}
+          error={validationErrors.industry}
+        />
+      </div>
+      
+      <div className="space-y-2 mt-4">
+        <CountrySelector 
+          value={formData.location}
+          onChange={handleCountryChange}
+          error={validationErrors.location}
+        />
       </div>
     </>
   );
