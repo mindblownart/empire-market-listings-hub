@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Upload, Image, Video, X, Move, Play, Link as LinkIcon } from 'lucide-react';
 import VideoPreviewModal from './VideoPreviewModal';
+import { useDrag, useDrop } from 'react-dnd';
 
 interface MediaFile extends File {
   preview?: string;
