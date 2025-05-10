@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Select, 
@@ -14,70 +13,7 @@ import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import HomeFooter from '@/components/HomeFooter';
 import BusinessCard from '@/components/BusinessCard';
-
-// Sample business data for the listing section
-const businesses = [
-  {
-    id: '1',
-    title: 'Premium Coffee Shop Chain',
-    price: '$450,000',
-    description: 'Established specialty coffee shop chain with 3 prime locations in central business district. Strong brand presence and loyal customer base.',
-    category: 'Food & Beverage',
-    location: 'Singapore',
-    revenue: '$780K/year',
-    imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: '2',
-    title: 'E-commerce Fashion Retailer',
-    price: '$1,200,000',
-    description: 'Profitable online fashion business with international shipping capabilities. Premium brand identity and established supplier relationships.',
-    category: 'Retail',
-    location: 'Global',
-    revenue: '$2.4M/year',
-    imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: '3',
-    title: 'Modern Fitness Studio',
-    price: '$350,000',
-    description: 'Boutique fitness studio in upscale neighborhood with recurring membership model. Full suite of premium equipment and established clientele.',
-    category: 'Fitness',
-    location: 'Singapore',
-    revenue: '$520K/year',
-    imageUrl: 'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: '4',
-    title: 'Technology Consulting Agency',
-    price: '$800,000',
-    description: 'B2B technology consulting firm with long-term enterprise clients. Specializes in digital transformation and cloud migration services.',
-    category: 'Technology',
-    location: 'Singapore',
-    revenue: '$1.3M/year',
-    imageUrl: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: '5',
-    title: 'Manufacturing & Distribution',
-    price: '$1,800,000',
-    description: 'Established manufacturing business with proprietary product line and distribution networks across Southeast Asia.',
-    category: 'Manufacturing',
-    location: 'Regional',
-    revenue: '$3.2M/year',
-    imageUrl: 'https://images.unsplash.com/photo-1588964895597-cfccd6e2dbf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: '6',
-    title: 'Luxury Travel Agency',
-    price: '$650,000',
-    description: 'Premium travel agency specializing in luxury experiences for high-net-worth individuals. Strong industry relationships and high profit margins.',
-    category: 'Travel',
-    location: 'Global',
-    revenue: '$1.8M/year',
-    imageUrl: 'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
-  }
-];
+import { supabase } from '@/lib/supabase';
 
 // Testimonial data
 const testimonials = [
@@ -98,10 +34,37 @@ const Index = () => {
   const [country, setCountry] = useState<string>('');
   const [minRevenue, setMinRevenue] = useState<string>('');
   const [maxRevenue, setMaxRevenue] = useState<string>('');
+  const [businesses, setBusinesses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch businesses from Supabase
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('empiremarket')
+          .select('*')
+          .limit(6); // Limit to 6 businesses for the homepage
+        
+        if (error) {
+          console.error('Error fetching businesses:', error);
+          setBusinesses([]);
+        } else {
+          setBusinesses(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching businesses:', error);
+        setBusinesses([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBusinesses();
+  }, []);
 
   const handleSearch = () => {
-    // This would typically trigger a search with the filter parameters
-    console.log({ industry, country, minRevenue, maxRevenue });
     // Redirect to listings page with search params
     window.location.href = '/listings';
   };
@@ -265,21 +228,41 @@ const Index = () => {
       <section id="listings" className="py-20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-16">Available Businesses</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {businesses.map(business => (
-              <BusinessCard
-                key={business.id}
-                {...business}
-              />
-            ))}
-          </div>
-          <div className="mt-12 text-center">
-            <Link to="/listings">
-              <Button className="bg-primary hover:bg-primary-light px-8">
-                View All Listings
+          
+          {isLoading ? (
+            <div className="text-center py-10">
+              <p className="text-gray-600">Loading listings...</p>
+            </div>
+          ) : businesses.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {businesses.map(business => (
+                  <BusinessCard
+                    key={business.id}
+                    {...business}
+                  />
+                ))}
+              </div>
+              
+              <div className="mt-12 text-center">
+                <Link to="/listings">
+                  <Button className="bg-primary hover:bg-primary-light px-8">
+                    View All Listings
+                  </Button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-20 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="text-xl font-medium text-gray-900 mb-4">No businesses have been listed yet. Be the first to submit yours!</h3>
+              <p className="text-gray-600 mb-6 max-w-lg mx-auto">
+                Our marketplace is ready for your business listing. Submit your business details to find the right buyer.
+              </p>
+              <Button asChild className="px-6 py-6 text-lg">
+                <Link to="/submit">Submit a Business</Link>
               </Button>
-            </Link>
-          </div>
+            </div>
+          )}
         </div>
       </section>
 

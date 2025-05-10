@@ -90,7 +90,6 @@ const Listings = () => {
       setIsLoading(true);
       try {
         // In a real implementation, this would fetch from a "businesses" table
-        // For this example, we're just checking if the 'empiremarket' table exists
         const { data, error } = await supabase
           .from('empiremarket')
           .select('*');
@@ -99,8 +98,6 @@ const Listings = () => {
           console.error('Error fetching businesses:', error);
           setBusinesses([]);
         } else {
-          // The actual business data would come from a proper business table
-          // For now, we're just checking if any data exists in the database
           setBusinesses(data || []);
         }
       } catch (error) {
@@ -349,7 +346,7 @@ const Listings = () => {
                 {/* Empty state when no listings are available */}
                 {!hasListings ? (
                   <div className="text-center py-20 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
-                    <h3 className="text-xl font-medium text-gray-900 mb-4">No listings yet. Be the first to submit your business!</h3>
+                    <h3 className="text-xl font-medium text-gray-900 mb-4">No businesses have been listed yet. Be the first to submit yours!</h3>
                     <p className="text-gray-600 mb-6 max-w-lg mx-auto">
                       Our marketplace is ready for your business listing. Submit your business details to find the right buyer.
                     </p>
@@ -373,7 +370,7 @@ const Listings = () => {
                       </div>
                     )}
 
-                    {/* Pagination */}
+                    {/* Pagination - only show if we have listings */}
                     {filteredBusinesses.length > 0 && (
                       <Pagination className="mt-8">
                         <PaginationContent>
@@ -400,4 +397,5 @@ const Listings = () => {
       <HomeFooter />
     </div>;
 };
+
 export default Listings;
