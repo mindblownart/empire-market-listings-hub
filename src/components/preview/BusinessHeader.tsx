@@ -4,6 +4,7 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin } from 'lucide-react';
+import { formatCurrency } from '@/lib/formatters';
 
 interface BusinessHeaderProps {
   businessName: string;
@@ -11,6 +12,8 @@ interface BusinessHeaderProps {
   locationName?: string;
   flagCode?: string;
   primaryImage?: string;
+  askingPrice?: string;
+  currencyCode?: string;
 }
 
 export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
@@ -19,6 +22,8 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   locationName,
   flagCode,
   primaryImage,
+  askingPrice,
+  currencyCode = 'USD',
 }) => {
   // Render hero banner with image or fallback card
   if (primaryImage) {
@@ -32,7 +37,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           <div className="absolute bottom-0 left-0 w-full p-8">
-            <Badge className="mb-2">{industry || 'Uncategorized'}</Badge>
+            <Badge className="mb-2 bg-blue-600">{industry || 'Uncategorized'}</Badge>
             <h1 className="text-4xl font-bold text-white mb-2">{businessName || 'Unnamed Business'}</h1>
             {locationName && (
               <div className="flex items-center text-white mt-2">
@@ -52,6 +57,18 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
               </div>
             )}
           </div>
+          
+          {/* Asking Price Badge - Bottom Right */}
+          {askingPrice && (
+            <div className="absolute bottom-8 right-8">
+              <div className="bg-white rounded-md px-4 py-2 shadow-md">
+                <div className="text-sm font-medium text-gray-600">Asking Price</div>
+                <div className="text-xl font-bold text-blue-600">
+                  {formatCurrency(askingPrice, currencyCode)}
+                </div>
+              </div>
+            </div>
+          )}
         </AspectRatio>
       </div>
     );
@@ -78,6 +95,18 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
               )}
               {locationName}
             </span>
+          </div>
+        )}
+        
+        {/* Asking Price Badge for Card View */}
+        {askingPrice && (
+          <div className="mt-2">
+            <div className="bg-gray-100 inline-block rounded-md px-3 py-1">
+              <div className="text-xs font-medium text-gray-600">Asking Price</div>
+              <div className="text-lg font-bold text-blue-600">
+                {formatCurrency(askingPrice, currencyCode)}
+              </div>
+            </div>
           </div>
         )}
       </CardHeader>

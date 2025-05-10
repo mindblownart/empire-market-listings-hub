@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -81,7 +82,7 @@ const ListingDetail = () => {
       
       <main className="flex-grow pt-20 px-4">
         <div className="container mx-auto max-w-7xl">
-          {/* 1. Hero Section with Business Header - Keep as is but without price badge */}
+          {/* 1. Hero Section with Business Header - Now includes asking price */}
           <div className="mb-6">
             <BusinessHeader 
               businessName={business.title}
@@ -89,6 +90,8 @@ const ListingDetail = () => {
               locationName={business.location}
               flagCode={business.flagCode}
               primaryImage={business.primaryImage}
+              askingPrice={business.price}
+              currencyCode={business.currencyCode}
             />
           </div>
           
@@ -114,7 +117,6 @@ const ListingDetail = () => {
             {/* Right Column (4/12) - Business Details, Contact, & CTA button */}
             <div className="lg:col-span-4 space-y-6">
               <BusinessDetails 
-                askingPrice={business.price}
                 annualRevenue={business.revenue}
                 annualProfit={business.profit}
                 currencyCode={business.currencyCode}

@@ -57,14 +57,14 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   if (!hasMedia) return null;
   
   return (
-    <Card className="shadow-md">
-      <CardHeader className="border-b py-4">
-        <CardTitle>Media Gallery</CardTitle>
+    <Card className="shadow-md mb-6">
+      <CardHeader className="border-b py-3">
+        <CardTitle className="text-lg">Media Gallery</CardTitle>
       </CardHeader>
-      <CardContent className="pt-4 pb-4">
-        <div className="space-y-3">
-          {/* Main Media Display - More compact height (40% smaller) */}
-          <AspectRatio ratio={21/9} className="bg-gray-200 rounded-md overflow-hidden">
+      <CardContent className="p-4 relative">
+        {/* Main Media Display - More compact height */}
+        <div className="relative">
+          <AspectRatio ratio={16/9} className="bg-gray-200 rounded-md overflow-hidden">
             {activeIndex === 0 && videoURL ? (
               <div className="relative w-full h-full">
                 <video
@@ -98,58 +98,35 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
             )}
           </AspectRatio>
           
-          {/* Thumbnails Row */}
-          {allMedia.length > 1 && (
-            <div className="overflow-auto pb-1">
-              <div className="flex space-x-2">
-                {allMedia.map((media, index) => (
-                  <div 
-                    key={index}
-                    onClick={() => setActiveIndex(index)}
-                    className={`relative cursor-pointer flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 ${
-                      index === activeIndex ? 'border-primary' : 'border-transparent'
-                    }`}
-                  >
-                    {index === 0 && videoURL ? (
-                      <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                        <div className="w-6 h-6 bg-white/80 rounded-full flex items-center justify-center">
-                          <div className="w-0 h-0 border-y-4 border-y-transparent border-l-[6px] border-l-gray-800 ml-0.5"></div>
-                        </div>
-                      </div>
-                    ) : (
-                      <img 
-                        src={galleryImages[videoURL ? index - 1 : index]} 
-                        alt={`Thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
           {/* Navigation Controls */}
           {allMedia.length > 1 && (
-            <div className="flex justify-end gap-2 mt-1">
+            <>
+              {/* Previous Button */}
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="h-8 w-8 rounded-full"
+                className="h-8 w-8 rounded-full absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-md"
                 onClick={goToPrevious}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
+              
+              {/* Next Button */}
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="h-8 w-8 rounded-full"
+                className="h-8 w-8 rounded-full absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-md"
                 onClick={goToNext}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
-            </div>
+            </>
           )}
+        </div>
+        
+        {/* Media Counter */}
+        <div className="text-xs text-gray-500 text-center mt-2">
+          {activeIndex + 1} of {allMedia.length}
         </div>
       </CardContent>
     </Card>
