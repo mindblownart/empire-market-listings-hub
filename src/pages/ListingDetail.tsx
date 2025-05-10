@@ -39,11 +39,7 @@ const businessesData = {
 };
 
 const ListingDetail = () => {
-  const {
-    id
-  } = useParams<{
-    id: string;
-  }>();
+  const { id } = useParams<{ id: string; }>();
   const business = id ? businessesData[id as keyof typeof businessesData] : null;
 
   if (!business) {
@@ -62,7 +58,8 @@ const ListingDetail = () => {
       </div>;
   }
 
-  return <div className="min-h-screen flex flex-col">
+  return (
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       
       <main className="flex-grow pt-20 px-4 pb-12">
@@ -73,13 +70,15 @@ const ListingDetail = () => {
           </div>
           
           {/* Revised layout with 2 columns starting right below the hero */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Media Gallery and Business Overview */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Media Gallery - properly aligned with Business Overview */}
-              <div className="w-full">
-                <MediaGallery galleryImages={business.galleryImages} videoURL={business.videoURL} autoplayVideo={true} />
-              </div>
+              {/* Media Gallery exactly aligned with Business Overview */}
+              <MediaGallery 
+                galleryImages={business.galleryImages} 
+                videoURL={business.videoURL} 
+                autoplayVideo={true} 
+              />
               
               {/* Business Overview & Highlights */}
               <BusinessOverview description={business.description} highlights={business.highlights} />
@@ -87,9 +86,22 @@ const ListingDetail = () => {
             
             {/* Right Column - Business Details & Contact Information */}
             <div className="space-y-6">
-              <BusinessDetails annualRevenue={business.revenue} annualProfit={business.profit} currencyCode={business.currencyCode} locationName={business.location} industry={business.industry} yearEstablished={business.established} employees={business.employees} />
+              <BusinessDetails 
+                annualRevenue={business.revenue} 
+                annualProfit={business.profit} 
+                currencyCode={business.currencyCode} 
+                locationName={business.location} 
+                industry={business.industry} 
+                yearEstablished={business.established} 
+                employees={business.employees} 
+              />
               
-              <ContactInformation fullName={business.sellerInfo.name} email={business.sellerInfo.email} phone={business.sellerInfo.phone} role={business.sellerInfo.role} />
+              <ContactInformation 
+                fullName={business.sellerInfo.name} 
+                email={business.sellerInfo.email} 
+                phone={business.sellerInfo.phone} 
+                role={business.sellerInfo.role} 
+              />
               
               {/* Contact Seller Button */}
               <Button className="w-full bg-[#9b87f5] hover:bg-[#8673e0] py-6 h-auto text-white text-lg font-medium">
@@ -101,7 +113,8 @@ const ListingDetail = () => {
       </main>
       
       <Footer />
-    </div>;
+    </div>
+  );
 };
 
 export default ListingDetail;
