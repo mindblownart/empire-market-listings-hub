@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Mail, Phone } from 'lucide-react';
+import { User, Mail, Phone, AtSign } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ContactInformationProps {
   fullName?: string;
@@ -24,45 +25,54 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
       <CardContent className="pt-4 pb-4">
         <div className="space-y-4">
           {/* Full Name row */}
-          <div className="flex flex-col sm:flex-row">
-            <div className="w-full sm:w-1/2 flex items-center mb-1 sm:mb-0">
-              <User className="h-4 w-4 mr-2 text-gray-500" />
-              <span className="text-gray-500">Full Name</span>
+          <div className="flex items-center">
+            <div className="w-[40%] flex items-center">
+              <User className="h-4 w-4 mr-2 text-gray-500 flex-shrink-0" />
+              <span className="text-gray-500 whitespace-nowrap">Full Name</span>
             </div>
-            <div className="w-full sm:w-1/2 sm:text-right font-medium">
+            <div className="w-[60%] text-right font-medium truncate">
               {fullName || 'Not provided'}
             </div>
           </div>
           
-          {/* Email row */}
-          <div className="flex flex-col sm:flex-row">
-            <div className="w-full sm:w-1/2 flex items-center mb-1 sm:mb-0">
-              <Mail className="h-4 w-4 mr-2 text-gray-500" />
-              <span className="text-gray-500">Email</span>
+          {/* Email row with tooltip for long emails */}
+          <div className="flex items-center">
+            <div className="w-[40%] flex items-center">
+              <Mail className="h-4 w-4 mr-2 text-gray-500 flex-shrink-0" />
+              <span className="text-gray-500 whitespace-nowrap">Email</span>
             </div>
-            <div className="w-full sm:w-1/2 sm:text-right font-medium break-all">
-              {email || 'Not provided'}
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="w-[60%] text-right font-medium truncate">
+                    {email || 'Not provided'}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{email || 'Not provided'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           
           {/* Phone Number row */}
-          <div className="flex flex-col sm:flex-row">
-            <div className="w-full sm:w-1/2 flex items-center mb-1 sm:mb-0">
-              <Phone className="h-4 w-4 mr-2 text-gray-500" />
-              <span className="text-gray-500">Phone Number</span>
+          <div className="flex items-center">
+            <div className="w-[40%] flex items-center">
+              <Phone className="h-4 w-4 mr-2 text-gray-500 flex-shrink-0" />
+              <span className="text-gray-500 whitespace-nowrap">Phone Number</span>
             </div>
-            <div className="w-full sm:w-1/2 sm:text-right font-medium">
+            <div className="w-[60%] text-right font-medium truncate">
               {phone || 'Not provided'}
             </div>
           </div>
           
           {/* Role row */}
-          <div className="flex flex-col sm:flex-row">
-            <div className="w-full sm:w-1/2 flex items-center mb-1 sm:mb-0">
-              <User className="h-4 w-4 mr-2 text-gray-500" />
-              <span className="text-gray-500">Role</span>
+          <div className="flex items-center">
+            <div className="w-[40%] flex items-center">
+              <AtSign className="h-4 w-4 mr-2 text-gray-500 flex-shrink-0" />
+              <span className="text-gray-500 whitespace-nowrap">Role</span>
             </div>
-            <div className="w-full sm:w-1/2 sm:text-right font-medium capitalize">
+            <div className="w-[60%] text-right font-medium capitalize truncate">
               {role || 'Not provided'}
             </div>
           </div>
