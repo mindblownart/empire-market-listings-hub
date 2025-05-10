@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Bookmark, BookmarkCheck } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
+import { Badge } from '@/components/ui/badge';
 
 interface BusinessCardProps {
   id: string;
@@ -29,7 +30,9 @@ const BusinessCard = ({
   location,
   revenue,
   imageUrl,
-  currencyCode = 'USD'
+  currencyCode = 'USD',
+  isNew,
+  isHot
 }: BusinessCardProps) => {
   const [isFavorite, setIsFavorite] = useState(false);
   
@@ -42,6 +45,20 @@ const BusinessCard = ({
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg h-full flex flex-col">
       <div className="relative h-48 overflow-hidden">
+        {/* Badge container - positioned absolute to contain both badges */}
+        <div className="absolute top-2 left-2 z-10 flex gap-2">
+          {isNew && (
+            <Badge className="bg-blue-500 text-white">
+              New
+            </Badge>
+          )}
+          {isHot && (
+            <Badge className="bg-red-500 text-white">
+              Hot
+            </Badge>
+          )}
+        </div>
+        
         {/* Favorite button */}
         <button 
           className="absolute top-2 right-2 z-10 p-1.5 bg-white/80 hover:bg-white rounded-full shadow-sm"
@@ -61,6 +78,7 @@ const BusinessCard = ({
           className="w-full h-full object-cover"
         />
       </div>
+      
       <CardContent className="p-5 flex-grow">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-semibold line-clamp-1">{title}</h3>
@@ -85,6 +103,7 @@ const BusinessCard = ({
           </div>
         </div>
       </CardContent>
+      
       <CardFooter className="p-5 pt-0 mt-auto">
         <Link to={`/listing/${id}`} className="w-full">
           <Button variant="default" className="w-full bg-primary hover:bg-primary-light">

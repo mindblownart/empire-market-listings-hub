@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,6 @@ import {
   SelectValue, 
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
 import {
   Pagination,
   PaginationContent,
@@ -350,8 +348,8 @@ const Listings = () => {
             <p className="text-gray-600">Browse our curated selection of high-potential businesses for sale.</p>
           </div>
 
-          {/* Search and Filter Section */}
-          <div className="bg-white rounded-lg shadow-md mb-8 sticky top-[72px] z-10">
+          {/* Search and Filter Section - Now with sticky positioning */}
+          <div className="bg-white rounded-lg shadow-md mb-8 sticky top-[72px] z-20 border-b border-gray-100">
             <div className="p-4 flex flex-wrap items-center gap-4">
               <div className="relative w-full md:w-auto flex-grow">
                 <Input
@@ -446,21 +444,10 @@ const Listings = () => {
           {currentItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {currentItems.map(business => (
-                <div key={business.id} className="relative">
-                  {business.isNew && (
-                    <Badge className="absolute top-2 left-2 z-10 bg-blue-500 text-white">
-                      New
-                    </Badge>
-                  )}
-                  {business.isHot && (
-                    <Badge className="absolute top-2 left-16 z-10 bg-red-500 text-white">
-                      Hot
-                    </Badge>
-                  )}
-                  <BusinessCard
-                    {...business}
-                  />
-                </div>
+                <BusinessCard
+                  key={business.id}
+                  {...business}
+                />
               ))}
             </div>
           ) : (
