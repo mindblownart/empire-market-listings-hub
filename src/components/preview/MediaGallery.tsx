@@ -104,7 +104,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
             <CarouselItem>
               <AspectRatio ratio={16 / 9} className="bg-gray-100 overflow-hidden">
                 <div className="relative w-full h-full">
-                  {videoURL && videoURL.includes('youtube.com') || videoURL?.includes('youtu.be') ? (
+                  {videoURL && (videoURL.includes('youtube.com') || videoURL.includes('youtu.be')) ? (
                     // YouTube embed
                     <iframe 
                       src={getVideoEmbedUrl('youtube', videoURL.split('v=')[1] || videoURL.split('/').pop() || '')} 

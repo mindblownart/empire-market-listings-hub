@@ -74,7 +74,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
     }
   };
 
-  // Don't render delete button for empty slots or video slot if empty
+  // Don't render delete button for empty slots
   const showDeleteButton = !item.isEmpty;
   
   // Determine border color and opacity based on state
@@ -129,7 +129,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
         onSetPrimary={null}
         onDelete={handleDelete}
         showSetPrimaryButton={false}
-        showDeleteButton={!!showDeleteButton}
+        showDeleteButton={showDeleteButton}
       />
     </div>
   );
