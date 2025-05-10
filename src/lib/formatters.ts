@@ -17,11 +17,12 @@ export function formatCurrency(value: string | number, currencyCode: string, loc
     if (isNaN(numericValue)) return '';
     
     // Format with currency and thousands separators using Intl.NumberFormat
+    // Set minimumFractionDigits and maximumFractionDigits to 0 to remove decimal places
     return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: currencyCode,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(numericValue);
   } catch (error) {
     console.error('Error formatting currency:', error);
@@ -46,9 +47,10 @@ export function formatNumberWithCommas(value: string | number, locale: string = 
     if (isNaN(numericValue)) return '';
     
     // Format with thousands separators using Intl.NumberFormat
+    // Set minimumFractionDigits and maximumFractionDigits to 0 to remove decimal places
     return new Intl.NumberFormat(locale, {
-      maximumFractionDigits: 2,
-      minimumFractionDigits: 2, // Always show 2 decimal places
+      maximumFractionDigits: 0,
+      minimumFractionDigits: 0, // Changed to 0 to remove decimal places
     }).format(numericValue);
   } catch (error) {
     console.error('Error formatting number:', error);
@@ -129,7 +131,7 @@ export function formatLiveCurrency(value: string, currencyCode: string, locale: 
         maximumFractionDigits: decimalDigits
       }).format(numValue);
     } else {
-      // Regular whole numbers
+      // Regular whole numbers - no decimal places
       formattedAmount = new Intl.NumberFormat(locale, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0

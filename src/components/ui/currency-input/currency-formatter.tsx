@@ -129,7 +129,7 @@ export const CurrencyFormatter = React.forwardRef<
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(false);
       
-      // Ensure proper formatting on blur
+      // Ensure proper formatting on blur with no decimal places
       const numericValue = value;
       const formattedValue = formatLiveCurrency(numericValue, currencyCode, locale);
       setDisplayValue(formattedValue);
