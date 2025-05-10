@@ -348,8 +348,8 @@ const Listings = () => {
             <p className="text-gray-600">Browse our curated selection of high-potential businesses for sale.</p>
           </div>
 
-          {/* Search and Filter Section - Now with sticky positioning */}
-          <div className="bg-white rounded-lg shadow-md mb-8 sticky top-[72px] z-20 border-b border-gray-100">
+          {/* Search and Filter Section with enhanced sticky positioning */}
+          <div className="bg-white sticky top-[72px] z-50 rounded-lg shadow-md mb-8 border-b border-gray-100">
             <div className="p-4 flex flex-wrap items-center gap-4">
               <div className="relative w-full md:w-auto flex-grow">
                 <Input
