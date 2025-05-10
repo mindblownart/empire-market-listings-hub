@@ -56,10 +56,10 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   
   return (
     <Card className="shadow-md">
-      <CardHeader className="border-b">
+      <CardHeader className="border-b py-4">
         <CardTitle>Media Gallery</CardTitle>
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent className="pt-4 pb-4">
         <Carousel className="w-full">
           <CarouselContent>
             {/* Video Item (First if available) */}
@@ -109,9 +109,9 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
           
           {/* Only show navigation controls if there's more than one item */}
           {(videoURL ? galleryImages.length > 0 : galleryImages.length > 1) && (
-            <div className="flex justify-end gap-2 mt-4">
-              <CarouselPrevious className="static transform-none" />
-              <CarouselNext className="static transform-none" />
+            <div className="flex justify-end gap-2 mt-3">
+              <CarouselPrevious className="static transform-none h-8 w-8" />
+              <CarouselNext className="static transform-none h-8 w-8" />
             </div>
           )}
         </Carousel>

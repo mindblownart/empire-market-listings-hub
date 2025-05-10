@@ -29,7 +29,7 @@ const businessesData = {
     established: '2015',
     employees: '12',
     currencyCode: 'USD',
-    primaryImage: 'https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    primaryImage: 'public/lovable-uploads/8762974f-66a2-45ad-a90a-b43bb0c00331.png',
     galleryImages: [
       'https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
@@ -80,10 +80,10 @@ const ListingDetail = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow pt-24 px-4">
+      <main className="flex-grow pt-20 px-4">
         <div className="container mx-auto max-w-7xl">
           {/* 1. Hero Section with Business Header - with price badge */}
-          <div className="relative mb-8">
+          <div className="relative mb-6">
             <BusinessHeader 
               businessName={business.title}
               industry={business.category}
@@ -94,15 +94,15 @@ const ListingDetail = () => {
             
             {/* Asking Price Badge */}
             <div className="absolute top-6 right-6 bg-white px-4 py-2 rounded-full shadow-lg">
-              <div className="text-sm font-semibold text-gray-500">Asking Price</div>
+              <div className="text-sm font-medium text-gray-500">Asking Price</div>
               <div className="text-xl font-bold text-primary">
                 {formatCurrency(business.price, business.currencyCode)}
               </div>
             </div>
           </div>
           
-          {/* 2. Media Gallery Section - Full width carousel with autoplay video */}
-          <div className="mb-8">
+          {/* 2. Media Gallery Section - Compact media gallery */}
+          <div className="mb-6">
             <MediaGallery 
               galleryImages={business.galleryImages}
               videoURL={business.videoURL}
@@ -111,9 +111,9 @@ const ListingDetail = () => {
           </div>
           
           {/* 3. Content Sections - Stacked full-width layout on mobile, two columns on desktop */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
             {/* Left Column - Business Overview & Highlights (wider on desktop) */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-6">
               <BusinessOverview 
                 description={business.description}
                 highlights={business.highlights}
@@ -121,7 +121,7 @@ const ListingDetail = () => {
             </div>
             
             {/* Right Column - Business Details & Contact */}
-            <div className="space-y-8">
+            <div className="space-y-6">
               <BusinessDetails 
                 askingPrice={business.price}
                 annualRevenue={business.revenue}
@@ -140,11 +140,9 @@ const ListingDetail = () => {
                 role={business.sellerInfo.role}
               />
               
-              <div className="mt-6">
-                <Button className="w-full bg-primary hover:bg-primary-light">
-                  Contact Seller
-                </Button>
-              </div>
+              <Button className="w-full bg-primary hover:bg-primary-light py-2 h-auto">
+                Contact Seller
+              </Button>
             </div>
           </div>
         </div>

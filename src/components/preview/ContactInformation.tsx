@@ -18,12 +18,12 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
 }) => {
   return (
     <Card className="shadow-md">
-      <CardHeader className="border-b">
+      <CardHeader className="border-b py-4">
         <CardTitle>Contact Information</CardTitle>
       </CardHeader>
-      <CardContent className="pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-3">
+      <CardContent className="pt-4 pb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
             <div>
               <div className="flex items-center text-gray-500 mb-1">
                 <User className="h-4 w-4 mr-2" /> Full Name
@@ -37,7 +37,7 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
               <div className="font-medium">{email || 'Not provided'}</div>
             </div>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div>
               <div className="flex items-center text-gray-500 mb-1">
                 <Phone className="h-4 w-4 mr-2" /> Phone Number

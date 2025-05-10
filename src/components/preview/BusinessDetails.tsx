@@ -64,7 +64,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
 
   return (
     <Card className="shadow-md">
-      <CardHeader className="border-b">
+      <CardHeader className="border-b py-4">
         <CardTitle>Business Details</CardTitle>
         {showFallbackWarning && (
           <Alert variant="warning" className="mt-2 bg-amber-50 text-amber-800 border-amber-200">
@@ -75,8 +75,8 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
           </Alert>
         )}
       </CardHeader>
-      <CardContent className="pt-6">
-        <dl className="space-y-4">
+      <CardContent className="pt-4 pb-4">
+        <dl className="space-y-3">
           <div className="flex items-center">
             <dt className="flex items-center w-1/2 text-gray-500">
               <DollarSign className="h-4 w-4 mr-2" /> Asking Price
