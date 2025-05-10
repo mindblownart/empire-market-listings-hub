@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
@@ -75,67 +76,41 @@ const PreviewListing = () => {
   const galleryImages = imageURLs.slice(1);
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="min-h-screen flex flex-col">
-        {/* Logo header */}
-        <header className="py-4 px-6 border-b">
-          <div className="container mx-auto">
-            <Link to="/" className="inline-block">
-              <span className="text-2xl font-bold text-[#5B3DF5]">
-                EmpireMarket
-              </span>
-            </Link>
+    <div className="min-h-screen flex flex-col">
+      {/* Logo header */}
+      <header className="py-4 px-6 border-b">
+        <div className="container mx-auto">
+          <Link to="/" className="inline-block">
+            <span className="text-2xl font-bold text-[#5B3DF5]">
+              EmpireMarket
+            </span>
+          </Link>
+        </div>
+      </header>
+      
+      <div className="py-8 px-4 flex-grow bg-gray-50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold">Preview Your Business Listing</h1>
           </div>
-        </header>
-        
-        <div className="py-8 px-4 flex-grow bg-gray-50">
-          <div className="container mx-auto max-w-6xl">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold">Preview Your Business Listing</h1>
-            </div>
-            
-            {/* Main content */}
-            <div className="space-y-8">
-              {/* Primary Image Banner */}
-              {primaryImage ? (
-                <div className="w-full overflow-hidden rounded-lg shadow-md">
-                  <AspectRatio ratio={16/9} className="bg-gray-200">
-                    <img 
-                      src={primaryImage} 
-                      alt={formData.businessName || 'Business banner'} 
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <div className="absolute bottom-0 left-0 w-full p-8">
-                      <Badge className="mb-2">{formData.industry || 'Uncategorized'}</Badge>
-                      <h2 className="text-3xl font-bold text-white">{formData.businessName || 'Unnamed Business'}</h2>
-                      {formData.locationName && (
-                        <div className="flex items-center text-white mt-2">
-                          <MapPin className="h-4 w-4 mr-2" />
-                          <span className="flex items-center">
-                            {formData.flagCode && (
-                              <span className="mr-2 text-xl">
-                                {String.fromCodePoint(
-                                  ...[...formData.flagCode.toUpperCase()].map(
-                                    char => char.charCodeAt(0) + 127397
-                                  )
-                                )}
-                              </span>
-                            )}
-                            {formData.locationName}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </AspectRatio>
-                </div>
-              ) : (
-                <Card className="mb-8 shadow-md">
-                  <CardHeader>
-                    <Badge className="w-fit mb-2">{formData.industry || 'Uncategorized'}</Badge>
-                    <CardTitle className="text-2xl">{formData.businessName || 'Unnamed Business'}</CardTitle>
+          
+          {/* Main content */}
+          <div className="space-y-8">
+            {/* Primary Image Banner */}
+            {primaryImage ? (
+              <div className="w-full overflow-hidden rounded-lg shadow-md">
+                <AspectRatio ratio={16/9} className="bg-gray-200">
+                  <img 
+                    src={primaryImage} 
+                    alt={formData.businessName || 'Business banner'} 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <div className="absolute bottom-0 left-0 w-full p-8">
+                    <Badge className="mb-2">{formData.industry || 'Uncategorized'}</Badge>
+                    <h2 className="text-3xl font-bold text-white">{formData.businessName || 'Unnamed Business'}</h2>
                     {formData.locationName && (
-                      <div className="flex items-center text-gray-600 mt-1">
+                      <div className="flex items-center text-white mt-2">
                         <MapPin className="h-4 w-4 mr-2" />
                         <span className="flex items-center">
                           {formData.flagCode && (
@@ -151,232 +126,256 @@ const PreviewListing = () => {
                         </span>
                       </div>
                     )}
-                  </CardHeader>
-                </Card>
-              )}
-              
-              {/* Two-column layout */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Left Column - Business Overview */}
-                <div className="md:col-span-2 space-y-8">
-                  {/* Business Overview */}
-                  <Card className="shadow-md">
-                    <CardHeader className="border-b">
-                      <CardTitle>Business Overview</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                      <div className="prose max-w-none">
-                        <p className="text-gray-700 whitespace-pre-wrap">
-                          {formData.description || 'No description provided.'}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Business Highlights (if any) */}
-                  {highlights.length > 0 && (
-                    <Card className="shadow-md">
-                      <CardHeader className="border-b">
-                        <CardTitle>Business Highlights</CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-6">
-                        <ul className="list-disc pl-6 space-y-2">
-                          {highlights.map((highlight, index) => (
-                            <li key={index} className="text-gray-700">{highlight}</li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Additional Photos */}
-                  {hasAdditionalImages && (
-                    <Card className="shadow-md">
-                      <CardHeader className="border-b">
-                        <CardTitle>Photo Gallery</CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-6">
-                        <Carousel className="w-full">
-                          <CarouselContent>
-                            {galleryImages.map((url, index) => (
-                              <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                                <AspectRatio ratio={4/3} className="bg-gray-200 rounded-md overflow-hidden">
-                                  <img 
-                                    src={url} 
-                                    alt={`Business image ${index + 1}`} 
-                                    className="w-full h-full object-cover"
-                                  />
-                                </AspectRatio>
-                              </CarouselItem>
-                            ))}
-                          </CarouselContent>
-                          <div className="flex justify-end gap-2 mt-4">
-                            <CarouselPrevious className="static transform-none" />
-                            <CarouselNext className="static transform-none" />
-                          </div>
-                        </Carousel>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-                
-                {/* Right Column - Business Details */}
-                <div className="space-y-8">
-                  {/* Business Details Card */}
-                  <Card className="shadow-md">
-                    <CardHeader className="border-b">
-                      <CardTitle>Business Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                      <dl className="space-y-4">
-                        <div className="flex items-center">
-                          <dt className="flex items-center w-1/2 text-gray-500">
-                            <DollarSign className="h-4 w-4 mr-2" /> Asking Price
-                          </dt>
-                          <dd className="w-1/2 font-medium">
-                            {formData.currencyCode} {formData.askingPrice || '0'}
-                          </dd>
-                        </div>
-                        <div className="flex items-center">
-                          <dt className="flex items-center w-1/2 text-gray-500">
-                            <DollarSign className="h-4 w-4 mr-2" /> Annual Revenue
-                          </dt>
-                          <dd className="w-1/2 font-medium">
-                            {formData.currencyCode} {formData.annualRevenue || '0'}
-                          </dd>
-                        </div>
-                        <div className="flex items-center">
-                          <dt className="flex items-center w-1/2 text-gray-500">
-                            <DollarSign className="h-4 w-4 mr-2" /> Annual Profit
-                          </dt>
-                          <dd className="w-1/2 font-medium">
-                            {formData.currencyCode} {formData.annualProfit || '0'}
-                          </dd>
-                        </div>
-                        <div className="flex items-center">
-                          <dt className="flex items-center w-1/2 text-gray-500">
-                            <MapPin className="h-4 w-4 mr-2" /> Country
-                          </dt>
-                          <dd className="w-1/2 font-medium">
-                            {formData.locationName || 'Not specified'}
-                          </dd>
-                        </div>
-                        <div className="flex items-center">
-                          <dt className="flex items-center w-1/2 text-gray-500">
-                            <Building className="h-4 w-4 mr-2" /> Industry
-                          </dt>
-                          <dd className="w-1/2 font-medium capitalize">
-                            {formData.industry === 'tech' ? 'Technology' :
-                             formData.industry === 'food' ? 'Food & Beverage' :
-                             formData.industry === 'retail' ? 'Retail' :
-                             formData.industry === 'manufacturing' ? 'Manufacturing' :
-                             formData.industry === 'health' ? 'Health & Wellness' :
-                             formData.industry === 'service' ? 'Professional Services' :
-                             formData.industry || 'Not specified'}
-                          </dd>
-                        </div>
-                        <div className="flex items-center">
-                          <dt className="flex items-center w-1/2 text-gray-500">
-                            <Calendar className="h-4 w-4 mr-2" /> Year Established
-                          </dt>
-                          <dd className="w-1/2 font-medium">
-                            {/* Not in current form, placeholder for future */}
-                            Not provided
-                          </dd>
-                        </div>
-                        <div className="flex items-center">
-                          <dt className="flex items-center w-1/2 text-gray-500">
-                            <Users className="h-4 w-4 mr-2" /> Employees
-                          </dt>
-                          <dd className="w-1/2 font-medium">
-                            {/* Not in current form, placeholder for future */}
-                            Not provided
-                          </dd>
-                        </div>
-                      </dl>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Video Player */}
-                  {videoURL && (
-                    <Card className="shadow-md overflow-hidden">
-                      <AspectRatio ratio={16/9}>
-                        <video
-                          src={videoURL}
-                          controls
-                          className="w-full h-full object-cover"
-                        />
-                      </AspectRatio>
-                    </Card>
-                  )}
-                  
-                  {/* Action Buttons */}
-                  <div className="space-y-4 pt-2">
-                    <Button className="w-full bg-primary hover:bg-primary-dark">
-                      Contact Seller
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      Request Financials
-                    </Button>
                   </div>
-                </div>
+                </AspectRatio>
               </div>
-              
-              {/* Contact Information */}
-              <Card className="shadow-md mt-8">
-                <CardHeader className="border-b">
-                  <CardTitle>Contact Information</CardTitle>
+            ) : (
+              <Card className="mb-8 shadow-md">
+                <CardHeader>
+                  <Badge className="w-fit mb-2">{formData.industry || 'Uncategorized'}</Badge>
+                  <CardTitle className="text-2xl">{formData.businessName || 'Unnamed Business'}</CardTitle>
+                  {formData.locationName && (
+                    <div className="flex items-center text-gray-600 mt-1">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      <span className="flex items-center">
+                        {formData.flagCode && (
+                          <span className="mr-2 text-xl">
+                            {String.fromCodePoint(
+                              ...[...formData.flagCode.toUpperCase()].map(
+                                char => char.charCodeAt(0) + 127397
+                              )
+                            )}
+                          </span>
+                        )}
+                        {formData.locationName}
+                      </span>
+                    </div>
+                  )}
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <div>
-                        <div className="flex items-center text-gray-500 mb-1">
-                          <User className="h-4 w-4 mr-2" /> Full Name
-                        </div>
-                        <div className="font-medium">{formData.fullName || 'Not provided'}</div>
-                      </div>
-                      <div>
-                        <div className="flex items-center text-gray-500 mb-1">
-                          <Mail className="h-4 w-4 mr-2" /> Email
-                        </div>
-                        <div className="font-medium">{formData.email || 'Not provided'}</div>
-                      </div>
+              </Card>
+            )}
+            
+            {/* Two-column layout */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Left Column - Business Overview */}
+              <div className="md:col-span-2 space-y-8">
+                {/* Business Overview */}
+                <Card className="shadow-md">
+                  <CardHeader className="border-b">
+                    <CardTitle>Business Overview</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="prose max-w-none">
+                      <p className="text-gray-700 whitespace-pre-wrap">
+                        {formData.description || 'No description provided.'}
+                      </p>
                     </div>
-                    <div className="space-y-3">
-                      <div>
-                        <div className="flex items-center text-gray-500 mb-1">
-                          <Phone className="h-4 w-4 mr-2" /> Phone Number
+                  </CardContent>
+                </Card>
+
+                {/* Business Highlights (if any) */}
+                {highlights.length > 0 && (
+                  <Card className="shadow-md">
+                    <CardHeader className="border-b">
+                      <CardTitle>Business Highlights</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <ul className="list-disc pl-6 space-y-2">
+                        {highlights.map((highlight, index) => (
+                          <li key={index} className="text-gray-700">{highlight}</li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Additional Photos */}
+                {hasAdditionalImages && (
+                  <Card className="shadow-md">
+                    <CardHeader className="border-b">
+                      <CardTitle>Photo Gallery</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <Carousel className="w-full">
+                        <CarouselContent>
+                          {galleryImages.map((url, index) => (
+                            <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                              <AspectRatio ratio={4/3} className="bg-gray-200 rounded-md overflow-hidden">
+                                <img 
+                                  src={url} 
+                                  alt={`Business image ${index + 1}`} 
+                                  className="w-full h-full object-cover"
+                                />
+                              </AspectRatio>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                        <div className="flex justify-end gap-2 mt-4">
+                          <CarouselPrevious className="static transform-none" />
+                          <CarouselNext className="static transform-none" />
                         </div>
-                        <div className="font-medium">{formData.phone || 'Not provided'}</div>
+                      </Carousel>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+              
+              {/* Right Column - Business Details */}
+              <div className="space-y-8">
+                {/* Business Details Card */}
+                <Card className="shadow-md">
+                  <CardHeader className="border-b">
+                    <CardTitle>Business Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <dl className="space-y-4">
+                      <div className="flex items-center">
+                        <dt className="flex items-center w-1/2 text-gray-500">
+                          <DollarSign className="h-4 w-4 mr-2" /> Asking Price
+                        </dt>
+                        <dd className="w-1/2 font-medium">
+                          {formData.currencyCode} {formData.askingPrice || '0'}
+                        </dd>
                       </div>
-                      <div>
-                        <div className="flex items-center text-gray-500 mb-1">
-                          <User className="h-4 w-4 mr-2" /> Role
-                        </div>
-                        <div className="font-medium capitalize">{formData.role || 'Not provided'}</div>
+                      <div className="flex items-center">
+                        <dt className="flex items-center w-1/2 text-gray-500">
+                          <DollarSign className="h-4 w-4 mr-2" /> Annual Revenue
+                        </dt>
+                        <dd className="w-1/2 font-medium">
+                          {formData.currencyCode} {formData.annualRevenue || '0'}
+                        </dd>
                       </div>
+                      <div className="flex items-center">
+                        <dt className="flex items-center w-1/2 text-gray-500">
+                          <DollarSign className="h-4 w-4 mr-2" /> Annual Profit
+                        </dt>
+                        <dd className="w-1/2 font-medium">
+                          {formData.currencyCode} {formData.annualProfit || '0'}
+                        </dd>
+                      </div>
+                      <div className="flex items-center">
+                        <dt className="flex items-center w-1/2 text-gray-500">
+                          <MapPin className="h-4 w-4 mr-2" /> Country
+                        </dt>
+                        <dd className="w-1/2 font-medium">
+                          {formData.locationName || 'Not specified'}
+                        </dd>
+                      </div>
+                      <div className="flex items-center">
+                        <dt className="flex items-center w-1/2 text-gray-500">
+                          <Building className="h-4 w-4 mr-2" /> Industry
+                        </dt>
+                        <dd className="w-1/2 font-medium capitalize">
+                          {formData.industry === 'tech' ? 'Technology' :
+                           formData.industry === 'food' ? 'Food & Beverage' :
+                           formData.industry === 'retail' ? 'Retail' :
+                           formData.industry === 'manufacturing' ? 'Manufacturing' :
+                           formData.industry === 'health' ? 'Health & Wellness' :
+                           formData.industry === 'service' ? 'Professional Services' :
+                           formData.industry || 'Not specified'}
+                        </dd>
+                      </div>
+                      <div className="flex items-center">
+                        <dt className="flex items-center w-1/2 text-gray-500">
+                          <Calendar className="h-4 w-4 mr-2" /> Year Established
+                        </dt>
+                        <dd className="w-1/2 font-medium">
+                          {/* Not in current form, placeholder for future */}
+                          Not provided
+                        </dd>
+                      </div>
+                      <div className="flex items-center">
+                        <dt className="flex items-center w-1/2 text-gray-500">
+                          <Users className="h-4 w-4 mr-2" /> Employees
+                        </dt>
+                        <dd className="w-1/2 font-medium">
+                          {/* Not in current form, placeholder for future */}
+                          Not provided
+                        </dd>
+                      </div>
+                    </dl>
+                  </CardContent>
+                </Card>
+                
+                {/* Video Player */}
+                {videoURL && (
+                  <Card className="shadow-md overflow-hidden">
+                    <AspectRatio ratio={16/9}>
+                      <video
+                        src={videoURL}
+                        controls
+                        className="w-full h-full object-cover"
+                      />
+                    </AspectRatio>
+                  </Card>
+                )}
+                
+                {/* Action Buttons */}
+                <div className="space-y-4 pt-2">
+                  <Button className="w-full bg-primary hover:bg-primary-dark">
+                    Contact Seller
+                  </Button>
+                  <Button variant="outline" className="w-full">
+                    Request Financials
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Contact Information */}
+            <Card className="shadow-md mt-8">
+              <CardHeader className="border-b">
+                <CardTitle>Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center text-gray-500 mb-1">
+                        <User className="h-4 w-4 mr-2" /> Full Name
+                      </div>
+                      <div className="font-medium">{formData.fullName || 'Not provided'}</div>
+                    </div>
+                    <div>
+                      <div className="flex items-center text-gray-500 mb-1">
+                        <Mail className="h-4 w-4 mr-2" /> Email
+                      </div>
+                      <div className="font-medium">{formData.email || 'Not provided'}</div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-              
-              {/* Submit Buttons */}
-              <div className="flex justify-end space-x-4 pt-6">
-                <Button variant="outline" onClick={handleBack}>
-                  Back to Edit
-                </Button>
-                <Button onClick={handleSubmit} className="bg-primary hover:bg-primary-light">
-                  Submit Business Listing
-                </Button>
-              </div>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center text-gray-500 mb-1">
+                        <Phone className="h-4 w-4 mr-2" /> Phone Number
+                      </div>
+                      <div className="font-medium">{formData.phone || 'Not provided'}</div>
+                    </div>
+                    <div>
+                      <div className="flex items-center text-gray-500 mb-1">
+                        <User className="h-4 w-4 mr-2" /> Role
+                      </div>
+                      <div className="font-medium capitalize">{formData.role || 'Not provided'}</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Submit Buttons */}
+            <div className="flex justify-end space-x-4 pt-6">
+              <Button variant="outline" onClick={handleBack}>
+                Back to Edit
+              </Button>
+              <Button onClick={handleSubmit} className="bg-primary hover:bg-primary-light">
+                Submit Business Listing
+              </Button>
             </div>
           </div>
         </div>
-        
-        <Footer />
       </div>
-    </DndProvider>
+      
+      <Footer />
+    </div>
   );
 };
 
