@@ -19,11 +19,12 @@ export interface BusinessMediaUploaderProps {
 
 export type MediaItemType = {
   id: string;
-  type: 'image' | 'video';
+  type: 'image' | 'video' | 'empty';
   file?: MediaFile;
   preview: string;
   url?: string;
   isPrimary?: boolean;
+  isEmpty?: boolean;
   videoInfo?: {
     platform: string | null;
     id: string | null;

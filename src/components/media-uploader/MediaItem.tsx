@@ -1,17 +1,26 @@
 
 import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { Move, X, Play, Star, Video } from 'lucide-react';
-import { MediaItemProps } from './types';
+import { Move, X, Play, Star, Video, Image, Plus } from 'lucide-react';
+import { MediaItemType } from './types';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-export const MediaItem: React.FC<MediaItemProps> = ({ 
+interface MediaItemProps { 
+  item: MediaItemType; 
+  index: number; 
+  moveItem: (dragIndex: number, hoverIndex: number) => void;
+  onDelete: () => void;
+  onVideoPreview?: () => void;
+  isFixed?: boolean;
+}
+
+const MediaItem: React.FC<MediaItemProps> = ({ 
   item, 
   index, 
   moveItem, 
   onDelete,
   onVideoPreview,
-  onSetPrimary,
   isFixed = false
 }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -19,13 +28,13 @@ export const MediaItem: React.FC<MediaItemProps> = ({
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'media-item',
     item: { id: item.id, index },
-    canDrag: !isFixed && item.type === 'image',
+    canDrag: !isFixed && item.type === 'image' && !item.isEmpty,
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
   }));
 
-  const [, drop] = useDrop({
+  const [{ isOver }, drop] = useDrop({
     accept: 'media-item',
     hover: (draggedItem: { id: string; index: number }, monitor) => {
       if (!ref.current) return;
@@ -36,43 +45,92 @@ export const MediaItem: React.FC<MediaItemProps> = ({
       if (dragIndex === hoverIndex) return;
       
       // If this is the video slot (index 1) or trying to move to primary slot (index 0), prevent it
-      if (hoverIndex === 1 || hoverIndex === 0) return;
-      if (dragIndex === 1 || dragIndex === 0) return;
+      if (hoverIndex <= 1) return;
+      if (dragIndex <= 1) return;
+      
+      // Don't allow dropping onto empty slots beyond the first available one
+      if (item.type === 'empty' && hoverIndex > 0) {
+        const emptySlotIndex = Array.from(ref.current.parentElement?.children || [])
+          .findIndex(el => (el as HTMLElement).dataset.type === 'empty');
+        
+        if (emptySlotIndex !== -1 && hoverIndex > emptySlotIndex) return;
+      }
 
       moveItem(dragIndex, hoverIndex);
       draggedItem.index = hoverIndex;
     },
+    collect: (monitor) => ({
+      isOver: monitor.isOver()
+    })
   });
 
-  // Only add drag ref if not fixed
-  if (!isFixed && item.type === 'image') {
+  // Only add drag ref if not fixed and not empty
+  if (!isFixed && item.type === 'image' && !item.isEmpty) {
     drag(drop(ref));
+  } else {
+    drop(ref);
   }
 
   const handleVideoClick = () => {
-    if (item.type === 'video') {
-      onVideoPreview(item);
+    if (item.type === 'video' && !item.isEmpty && onVideoPreview) {
+      onVideoPreview();
     }
   };
 
-  const handleSetPrimary = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onSetPrimary && item.type === 'image' && !item.isPrimary) {
-      onSetPrimary(item.id);
-    }
-  };
+  // Don't render delete button for empty slots
+  const showDeleteButton = !item.isEmpty;
+  
+  // Determine border color and opacity based on state
+  let borderColorClass = 'border-gray-200';
+  if (isDragging) {
+    borderColorClass = 'border-dashed border-gray-400';
+  } else if (isOver) {
+    borderColorClass = 'border-primary';
+  } else if (item.isPrimary) {
+    borderColorClass = 'border-primary';
+  }
 
   return (
     <div 
       ref={ref}
-      className={`relative group aspect-square rounded-md overflow-hidden border-2 ${
-        item.isPrimary ? 'border-primary' : isDragging ? 'border-dashed border-gray-400 opacity-50' : 'border-gray-200'
-      }`}
-      style={{ opacity: isDragging ? 0.5 : 1 }}
+      data-type={item.type}
+      className={cn(
+        "relative group aspect-square rounded-md overflow-hidden border-2",
+        borderColorClass,
+        isDragging ? 'opacity-50' : 'opacity-100',
+        item.type === 'empty' ? 'border-dashed' : ''
+      )}
     >
-      {item.type === 'image' ? (
-        <img src={item.preview} alt="Media preview" className="w-full h-full object-cover" />
+      {item.isEmpty ? (
+        // Empty slot rendering
+        item.type === 'video' ? (
+          // Empty video slot
+          <div className="w-full h-full bg-gray-50 flex items-center justify-center">
+            <div className="text-center p-2">
+              <Video className="w-8 h-8 mx-auto text-gray-300 mb-1" />
+              <p className="text-xs text-gray-400">Video</p>
+              <p className="text-xs text-gray-300">(Optional)</p>
+            </div>
+          </div>
+        ) : (
+          // Empty image slot
+          <div className="w-full h-full bg-gray-50 flex items-center justify-center">
+            <div className="text-center p-2">
+              <Plus className="w-6 h-6 mx-auto text-gray-300 mb-1" />
+              <p className="text-xs text-gray-400">Add image</p>
+            </div>
+          </div>
+        )
+      ) : item.type === 'image' ? (
+        // Image rendering
+        <img 
+          src={item.preview} 
+          alt="Media preview" 
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
       ) : (
+        // Video rendering
         <div className="w-full h-full bg-gray-100 flex items-center justify-center">
           {item.preview ? (
             <div 
@@ -83,70 +141,61 @@ export const MediaItem: React.FC<MediaItemProps> = ({
                 src={item.preview} 
                 alt="Video thumbnail" 
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors">
                 <Play className="text-white w-12 h-12" />
               </div>
-              {item.url && (
-                <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md flex items-center">
-                  <Video className="w-3 h-3 mr-1" /> {item.videoInfo?.platform || 'External'} Video
-                </div>
-              )}
             </div>
-          ) : item.url ? (
+          ) : (
             <div 
               className="text-center p-2 cursor-pointer" 
               onClick={handleVideoClick}
             >
               <Video className="w-10 h-10 mx-auto text-gray-500 mb-1" />
-              <p className="text-xs truncate text-gray-600">External Video</p>
+              <p className="text-xs truncate text-gray-600">Video</p>
             </div>
-          ) : (
-            <Video className="text-gray-400 w-10 h-10" />
           )}
         </div>
       )}
       
-      {/* Badge for primary image */}
-      {item.isPrimary && (
+      {/* Position indicator badges */}
+      {index === 0 && (
         <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
           <Star className="h-3 w-3" /> Primary
         </div>
       )}
       
+      {/* Badge for empty but special slots */}
+      {item.isEmpty && index === 1 && (
+        <div className="absolute top-2 left-2 bg-gray-500/70 text-white text-xs px-2 py-1 rounded-full">
+          Video Slot
+        </div>
+      )}
+      
       {/* Badge for new media */}
-      {item.isNew && (
+      {item.isNew && !item.isEmpty && (
         <div className="absolute top-2 right-12 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
           New
         </div>
       )}
       
-      {/* Set as Primary button (only for non-primary images) */}
-      {item.type === 'image' && !item.isPrimary && onSetPrimary && (
-        <Button
-          variant="secondary"
-          size="sm"
-          className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
-          onClick={handleSetPrimary}
-        >
-          <Star className="h-3 w-3" /> Set Primary
-        </Button>
-      )}
-      
-      {/* Move handle only for draggable images */}
-      {!isFixed && item.type === 'image' && (
-        <div className="absolute top-2 right-10 bg-black/60 hover:bg-black/80 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move">
-          <Move className="h-4 w-4 text-white" />
+      {/* Move handle only for draggable items */}
+      {!isFixed && !item.isEmpty && item.type === 'image' && (
+        <div className="absolute top-2 right-10 bg-black/60 hover:bg-black/80 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move">
+          <Move className="h-3.5 w-3.5 text-white" />
         </div>
       )}
 
       {/* Delete button */}
-      <button
-        onClick={() => onDelete(item.id)}
-        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-      >
-        <X className="h-4 w-4 text-white" />
-      </button>
+      {showDeleteButton && (
+        <button
+          onClick={onDelete}
+          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <X className="h-3.5 w-3.5 text-white" />
+        </button>
+      )}
     </div>
   );
 };

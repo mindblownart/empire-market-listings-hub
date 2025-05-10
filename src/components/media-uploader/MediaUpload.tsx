@@ -1,12 +1,12 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Upload, X, Info } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import MediaGallery from './MediaGallery'; // Fixed import statement
+import MediaGallery from './MediaGallery'; 
 import { MediaItemType, MediaFile } from './types';
 import { extractVideoInfo } from './video-utils';
 
@@ -29,7 +29,7 @@ const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
-export const MediaUpload: React.FC<MediaUploadProps> = ({
+const MediaUpload: React.FC<MediaUploadProps> = ({
   existingImages = [],
   existingVideoUrl = null,
   primaryImageIndex = 0,
@@ -207,23 +207,25 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   };
   
   return (
-    <div className="space-y-4">
-      <DndProvider backend={HTML5Backend}>
+    <DndProvider backend={HTML5Backend}>
+      <div className="space-y-4">
         {/* Media Gallery for existing and new files */}
-        <ScrollArea className="w-full">
-          <MediaGallery 
-            images={existingImages}
-            newImages={newImages}
-            videoUrl={existingVideoUrl}
-            newVideo={newVideo}
-            onSetPrimaryImage={onSetPrimaryImage}
-            onReorderImages={handleReorderImages}
-            onReorderNewImages={handleReorderNewImages}
-            onDeleteImage={onDeleteExistingImage}
-            onDeleteNewImage={handleDeleteNewImage}
-            onDeleteVideo={onDeleteExistingVideo}
-            onDeleteNewVideo={handleDeleteNewVideo}
-          />
+        <ScrollArea className="w-full pb-4">
+          <div className="overflow-x-auto pb-2">
+            <MediaGallery 
+              images={existingImages}
+              newImages={newImages}
+              videoUrl={existingVideoUrl}
+              newVideo={newVideo}
+              onSetPrimaryImage={onSetPrimaryImage}
+              onReorderImages={handleReorderImages}
+              onReorderNewImages={handleReorderNewImages}
+              onDeleteImage={onDeleteExistingImage}
+              onDeleteNewImage={handleDeleteNewImage}
+              onDeleteVideo={onDeleteExistingVideo}
+              onDeleteNewVideo={handleDeleteNewVideo}
+            />
+          </div>
         </ScrollArea>
         
         {/* Upload Area */}
@@ -283,10 +285,8 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
             <p>• Primary image will always appear first. Video (if present) will stay in second position.</p>
           </div>
         </div>
-        
-        {/* Video URL Input field remains - can be kept in BusinessMediaUploader */}
-      </DndProvider>
-    </div>
+      </div>
+    </DndProvider>
   );
 };
 

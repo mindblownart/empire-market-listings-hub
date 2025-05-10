@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import React from 'react';
 import MediaItem from './MediaItem';
 import VideoPreviewModal from './VideoPreviewModal';
-import { extractVideoInfo, getVideoEmbedUrl } from './video-utils';
+import { extractVideoInfo } from './video-utils';
 import { MediaItemType, MediaFile } from './types';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { TooltipProvider } from '@radix-ui/react-tooltip';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Image, Video } from 'lucide-react';
 
 interface MediaGalleryProps {
   images: string[];
@@ -35,53 +35,55 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   onDeleteVideo,
   onDeleteNewVideo
 }) => {
+  const [isVideoModalOpen, setIsVideoModalOpen] = React.useState(false);
+  const [currentVideoPreview, setCurrentVideoPreview] = React.useState<{
+    embedUrl: string;
+    platform: string | null;
+  } | null>(null);
+  
   // Calculate total media count
   const totalImageCount = images.length + newImages.length;
   const hasVideo = !!videoUrl || !!newVideo;
   const totalMediaCount = totalImageCount + (hasVideo ? 1 : 0);
   
   // Convert images and newImages to MediaItemType format
-  const [mediaItems, setMediaItems] = useState<MediaItemType[]>([]);
+  const [mediaItems, setMediaItems] = React.useState<MediaItemType[]>([]);
   
   // Update media items when props change
-  useEffect(() => {
+  React.useEffect(() => {
     const items: MediaItemType[] = [];
     
-    // Add existing images first
-    images.forEach((url, index) => {
+    // Add primary image first (either first existing image or first new image)
+    if (images.length > 0) {
       items.push({
-        id: `existing-image-${index}`,
+        id: `existing-image-0`,
         type: 'image',
-        preview: url,
-        isPrimary: index === 0, // First image is primary
-        originalIndex: index,
+        preview: images[0],
+        isPrimary: true,
+        originalIndex: 0,
         isNew: false
       });
-    });
-    
-    // Add new images - add IDs for MediaFile type
-    newImages.forEach((file, index) => {
-      // Create a MediaFile with required ID
-      const mediaFile = file as MediaFile;
+    } else if (newImages.length > 0) {
+      const mediaFile = newImages[0] as MediaFile;
       if (!mediaFile.id) {
-        mediaFile.id = `new-image-${index}-${Date.now()}`;
+        mediaFile.id = `new-image-0-${Date.now()}`;
       }
       
       items.push({
-        id: `new-image-${index}`,
+        id: `new-image-0`,
         type: 'image',
         file: mediaFile,
-        preview: URL.createObjectURL(file),
-        isPrimary: items.length === 0, // Only primary if there are no other images
-        originalIndex: index,
+        preview: URL.createObjectURL(mediaFile),
+        isPrimary: true,
+        originalIndex: 0,
         isNew: true
       });
-    });
+    }
     
-    // Insert video at position 1 or 0 (if no images)
+    // Always add video slot (either with video or empty)
     if (videoUrl) {
       const videoInfo = extractVideoInfo(videoUrl);
-      const videoItem: MediaItemType = {
+      items.push({
         id: 'existing-video',
         type: 'video',
         url: videoUrl,
@@ -90,37 +92,79 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
           : '',
         videoInfo,
         isNew: false
-      };
-      
-      // Insert video at position 1 if we have items, otherwise at 0
-      if (items.length > 0) {
-        items.splice(1, 0, videoItem);
-      } else {
-        items.push(videoItem);
-      }
-    }
-    else if (newVideo) {
+      });
+    } else if (newVideo) {
       // Add ID to newVideo as well
       const mediaFile = newVideo as MediaFile;
       if (!mediaFile.id) {
         mediaFile.id = `new-video-${Date.now()}`;
       }
       
-      const videoItem: MediaItemType = {
+      items.push({
         id: 'new-video',
         type: 'video',
         file: mediaFile,
         preview: URL.createObjectURL(newVideo),
         videoInfo: { platform: 'file', id: null },
         isNew: true
-      };
-      
-      // Insert video at position 1 if we have items, otherwise at 0
-      if (items.length > 0) {
-        items.splice(1, 0, videoItem);
-      } else {
-        items.push(videoItem);
+      });
+    } else {
+      // Add empty video slot
+      items.push({
+        id: 'empty-video-slot',
+        type: 'video',
+        isEmpty: true,
+        preview: '',
+        videoInfo: { platform: null, id: null },
+        isNew: false
+      });
+    }
+    
+    // Add remaining existing images (skipping the first one)
+    if (images.length > 1) {
+      for (let i = 1; i < images.length; i++) {
+        items.push({
+          id: `existing-image-${i}`,
+          type: 'image',
+          preview: images[i],
+          isPrimary: false,
+          originalIndex: i,
+          isNew: false
+        });
       }
+    }
+    
+    // Add remaining new images (skipping the first one if it was added as primary)
+    if (newImages.length > 0) {
+      const startIdx = images.length > 0 ? 0 : 1; // Skip first new image if it became primary
+      for (let i = startIdx; i < newImages.length; i++) {
+        const mediaFile = newImages[i] as MediaFile;
+        if (!mediaFile.id) {
+          mediaFile.id = `new-image-${i}-${Date.now()}`;
+        }
+        
+        items.push({
+          id: `new-image-${i}`,
+          type: 'image',
+          file: mediaFile,
+          preview: URL.createObjectURL(newImages[i]),
+          isPrimary: false,
+          originalIndex: i,
+          isNew: true
+        });
+      }
+    }
+    
+    // Add empty slots to reach 11 total slots (10 images + 1 video)
+    const emptySlots = Math.max(0, 11 - items.length);
+    for (let i = 0; i < emptySlots; i++) {
+      items.push({
+        id: `empty-slot-${i}`,
+        type: 'empty',
+        isEmpty: true,
+        preview: '',
+        isNew: false
+      });
     }
     
     setMediaItems(items);
@@ -137,19 +181,35 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     };
   }, [images, newImages, videoUrl, newVideo]);
   
-  // State for video preview modal
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [currentVideoPreview, setCurrentVideoPreview] = useState<{
-    embedUrl: string;
-    platform: string | null;
-  } | null>(null);
+  // Handle video preview
+  const handleVideoPreview = (item: MediaItemType) => {
+    if (item.type === 'video' && !item.isEmpty) {
+      if (item.videoInfo?.platform === 'file' && item.file) {
+        // Local file video preview
+        const url = URL.createObjectURL(item.file);
+        setCurrentVideoPreview({
+          embedUrl: url,
+          platform: 'file'
+        });
+      } else if (item.videoInfo) {
+        // YouTube/Vimeo video preview
+        const embedUrl = item.url || '';
+        setCurrentVideoPreview({
+          embedUrl,
+          platform: item.videoInfo.platform
+        });
+      }
+      setIsVideoModalOpen(true);
+    }
+  };
   
   // Handle reordering of items
   const moveItem = (dragIndex: number, hoverIndex: number) => {
-    // Don't allow moving the primary image or video (positions 0 and 1)
+    // Don't allow moving the primary image (position 0) or video slot (position 1)
     if (dragIndex <= 1 || hoverIndex <= 1) return;
     
     const draggedItem = mediaItems[dragIndex];
+    if (draggedItem.type === 'empty') return;
     
     setMediaItems(prevItems => {
       const newItems = [...prevItems];
@@ -163,9 +223,9 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
         const existingImages: string[] = [];
         const newImageFiles: File[] = [];
         
-        // Extract images in their new order, skipping the video
+        // Extract images in their new order, skipping the primary, video and empty slots
         newItems.forEach(item => {
-          if (item.type === 'image') {
+          if (item.type === 'image' && !item.isPrimary) {
             if (!item.isNew && item.preview) {
               existingImages.push(item.preview);
             } else if (item.isNew && item.file) {
@@ -175,7 +235,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
         });
         
         // Call the appropriate reorder callbacks
-        if (onReorderImages) onReorderImages(existingImages);
+        if (onReorderImages) onReorderImages([images[0], ...existingImages]);
         if (onReorderNewImages) onReorderNewImages(newImageFiles);
       }
       
@@ -189,6 +249,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     if (index === -1) return;
     
     const item = mediaItems[index];
+    if (item.isEmpty) return;
     
     // Call the appropriate delete callback
     if (item.type === 'image') {
@@ -210,98 +271,73 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   };
   
-  // Handle video preview
-  const handleVideoPreview = (item: MediaItemType) => {
-    if (item.type === 'video') {
-      if (item.videoInfo?.platform === 'file' && item.file) {
-        // Local file video preview
-        const url = URL.createObjectURL(item.file);
-        setCurrentVideoPreview({
-          embedUrl: url,
-          platform: 'file'
-        });
-      } else if (item.videoInfo) {
-        // YouTube/Vimeo video preview
-        const embedUrl = getVideoEmbedUrl(item.videoInfo.platform, item.videoInfo.id);
-        setCurrentVideoPreview({
-          embedUrl,
-          platform: item.videoInfo.platform
-        });
-      }
-      setIsVideoModalOpen(true);
-    }
-  };
-  
-  // Handle setting an image as primary
-  const handleSetPrimary = (id: string) => {
-    const itemIndex = mediaItems.findIndex(item => item.id === id);
-    if (itemIndex === -1) return;
-    
-    const item = mediaItems[itemIndex];
-    if (item.type !== 'image') return;
-    
-    // Find the original index of the image (for existing images only)
-    if (!item.isNew && onSetPrimaryImage) {
-      const originalIndex = parseInt(id.replace('existing-image-', ''));
-      onSetPrimaryImage(originalIndex);
-    }
-    
-    // Update the UI to reflect the new primary
-    setMediaItems(prevItems => {
-      return prevItems.map(item => ({
-        ...item,
-        isPrimary: item.id === id
-      }));
-    });
-  };
-  
-  return (
-    <div className="space-y-4">
-      <DndProvider backend={HTML5Backend}>
-        {mediaItems.length > 0 ? (
-          <div>
-            <ScrollArea className="w-full pb-4">
-              <div className="flex gap-4 pb-2 pr-4" style={{ minHeight: '150px' }}>
-                {mediaItems.map((item, index) => (
-                  <div key={item.id} className="flex-shrink-0" style={{ width: '150px' }}>
-                    <MediaItem
-                      item={item}
-                      index={index}
-                      moveItem={moveItem}
-                      onDelete={handleDelete}
-                      onVideoPreview={handleVideoPreview}
-                      onSetPrimary={handleSetPrimary}
-                      isFixed={index <= 1} // Primary image and video are fixed
-                    />
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-            <div className="text-sm text-gray-500 flex justify-between mt-1">
-              <div>
-                <span className="font-medium">{totalMediaCount}</span> of <span className="font-medium">11</span> media slots used 
-                {totalImageCount > 0 && <span> ({totalImageCount} images{hasVideo ? ', 1 video' : ''})</span>}
-              </div>
-              <div className="text-xs italic">
-                Primary image and video positions are fixed
-              </div>
+  // If no items yet, show empty state
+  if (totalMediaCount === 0) {
+    return (
+      <div className="min-h-[150px] border-2 border-dashed rounded-lg flex items-center justify-center p-6 text-center">
+        <div>
+          <div className="flex justify-center items-center mb-3">
+            <div className="bg-gray-100 rounded-full p-4">
+              <Image className="h-6 w-6 text-gray-400" />
             </div>
           </div>
-        ) : (
-          <div className="text-center py-8 border border-dashed rounded-md">
-            <p className="text-gray-500">No media available</p>
+          <p className="text-gray-600">Add photos and video to showcase your business</p>
+          <p className="text-xs text-gray-500 mt-1">Drag files or click Select files to upload</p>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <TooltipProvider>
+      <div className="space-y-4">
+        <div className="flex gap-2 overflow-x-auto pb-2" style={{ minHeight: '150px' }}>
+          {mediaItems.map((item, index) => (
+            <Tooltip key={item.id}>
+              <TooltipTrigger asChild>
+                <div className="flex-shrink-0 w-[150px]">
+                  <MediaItem
+                    item={item}
+                    index={index}
+                    moveItem={moveItem}
+                    onDelete={() => handleDelete(item.id)}
+                    onVideoPreview={() => handleVideoPreview(item)}
+                    isFixed={index <= 1} // Primary image and video are fixed
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                {item.isEmpty ? (
+                  index === 1 ? 'Video slot (optional)' : 'Empty slot'
+                ) : (
+                  index === 0 ? 'Primary image (fixed position)' : 
+                  index === 1 ? 'Video (fixed position)' : 
+                  `Image ${index} (can be reordered)`
+                )}
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+        
+        <div className="text-sm text-gray-500 flex justify-between mt-1">
+          <div>
+            <span className="font-medium">{totalMediaCount}</span> of <span className="font-medium">11</span> media slots used 
+            {totalImageCount > 0 && <span> ({totalImageCount} images{hasVideo ? ', 1 video' : ''})</span>}
           </div>
-        )}
-      </DndProvider>
-      
-      {/* Video Preview Modal */}
-      <VideoPreviewModal
-        isOpen={isVideoModalOpen}
-        onClose={() => setIsVideoModalOpen(false)}
-        embedUrl={currentVideoPreview?.embedUrl || ''}
-        platform={currentVideoPreview?.platform || null}
-      />
-    </div>
+          <div className="text-xs italic">
+            Primary image and video positions are fixed
+          </div>
+        </div>
+        
+        {/* Video Preview Modal */}
+        <VideoPreviewModal
+          isOpen={isVideoModalOpen}
+          onClose={() => setIsVideoModalOpen(false)}
+          embedUrl={currentVideoPreview?.embedUrl || ''}
+          platform={currentVideoPreview?.platform || null}
+        />
+      </div>
+    </TooltipProvider>
   );
 };
 
