@@ -57,7 +57,7 @@ const PreviewListing = () => {
 
   const highlights = getBusinessHighlights();
   const primaryImage = imageURLs.length > 0 ? imageURLs[0] : '';
-  const galleryImages = imageURLs.slice(1);
+  const galleryImages = imageURLs;
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -81,11 +81,9 @@ const PreviewListing = () => {
             locationName={formData.locationName}
             flagCode={formData.flagCode}
             primaryImage={primaryImage}
-            askingPrice={formData.askingPrice}
-            currencyCode={formData.currencyCode}
           />
           
-          {/* Media and Video Section */}
+          {/* Media Gallery Section - Directly below hero */}
           <MediaGallery galleryImages={galleryImages} videoURL={videoURL} />
             
           {/* Main content */}
@@ -108,6 +106,7 @@ const PreviewListing = () => {
             <div className="space-y-8">
               {/* Business Details Card */}
               <BusinessDetails 
+                askingPrice={formData.askingPrice}
                 annualRevenue={formData.annualRevenue}
                 annualProfit={formData.annualProfit}
                 currencyCode={formData.currencyCode || 'USD'}
