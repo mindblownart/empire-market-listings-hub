@@ -46,13 +46,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   if (!hasMedia) return null;
   
   return (
-    <div className="relative mb-6 max-w-full mx-auto">
+    <div className="relative mb-6 mt-6 max-w-[720px] mx-auto rounded-lg overflow-hidden shadow-md">
       <Carousel className="w-full">
         <CarouselContent>
           {/* Video (if available) as the first item */}
           {videoURL && (
             <CarouselItem>
-              <AspectRatio ratio={16/9} className="h-[300px] bg-gray-100 overflow-hidden rounded-lg">
+              <AspectRatio ratio={16/9} className="h-[300px] bg-gray-100 overflow-hidden">
                 <div className="relative w-full h-full">
                   <video
                     ref={videoRef}
@@ -83,7 +83,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
           {/* Images */}
           {galleryImages.map((imageUrl, index) => (
             <CarouselItem key={index}>
-              <AspectRatio ratio={16/9} className="h-[300px] bg-gray-100 overflow-hidden rounded-lg">
+              <AspectRatio ratio={16/9} className="h-[300px] bg-gray-100 overflow-hidden">
                 <img 
                   src={imageUrl} 
                   alt={`Business media ${index + 1}`} 

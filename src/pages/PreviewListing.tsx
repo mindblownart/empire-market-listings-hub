@@ -85,14 +85,12 @@ const PreviewListing = () => {
             currencyCode={formData.currencyCode || 'USD'}
           />
           
-          {/* Media Gallery Section - Directly below hero */}
-          <div className="mx-auto max-w-3xl py-4">
-            <MediaGallery 
-              galleryImages={galleryImages} 
-              videoURL={videoURL} 
-              autoplayVideo={true} 
-            />
-          </div>
+          {/* Media Gallery Section - Centered below hero */}
+          <MediaGallery 
+            galleryImages={galleryImages} 
+            videoURL={videoURL} 
+            autoplayVideo={true} 
+          />
             
           {/* Main content */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6">
