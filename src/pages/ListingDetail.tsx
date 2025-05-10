@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/formatters';
 import { 
   BusinessHeader, 
   BusinessOverview, 
@@ -81,26 +82,37 @@ const ListingDetail = () => {
       
       <main className="flex-grow pt-24 px-4">
         <div className="container mx-auto max-w-7xl">
-          {/* Hero Section with Business Header */}
-          <BusinessHeader 
-            businessName={business.title}
-            industry={business.category}
-            locationName={business.location}
-            flagCode={business.flagCode}
-            primaryImage={business.primaryImage}
-          />
+          {/* 1. Hero Section with Business Header - with price badge */}
+          <div className="relative mb-8">
+            <BusinessHeader 
+              businessName={business.title}
+              industry={business.category}
+              locationName={business.location}
+              flagCode={business.flagCode}
+              primaryImage={business.primaryImage}
+            />
+            
+            {/* Asking Price Badge */}
+            <div className="absolute top-6 right-6 bg-white px-4 py-2 rounded-full shadow-lg">
+              <div className="text-sm font-semibold text-gray-500">Asking Price</div>
+              <div className="text-xl font-bold text-primary">
+                {formatCurrency(business.price, business.currencyCode)}
+              </div>
+            </div>
+          </div>
           
-          {/* 2. Media Gallery Section - Now placed directly below hero */}
+          {/* 2. Media Gallery Section - Full width carousel with autoplay video */}
           <div className="mb-8">
             <MediaGallery 
               galleryImages={business.galleryImages}
               videoURL={business.videoURL}
+              autoplayVideo={true}
             />
           </div>
           
-          {/* 3. Main Content Grid - Updated layout with left and right sections */}
+          {/* 3. Content Sections - Stacked full-width layout on mobile, two columns on desktop */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            {/* Left Column - Business Overview & Highlights */}
+            {/* Left Column - Business Overview & Highlights (wider on desktop) */}
             <div className="lg:col-span-2 space-y-8">
               <BusinessOverview 
                 description={business.description}

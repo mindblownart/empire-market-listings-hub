@@ -23,7 +23,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   // Render hero banner with image or fallback card
   if (primaryImage) {
     return (
-      <div className="w-full overflow-hidden rounded-lg shadow-md mb-8">
+      <div className="w-full overflow-hidden rounded-lg shadow-md">
         <AspectRatio ratio={21/9} className="bg-gray-200">
           <img 
             src={primaryImage} 
