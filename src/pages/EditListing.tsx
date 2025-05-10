@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -18,6 +17,12 @@ import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+// Helper function to convert URLs to File objects if needed
+const convertUrlsToFiles = async (urls: string[]): Promise<File[]> => {
+  // In edit mode, we keep strings as they are, since they are URLs of already uploaded files
+  return [] as File[];
+};
+
 const EditListing = () => {
   const { id } = useParams<{ id: string; }>();
   const navigate = useNavigate();
@@ -27,6 +32,7 @@ const EditListing = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   // Fetch the listing data
   useEffect(() => {
@@ -69,11 +75,16 @@ const EditListing = () => {
           navigate('/listings');
           return;
         }
+
+        // Store image URLs separately
+        if (listing.gallery_images) {
+          setImageUrls(listing.gallery_images);
+        }
         
-        // Format the data for the form
+        // Format the data for the form - use the properties that match BusinessFormData
         updateFormData({
           businessName: listing.business_name,
-          category: listing.category,
+          industry: listing.category,
           location: listing.location,
           yearEstablished: listing.year_established?.toString() || '',
           employees: listing.employees || '',
@@ -81,15 +92,22 @@ const EditListing = () => {
           annualRevenue: listing.annual_revenue,
           annualProfit: listing.annual_profit,
           currencyCode: listing.currency_code,
-          businessDescription: listing.description || '',
-          businessHighlights: listing.highlights || [],
-          businessImages: listing.gallery_images || [],
-          primaryImageUrl: listing.primary_image_url || '',
+          description: listing.description || '',
+          highlights: listing.highlights || [],
+          businessImages: [],  // We'll handle the URLs separately
+          businessVideo: null,
           businessVideoUrl: listing.video_url || '',
-          contactName: listing.contact_name || '',
-          contactEmail: listing.contact_email || '',
-          contactPhone: listing.contact_phone || '',
-          contactRole: listing.contact_role || '',
+          fullName: listing.contact_name || '',
+          email: listing.contact_email || '',
+          phone: listing.contact_phone || '',
+          role: listing.contact_role || '',
+          // Keep the rest of the fields from the original formData
+          originalValues: {
+            askingPrice: listing.asking_price,
+            annualRevenue: listing.annual_revenue,
+            annualProfit: listing.annual_profit,
+            currencyCode: listing.currency_code,
+          }
         });
       } catch (error) {
         console.error('Error fetching listing:', error);
@@ -120,24 +138,24 @@ const EditListing = () => {
       // Prepare the update data
       const updateData = {
         business_name: formData.businessName,
-        category: formData.category,
+        category: formData.industry,
         location: formData.location,
         year_established: formData.yearEstablished ? parseInt(formData.yearEstablished) : null,
-        employees: formData.employees,
+        employees: formData.employees || null,
         asking_price: formData.askingPrice,
         annual_revenue: formData.annualRevenue,
         annual_profit: formData.annualProfit,
-        currency_code: formData.currencyCode,
-        description: formData.businessDescription,
-        highlights: formData.businessHighlights,
-        gallery_images: formData.businessImages,
-        primary_image_url: formData.primaryImageUrl,
-        video_url: formData.businessVideoUrl,
-        contact_name: formData.contactName,
-        contact_email: formData.contactEmail,
-        contact_phone: formData.contactPhone,
-        contact_role: formData.contactRole,
+        currency_code: formData.currencyCode || 'USD',
+        description: formData.description || null,
+        highlights: formData.highlights && formData.highlights.length > 0 ? formData.highlights : null,
+        contact_name: formData.fullName || null,
+        contact_email: formData.email || null,
+        contact_phone: formData.phone || null,
+        contact_role: formData.role || null,
         updated_at: new Date().toISOString(),
+        // Keep the existing image URLs - we're not modifying them in this simplified version
+        gallery_images: imageUrls,
+        video_url: formData.businessVideoUrl || null,
       };
       
       // Update the listing in Supabase
@@ -220,7 +238,7 @@ const EditListing = () => {
             </p>
             
             <div className="bg-white rounded-xl shadow-md p-8">
-              <FormContainer onSubmit={handleSubmit} submitLabel={isSaving ? "Saving..." : "Save Changes"} isSubmitting={isSaving}>
+              <FormContainer>
                 <BusinessDetails 
                   formData={formData}
                   updateFormData={updateFormData}
@@ -249,20 +267,50 @@ const EditListing = () => {
 
                 <div className="pt-4 border-t border-gray-100">
                   <h2 className="text-xl font-semibold mb-4">Business Media</h2>
-                  <BusinessMediaUploader 
-                    initialImages={formData.businessImages}
-                    initialVideo={null} // We don't have the video file, just the URL
-                    initialVideoUrl={formData.businessVideoUrl}
-                    onImagesChange={(images) => updateFormData({ businessImages: images })}
-                    onVideoChange={(video) => updateFormData({ businessVideo: video })}
-                    onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
-                  />
+                  <p className="mb-4 text-sm text-gray-500">Current images will be preserved. To modify images, please delete this listing and create a new one.</p>
+                  {imageUrls.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                      {imageUrls.map((url, index) => (
+                        <div key={index} className="relative rounded-lg overflow-hidden h-40">
+                          <img 
+                            src={url} 
+                            alt={`Business image ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 italic">No images available</p>
+                  )}
+                  
+                  <div className="mt-4">
+                    <h3 className="text-lg font-medium mb-2">Video URL</h3>
+                    <BusinessMediaUploader 
+                      initialImages={[]}
+                      initialVideo={null} 
+                      initialVideoUrl={formData.businessVideoUrl}
+                      onImagesChange={() => {}} // Disabled for now
+                      onVideoChange={(video) => updateFormData({ businessVideo: video })}
+                      onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
+                    />
+                  </div>
                 </div>
 
                 <ContactInformation 
                   formData={formData}
                   updateFormData={updateFormData}
                 />
+
+                <div className="pt-6 flex justify-center">
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={isSaving}
+                    className="bg-primary hover:bg-primary-light px-10 py-2 text-lg transition-all"
+                  >
+                    {isSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
               </FormContainer>
             </div>
           </div>

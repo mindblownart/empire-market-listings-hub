@@ -8,9 +8,10 @@ export interface BusinessMediaUploaderProps {
   onImagesChange?: (images: File[]) => void;
   onVideoChange?: (video: File | null) => void;
   onVideoUrlChange?: (url: string) => void;
-  initialImages?: File[];
+  initialImages?: File[] | string[];
   initialVideo?: File | null;
-  initialVideoUrl?: string;
+  initialVideoUrl?: string | null;
+  disableImageUpload?: boolean;
 }
 
 export type MediaItemType = {

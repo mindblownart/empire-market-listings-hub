@@ -9,16 +9,28 @@ import { useBusinessSubmission } from '@/hooks/useBusinessSubmission';
 
 interface FormContainerProps {
   children: React.ReactNode;
+  onSubmit?: () => Promise<void>;
+  submitLabel?: string;
+  isSubmitting?: boolean;
 }
 
-const FormContainer: React.FC<FormContainerProps> = ({ children }) => {
+const FormContainer: React.FC<FormContainerProps> = ({ 
+  children, 
+  onSubmit,
+  submitLabel,
+  isSubmitting
+}) => {
   const navigate = useNavigate();
   const { formData } = useFormData();
-  const { handleSubmit, isSubmitting } = useBusinessSubmission();
+  const { handleSubmit, isSubmitting: defaultIsSubmitting } = useBusinessSubmission();
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleSubmit(formData);
+    if (onSubmit) {
+      await onSubmit();
+    } else {
+      await handleSubmit(formData);
+    }
   };
 
   // Handle preview click
@@ -35,7 +47,7 @@ const FormContainer: React.FC<FormContainerProps> = ({ children }) => {
   };
 
   return (
-    <form className="space-y-6" onSubmit={onSubmit}>
+    <form className="space-y-6" onSubmit={handleFormSubmit}>
       {children}
 
       <div className="pt-4 flex justify-center gap-4">
@@ -50,9 +62,9 @@ const FormContainer: React.FC<FormContainerProps> = ({ children }) => {
         <Button 
           type="submit" 
           className="bg-primary hover:bg-primary-light px-10 py-6 text-lg transition-all focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          disabled={isSubmitting}
+          disabled={isSubmitting !== undefined ? isSubmitting : defaultIsSubmitting}
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Business Listing'}
+          {submitLabel || (isSubmitting !== undefined ? (isSubmitting ? 'Submitting...' : 'Submit') : (defaultIsSubmitting ? 'Submitting...' : 'Submit Business Listing'))}
         </Button>
       </div>
     </form>
