@@ -313,6 +313,14 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     }
   }, [processFiles]);
   
+  // Handle video preview
+  const handleVideoPreview = useCallback((item: MediaItemType) => {
+    // This function will be passed to MediaGallery component
+    // It will be called when a video item is clicked
+    console.log('Video preview requested:', item);
+    // The actual preview handling is done by the VideoPreviewModal in MediaGallery
+  }, []);
+  
   // Handle reordering
   const handleReorder = useCallback((reorderedItems: MediaItemType[]) => {
     // Separate existing images, new images, and video

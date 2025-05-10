@@ -268,6 +268,11 @@ const EditListing = () => {
     setImageUrls(reorderedImages);
   };
 
+  const handleSetPrimaryImage = () => {
+    // First image is always primary, so no additional action needed
+    // But we need this function to satisfy the prop requirements
+  };
+
   const handleBackClick = () => {
     navigate(`/business/${id}`);
   };
@@ -415,7 +420,6 @@ const EditListing = () => {
                       onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
                       disableImageUpload={false}
                       galleryImages={imageUrls}
-                      onSetPrimaryImage={() => {}} // First is always primary now
                       maxImages={10}
                     />
                   </div>

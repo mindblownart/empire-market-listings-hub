@@ -14,6 +14,7 @@ export interface BusinessMediaUploaderProps {
   disableImageUpload?: boolean;
   galleryImages?: string[];
   maxImages?: number;
+  onSetPrimaryImage?: (index: number) => void;
 }
 
 export type MediaItemType = {
