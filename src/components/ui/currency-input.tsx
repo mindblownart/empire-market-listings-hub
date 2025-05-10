@@ -1,7 +1,21 @@
+
 import * as React from "react";
 import { Input } from "./input";
 import { formatNumberWithCommas, unformatNumber } from "@/lib/formatters";
 import { convertCurrency } from "@/lib/exchangeRates";
+
+// Create a useMergedRef hook to combine multiple refs
+function useMergedRef<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
+  return React.useCallback((value: T) => {
+    refs.forEach((ref) => {
+      if (typeof ref === "function") {
+        ref(value);
+      } else if (ref != null) {
+        (ref as React.MutableRefObject<T | null>).current = value;
+      }
+    });
+  }, [refs]);
+}
 
 export interface CurrencyInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
@@ -56,7 +70,7 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
     const [isFirstMount, setIsFirstMount] = React.useState(true);
     const prevCurrencyRef = React.useRef<string>(currencyCode);
     const inputRef = React.useRef<HTMLInputElement>(null);
-    const mergedRef = React.useMergedRef(ref, inputRef);
+    const mergedRef = useMergedRef(ref, inputRef);
     
     // Format the initial value when it changes externally
     React.useEffect(() => {
@@ -151,18 +165,5 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
     );
   }
 );
-
-// Add the useMergedRef utility function
-React.useMergedRef = <T extends HTMLElement>(
-  ...refs: (React.Ref<T> | undefined)[]
-): React.RefCallback<T> => (value) => {
-  refs.forEach((ref) => {
-    if (typeof ref === "function") {
-      ref(value);
-    } else if (ref != null) {
-      (ref as React.MutableRefObject<T | null>).current = value;
-    }
-  });
-};
 
 CurrencyInput.displayName = "CurrencyInput";
