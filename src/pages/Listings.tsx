@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import BusinessCard from '@/components/BusinessCard';
 import Navbar from '@/components/Navbar';
 import HomeFooter from '@/components/HomeFooter';
 import { supabase } from '@/lib/supabase';
+import { BusinessListing } from '@/types/supabase';
 
 // Categories and locations for filtering
 const categories = [{

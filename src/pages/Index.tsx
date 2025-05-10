@@ -15,6 +15,7 @@ import Navbar from '@/components/Navbar';
 import HomeFooter from '@/components/HomeFooter';
 import BusinessCard from '@/components/BusinessCard';
 import { supabase } from '@/lib/supabase';
+import { BusinessListing } from '@/types/supabase';
 
 // Testimonial data
 const testimonials = [
@@ -35,7 +36,7 @@ const Index = () => {
   const [country, setCountry] = useState<string>('');
   const [minRevenue, setMinRevenue] = useState<string>('');
   const [maxRevenue, setMaxRevenue] = useState<string>('');
-  const [businesses, setBusinesses] = useState([]);
+  const [businesses, setBusinesses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch businesses from Supabase

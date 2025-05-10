@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/hooks/useSupabase';
 
-// Export the supabase client from our integrated client
+// Export the supabase client with extended types
 export { supabase };

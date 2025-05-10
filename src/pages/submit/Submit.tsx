@@ -15,6 +15,7 @@ import FinancialDetails from './FinancialDetails';
 import BusinessDescription from './BusinessDescription';
 import BusinessHighlights from './BusinessHighlights';
 import ContactInformation from './ContactInformation';
+import { BusinessListing } from '@/types/supabase';
 
 const Submit = () => {
   const navigate = useNavigate();
@@ -151,11 +152,11 @@ const Submit = () => {
           contact_role: formData.role,
           is_published: true, // Ensure the listing is published by default
           is_new: true
-        };
+        } as Partial<BusinessListing>;
         
         // Handle image uploads if there are any
         let primaryImageUrl = '';
-        let galleryImages = [];
+        let galleryImages: string[] = [];
         
         if (formData.businessImages && formData.businessImages.length > 0) {
           // Upload the first image as the primary image
@@ -200,14 +201,14 @@ const Submit = () => {
               });
               
               const uploadedImageUrls = await Promise.all(imageUploadPromises);
-              galleryImages = uploadedImageUrls.filter(url => url !== null);
+              galleryImages = uploadedImageUrls.filter(url => url !== null) as string[];
             }
           }
         }
         
         // Add media URLs to business data
         businessData.primary_image_url = primaryImageUrl;
-        businessData.gallery_images = galleryImages;
+        businessData.gallery_images = galleryImages.length > 0 ? galleryImages : undefined;
         businessData.video_url = formData.businessVideoUrl || '';
         
         // Insert the business listing into the database
