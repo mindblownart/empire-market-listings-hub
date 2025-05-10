@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import MediaItem from './MediaItem';
 import VideoPreviewModal from './VideoPreviewModal';
 import { extractVideoInfo, getVideoEmbedUrl } from './video-utils';
-import { MediaItemType } from './types';
+import { MediaItemType, MediaFile } from './types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface MediaGalleryProps {
@@ -59,12 +58,18 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
       });
     });
     
-    // Add new images
+    // Add new images - add IDs for MediaFile type
     newImages.forEach((file, index) => {
+      // Create a MediaFile with required ID
+      const mediaFile = file as MediaFile;
+      if (!mediaFile.id) {
+        mediaFile.id = `new-image-${index}-${Date.now()}`;
+      }
+      
       items.push({
         id: `new-image-${index}`,
         type: 'image',
-        file,
+        file: mediaFile,
         preview: URL.createObjectURL(file),
         isPrimary: items.length === 0, // Only primary if there are no other images
         originalIndex: index,
@@ -94,10 +99,16 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
       }
     }
     else if (newVideo) {
+      // Add ID to newVideo as well
+      const mediaFile = newVideo as MediaFile;
+      if (!mediaFile.id) {
+        mediaFile.id = `new-video-${Date.now()}`;
+      }
+      
       const videoItem: MediaItemType = {
         id: 'new-video',
         type: 'video',
-        file: newVideo,
+        file: mediaFile,
         preview: URL.createObjectURL(newVideo),
         videoInfo: { platform: 'file', id: null },
         isNew: true
@@ -116,8 +127,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     // Cleanup function for URL.createObjectURL
     return () => {
       newImages.forEach(file => {
-        const url = URL.createObjectURL(file);
-        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(URL.createObjectURL(file));
       });
       
       if (newVideo) {

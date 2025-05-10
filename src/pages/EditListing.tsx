@@ -17,6 +17,30 @@ import { Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFormValidation } from '@/hooks/useFormValidation';
 
+// Define interface for the listing data to handle primary_image_index
+interface ListingData {
+  business_name: string;
+  category: string;
+  location: string;
+  year_established?: number;
+  employees?: string;
+  asking_price: string;
+  annual_revenue: string;
+  annual_profit: string;
+  currency_code: string;
+  description?: string;
+  highlights?: string[];
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  contact_role?: string;
+  gallery_images?: string[];
+  video_url?: string;
+  primary_image_index?: number;
+  user_id: string;
+  [key: string]: any; // For any other properties we might encounter
+}
+
 const EditListing = () => {
   const { id } = useParams<{ id: string; }>();
   const navigate = useNavigate();
@@ -26,7 +50,7 @@ const EditListing = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [originalListing, setOriginalListing] = useState<any>(null);
+  const [originalListing, setOriginalListing] = useState<ListingData | null>(null);
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
   // Fetch the listing data
@@ -85,7 +109,7 @@ const EditListing = () => {
       }
 
       // Store the original listing for reference
-      setOriginalListing(listing);
+      setOriginalListing(listing as ListingData);
 
       // Store image URLs separately
       if (listing.gallery_images && Array.isArray(listing.gallery_images)) {

@@ -27,16 +27,22 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   maxImages = MAX_IMAGES
 }) => {
   // Convert initialImages to proper format if they're strings
-  const [images, setImages] = useState<File[]>([]);
-  const [video, setVideo] = useState<File | null>(null);
+  const [images, setImages] = useState<MediaFile[]>([]);
+  const [video, setVideo] = useState<MediaFile | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>(initialVideoUrl || '');
   const [existingImages, setExistingImages] = useState<string[]>(galleryImages || []);
   
   // Initialize images from props
   useEffect(() => {
     if (Array.isArray(initialImages) && initialImages.length > 0) {
-      // Filter out anything that's not a File
-      const fileImages = initialImages.filter(img => img instanceof File) as File[];
+      // Filter out anything that's not a File and add IDs
+      const fileImages = initialImages
+        .filter(img => img instanceof File)
+        .map(file => {
+          const mediaFile = file as MediaFile;
+          mediaFile.id = `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          return mediaFile;
+        });
       setImages(fileImages);
     }
 
@@ -49,7 +55,9 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   // Initialize video from props
   useEffect(() => {
     if (initialVideo) {
-      setVideo(initialVideo);
+      const mediaFile = initialVideo as MediaFile;
+      mediaFile.id = `video-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      setVideo(mediaFile);
     }
     
     if (initialVideoUrl) {
