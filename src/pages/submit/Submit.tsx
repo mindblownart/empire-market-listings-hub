@@ -152,7 +152,11 @@ const Submit = () => {
           is_published: true,
           is_new: true,
           is_hot: false,
-          is_featured: false
+          is_featured: false,
+          // Initialize media fields
+          primary_image_url: null,
+          gallery_images: null,
+          video_url: null
         };
         
         // Handle image uploads if there are any
