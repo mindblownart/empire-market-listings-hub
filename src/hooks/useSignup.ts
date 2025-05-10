@@ -8,6 +8,7 @@ export function useSignup() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
+  const [userEmail, setUserEmail] = useState<string>('');
 
   const validateForm = (
     firstName: string,
@@ -67,7 +68,10 @@ export function useSignup() {
     setIsLoading(true);
     
     try {
-      // 1. Register with Supabase auth
+      // Store email for verification page
+      setUserEmail(email);
+      
+      // Register with Supabase auth
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -82,8 +86,8 @@ export function useSignup() {
       
       if (signUpError) throw signUpError;
       
+      // Insert user details into users table
       if (data.user) {
-        // 2. Insert user details into users table
         const { error: insertError } = await supabase
           .from('users')
           .insert({
@@ -96,16 +100,10 @@ export function useSignup() {
           
         if (insertError) throw insertError;
         
-        toast.success("Account created successfully!");
-        
-        // Check if email confirmation is required
-        if (data.session) {
-          // User is signed in, redirect to dashboard
-          navigate('/');
-        } else {
-          // Email confirmation required, show message
-          navigate('/signup-confirmation');
-        }
+        // Navigate to verification page
+        navigate('/signup-confirmation', { 
+          state: { email }
+        });
       }
     } catch (error: any) {
       if (error.message.includes('email') && error.message.includes('exist')) {
@@ -117,6 +115,24 @@ export function useSignup() {
       setIsLoading(false);
     }
   };
+
+  const resendVerificationEmail = async (email: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Verification email resent successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to resend verification email');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
-  return { signUp, isLoading, errors };
+  return { signUp, resendVerificationEmail, isLoading, errors, userEmail };
 }

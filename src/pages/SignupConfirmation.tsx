@@ -1,11 +1,45 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Loader2 } from 'lucide-react';
+import { useSignup } from '@/hooks/useSignup';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const SignupConfirmation = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState<string>('');
+  const { resendVerificationEmail, isLoading } = useSignup();
+  const [showResendSuccess, setShowResendSuccess] = useState(false);
+
+  useEffect(() => {
+    // Get email from location state
+    const emailFromState = location.state?.email;
+    if (!emailFromState) {
+      // If no email in state, redirect to signup
+      navigate('/signup');
+      return;
+    }
+    
+    setEmail(emailFromState);
+  }, [location.state, navigate]);
+
+  const handleResendEmail = async () => {
+    await resendVerificationEmail(email);
+    setShowResendSuccess(true);
+    
+    // Hide the success message after 5 seconds
+    setTimeout(() => {
+      setShowResendSuccess(false);
+    }, 5000);
+  };
+
+  if (!email) {
+    return null; // Will redirect to signup
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Logo placement at top left */}
@@ -23,14 +57,37 @@ const SignupConfirmation = () => {
             </div>
             <CardTitle className="text-2xl">Check your email</CardTitle>
             <CardDescription>
-              We've sent you a verification link. Please check your email to verify your account.
+              We've sent a verification link to <span className="font-medium">{email}</span>. 
+              Please check your inbox and click the link to verify your account.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
+            {showResendSuccess && (
+              <Alert variant="success" className="mb-4">
+                <AlertDescription>
+                  Verification email sent successfully. Please check your inbox.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <p className="mb-4 text-sm text-gray-500">
               Once verified, you'll be able to sign in to your account.
             </p>
             <div className="mt-6 flex flex-col space-y-3">
+              <Button 
+                onClick={handleResendEmail}
+                disabled={isLoading || showResendSuccess}
+                variant="outline"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  'Resend verification email'
+                )}
+              </Button>
               <Button asChild variant="outline">
                 <Link to="/login">Go to Sign In</Link>
               </Button>
