@@ -42,16 +42,7 @@ const currencySymbols: Record<string, string> = {
 
 // Function to get the display prefix for a currency
 const getCurrencyPrefix = (currencyCode: string): string => {
-  if (currencyCode === "USD") return "USD $";
-  if (currencyCode === "SGD") return "SGD $";
-  if (currencyCode === "GBP") return "GBP £";
-  if (currencyCode === "EUR") return "EUR €";
-  if (currencyCode === "JPY") return "JPY ¥";
-  if (currencyCode === "AUD") return "AUD $";
-  if (currencyCode === "CAD") return "CAD $";
-  if (currencyCode === "INR") return "INR ₹";
-  if (currencyCode === "MYR") return "MYR RM";
-  return `${currencyCode} `;
+  return `${currencyCode} ${currencySymbols[currencyCode] || ""}`;
 };
 
 export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
@@ -67,24 +58,19 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
   }, ref) => {
     // Store both raw value and formatted display value
     const [displayValue, setDisplayValue] = React.useState<string>("");
-    const [isFocused, setIsFocused] = React.useState<boolean>(false);
     const [isFirstMount, setIsFirstMount] = React.useState(true);
+    const [cursorPosition, setCursorPosition] = React.useState<number | null>(null);
     const prevCurrencyRef = React.useRef<string>(currencyCode);
     const inputRef = React.useRef<HTMLInputElement>(null);
     const mergedRef = useMergedRef(ref, inputRef);
     
-    // Format the initial value when it changes externally
+    // Format initial value and handle external value changes
     React.useEffect(() => {
       if (value !== undefined) {
-        // Only format when not focused
-        if (!isFocused) {
-          setDisplayValue(value ? formatNumberWithCommas(value, locale) : "");
-        } else {
-          // When focused, just use the raw value
-          setDisplayValue(value);
-        }
+        const formattedValue = formatWithCurrency(value, currencyCode, locale);
+        setDisplayValue(formattedValue);
       }
-    }, [value, locale, isFocused]);
+    }, [value, locale, currencyCode]);
     
     // Handle currency code changes and perform conversion if needed
     React.useEffect(() => {
@@ -107,12 +93,9 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
           currencyCode
         );
         
-        // Update display value with proper formatting (only if not focused)
-        if (!isFocused) {
-          setDisplayValue(convertedValue ? formatNumberWithCommas(convertedValue, locale) : "");
-        } else {
-          setDisplayValue(convertedValue);
-        }
+        // Update display value with proper formatting
+        const formattedValue = formatWithCurrency(convertedValue, currencyCode, locale);
+        setDisplayValue(formattedValue);
         
         // Pass the raw numeric value to parent
         onChange(convertedValue);
@@ -120,68 +103,87 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
       
       // Store current currency for next comparison
       prevCurrencyRef.current = currencyCode;
-      
-    }, [currencyCode, originalValue, originalCurrency, onChange, locale, isFirstMount, isFocused]);
+    }, [currencyCode, originalValue, originalCurrency, onChange, locale, isFirstMount]);
     
-    // Handle input changes
+    // Format a numeric value with currency prefix
+    const formatWithCurrency = (numericValue: string, currency: string, loc: string): string => {
+      if (!numericValue || numericValue === "") return "";
+      
+      try {
+        const num = parseFloat(numericValue);
+        if (isNaN(num)) return "";
+        
+        // Format with currency symbol and thousands separators
+        return `${getCurrencyPrefix(currency)} ${new Intl.NumberFormat(loc, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(num)}`;
+      } catch (error) {
+        console.error("Error formatting currency:", error);
+        return numericValue;
+      }
+    };
+    
+    // Extract numeric value from formatted string
+    const extractNumericValue = (formattedValue: string): string => {
+      // Remove everything except digits and decimal point
+      return formattedValue.replace(/[^\d.]/g, '');
+    };
+    
+    // Calculate cursor position after formatting
+    const calculateCursorPosition = (
+      previousValue: string,
+      newValue: string,
+      previousPosition: number | null
+    ): number => {
+      if (previousPosition === null) return newValue.length;
+      
+      // Count additional chars added before cursor position
+      const previousClean = previousValue.substring(0, previousPosition).replace(/[^\d.]/g, '');
+      const additionalChars = newValue.length - previousValue.replace(/[^\d.]/g, '').length;
+      
+      return previousPosition + additionalChars;
+    };
+    
+    // Handle input changes with formatting
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
+      const cursorPos = e.target.selectionStart;
       
-      // When editing, we work with the raw numeric input
-      // Allow decimal point and digits
-      if (/^[0-9]*\.?[0-9]*$/.test(inputValue) || inputValue === "") {
-        setDisplayValue(inputValue);
-        onChange(inputValue);
-      }
-    };
-
-    // Focus handler
-    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-      setIsFocused(true);
+      // Extract numeric value
+      const numericValue = extractNumericValue(inputValue);
       
-      // When focusing, convert display value to raw numeric value
-      if (value) {
-        const rawValue = unformatNumber(value);
-        setDisplayValue(rawValue);
-      }
-      
-      if (props.onFocus) props.onFocus(e);
-    };
-
-    // Blur handler
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-      setIsFocused(false);
-      
-      // Format the value when input loses focus
-      if (displayValue) {
-        // Format with commas and decimals
-        const formattedValue = formatNumberWithCommas(displayValue, locale);
+      if (numericValue === "" || /^[0-9]*\.?[0-9]*$/.test(numericValue)) {
+        // Format the value
+        const formattedValue = formatWithCurrency(numericValue, currencyCode, locale);
+        
+        // Save cursor position for restoration
+        setCursorPosition(calculateCursorPosition(displayValue, formattedValue, cursorPos));
+        
+        // Update display and parent value
         setDisplayValue(formattedValue);
+        onChange(numericValue);
       }
-      
-      if (props.onBlur) props.onBlur(e);
     };
     
+    // Restore cursor position after render
+    React.useEffect(() => {
+      if (cursorPosition !== null && inputRef.current) {
+        inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        setCursorPosition(null);
+      }
+    }, [displayValue, cursorPosition]);
+    
     return (
-      <div className="relative">
-        {!isFocused && displayValue && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-            {getCurrencyPrefix(currencyCode)}
-          </div>
-        )}
-        <Input
-          {...props}
-          ref={mergedRef}
-          value={displayValue}
-          onChange={handleChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          inputMode="decimal"
-          className={`${!isFocused && displayValue ? `pl-[${getCurrencyPrefix(currencyCode).length * 0.6 + 3}rem]` : ''} ${className}`}
-          style={!isFocused && displayValue ? { paddingLeft: `${getCurrencyPrefix(currencyCode).length * 0.6 + 0.75}rem` } : {}}
-          placeholder={props.placeholder || "Enter amount"}
-        />
-      </div>
+      <Input
+        {...props}
+        ref={mergedRef}
+        value={displayValue}
+        onChange={handleChange}
+        inputMode="decimal"
+        className={className}
+        placeholder={props.placeholder || `${getCurrencyPrefix(currencyCode)} 0.00`}
+      />
     );
   }
 );
