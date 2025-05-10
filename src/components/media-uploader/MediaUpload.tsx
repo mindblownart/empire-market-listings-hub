@@ -52,8 +52,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const totalImagesCount = existingImagesCount + newImagesCount;
   const availableImageSlots = MAX_IMAGES - totalImagesCount;
   
-  // Handle drag events
-  const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  // Handle drag events - now for the entire component
+  const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -64,33 +64,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     }
   }, []);
   
-  // Handle drop event
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    const { files } = e.dataTransfer;
-    if (files && files.length > 0) {
-      processFiles(files);
-    }
-  }, [existingImagesCount, newImagesCount, hasVideo]);
-  
-  // Handle file input change
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const { files } = e.target;
-    
-    if (files && files.length > 0) {
-      processFiles(files);
-    }
-    
-    // Reset input value to allow selecting the same file again
-    e.target.value = '';
-  };
-  
-  // Process uploaded files
-  const processFiles = (files: FileList) => {
+  // Process files when dropped or selected
+  const processFiles = useCallback((files: FileList) => {
     const imageFiles: MediaFile[] = [];
     let videoFile: MediaFile | null = null;
     
@@ -166,6 +141,25 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         onVideoUrlChange(null);
       }
     }
+  }, [existingImagesCount, newImagesCount, hasVideo, existingVideoUrl, newImages, onImagesChange, onVideoChange, onVideoUrlChange]);
+  
+  // Handle file drop on gallery
+  const handleFilesDrop = useCallback((files: FileList) => {
+    setDragActive(false);
+    processFiles(files);
+  }, [processFiles]);
+  
+  // Handle file input change
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const { files } = e.target;
+    
+    if (files && files.length > 0) {
+      processFiles(files);
+    }
+    
+    // Reset input value to allow selecting the same file again
+    e.target.value = '';
   };
   
   // Handle deleting a new image
@@ -214,9 +208,15 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="space-y-4">
-        {/* Media Gallery for existing and new files */}
-        <div>
+      <div 
+        className="space-y-4"
+        onDragEnter={handleDrag}
+      >
+        {/* Media Gallery for existing and new files - now accepts drops directly */}
+        <div 
+          onDragOver={(e) => e.preventDefault()}
+          onDragLeave={handleDrag}
+        >
           <MediaGallery 
             images={existingImages}
             newImages={newImages}
@@ -229,53 +229,32 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
             onDeleteNewImage={handleDeleteNewImage}
             onDeleteVideo={onDeleteExistingVideo}
             onDeleteNewVideo={handleDeleteNewVideo}
+            onFilesDrop={handleFilesDrop}
+            isDragging={dragActive}
           />
         </div>
         
-        {/* Upload Area */}
-        <div 
-          className={`border-2 ${dragActive ? 'border-primary bg-primary/5' : 'border-dashed border-gray-300'} 
-            rounded-lg p-6 transition-colors duration-200 text-center`}
-          onDragEnter={handleDrag}
-          onDragOver={handleDrag}
-          onDragLeave={handleDrag}
-          onDrop={handleDrop}
-        >
-          <div className="flex flex-col items-center justify-center gap-3">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <Upload className="h-6 w-6 text-primary" />
-            </div>
-            
-            <div className="space-y-1">
-              <h3 className="font-medium">Drag & Drop or</h3>
-              <p className="text-sm text-gray-500">
-                {availableImageSlots > 0 
-                  ? `You can add up to ${availableImageSlots} more images${!hasVideo ? ' and 1 video' : ''}`
-                  : hasVideo ? 'Maximum images limit reached' : 'Maximum images limit reached, you can still add 1 video'}
-              </p>
-              
-              <div className="flex justify-center">
-                <Button 
-                  variant="outline" 
-                  className="mt-2"
-                  onClick={() => document.getElementById('file-upload')?.click()}
-                  disabled={(availableImageSlots <= 0) && hasVideo}
-                  type="button"
-                >
-                  Select files
-                </Button>
-                <input
-                  id="file-upload"
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileInputChange}
-                  accept={[...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES].join(',')}
-                  disabled={(availableImageSlots <= 0) && hasVideo}
-                />
-              </div>
-            </div>
-          </div>
+        {/* File Select Button */}
+        <div className="flex justify-center">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => document.getElementById('file-upload')?.click()}
+            disabled={(availableImageSlots <= 0) && hasVideo}
+            type="button"
+          >
+            <Upload className="h-4 w-4" />
+            Select Files
+          </Button>
+          <input
+            id="file-upload"
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleFileInputChange}
+            accept={[...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES].join(',')}
+            disabled={(availableImageSlots <= 0) && hasVideo}
+          />
         </div>
         
         {/* Upload Tips */}
@@ -285,6 +264,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
             <p>• Images: Up to 10 images, 1200px+ width recommended for best quality (5MB max)</p>
             <p>• Video: One video file (MP4, WebM, QuickTime, 50MB max) or YouTube/Vimeo URL</p>
             <p>• Primary image will always appear first. Video (if present) will stay in second position.</p>
+            <p>• Drag and drop files directly onto empty slots in the gallery</p>
           </div>
         </div>
       </div>

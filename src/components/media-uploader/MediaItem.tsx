@@ -75,16 +75,26 @@ const MediaItem: React.FC<MediaItemProps> = ({
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete && !item.isEmpty) {
+      onDelete(item.id);
+    }
+  };
+
   // Don't render delete button for empty slots
   const showDeleteButton = !item.isEmpty;
   const showSetPrimaryButton = !item.isEmpty && !item.isPrimary && item.type === 'image' && onSetPrimary;
   
   // Determine border color and opacity based on state
   let borderColorClass = 'border-gray-200';
+  let bgClass = item.isEmpty ? 'bg-gray-50' : '';
+  
   if (isDragging) {
     borderColorClass = 'border-dashed border-gray-400';
   } else if (isOver) {
     borderColorClass = 'border-primary';
+    bgClass = 'bg-primary/5';
   } else if (item.isPrimary) {
     borderColorClass = 'border-primary';
   }
@@ -96,8 +106,9 @@ const MediaItem: React.FC<MediaItemProps> = ({
       className={cn(
         "relative group aspect-square rounded-md overflow-hidden border-2",
         borderColorClass,
+        bgClass,
         isDragging ? 'opacity-50' : 'opacity-100',
-        item.type === 'empty' ? 'border-dashed' : ''
+        item.type === 'empty' ? 'border-dashed hover:bg-gray-100 transition-colors' : ''
       )}
     >
       {item.isEmpty ? (
@@ -113,10 +124,11 @@ const MediaItem: React.FC<MediaItemProps> = ({
           </div>
         ) : (
           // Empty image slot
-          <div className="w-full h-full bg-gray-50 flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center">
             <div className="text-center p-2">
               <Plus className="w-6 h-6 mx-auto text-gray-300 mb-1" />
               <p className="text-xs text-gray-400">Add image</p>
+              <p className="text-xs text-gray-300">Drop files here</p>
             </div>
           </div>
         )
@@ -199,7 +211,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
       {/* Delete button */}
       {showDeleteButton && (
         <button
-          onClick={() => onDelete(item.id)}
+          onClick={handleDelete}
           className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <X className="h-3.5 w-3.5 text-white" />

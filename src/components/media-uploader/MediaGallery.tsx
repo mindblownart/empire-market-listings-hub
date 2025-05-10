@@ -1,4 +1,3 @@
-
 import React from 'react';
 import MediaItem from './MediaItem';
 import VideoPreviewModal from './VideoPreviewModal';
@@ -20,6 +19,8 @@ interface MediaGalleryProps {
   onDeleteNewImage?: (index: number) => void;
   onDeleteVideo?: () => void;
   onDeleteNewVideo?: () => void;
+  onFilesDrop?: (files: FileList) => void;
+  isDragging?: boolean;
 }
 
 const MediaGallery: React.FC<MediaGalleryProps> = ({ 
@@ -33,7 +34,9 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   onDeleteImage,
   onDeleteNewImage,
   onDeleteVideo,
-  onDeleteNewVideo
+  onDeleteNewVideo,
+  onFilesDrop,
+  isDragging = false,
 }) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = React.useState(false);
   const [currentVideoPreview, setCurrentVideoPreview] = React.useState<{
@@ -217,7 +220,6 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   
   // Handle reordering of items
   const moveItem = (dragIndex: number, hoverIndex: number) => {
-    // Don't allow moving the primary image (position 0) or video slot (position 1)
     if (dragIndex <= 1 || hoverIndex <= 1) return;
     
     const draggedItem = mediaItems[dragIndex];
@@ -225,17 +227,13 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     
     setMediaItems(prevItems => {
       const newItems = [...prevItems];
-      // Remove item at dragIndex
       newItems.splice(dragIndex, 1);
-      // Insert at hoverIndex
       newItems.splice(hoverIndex, 0, draggedItem);
       
-      // After reordering, update the parent component if needed
       if (onReorderImages || onReorderNewImages) {
         const existingImages: string[] = [];
         const newImageFiles: File[] = [];
         
-        // Extract images in their new order, skipping the primary, video and empty slots
         newItems.forEach(item => {
           if (item.type === 'image' && !item.isPrimary) {
             if (!item.isNew && item.preview) {
@@ -246,7 +244,6 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
           }
         });
         
-        // Call the appropriate reorder callbacks
         if (onReorderImages) onReorderImages([images[0], ...existingImages]);
         if (onReorderNewImages) onReorderNewImages(newImageFiles);
       }
@@ -263,16 +260,24 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     const item = mediaItems[index];
     if (item.isEmpty) return;
     
-    // Call the appropriate delete callback
     if (item.type === 'image') {
       if (item.isNew) {
-        // For new images, find the original index among new images
-        const newIndex = parseInt(id.replace('new-image-', ''));
-        if (onDeleteNewImage) onDeleteNewImage(newIndex);
+        const newImagesIds = newImages.map((img, idx) => {
+          const mediaFile = img as MediaFile;
+          return mediaFile.id || `new-image-${idx}`;
+        });
+        
+        const fileId = item.file?.id;
+        const newIndex = fileId ? newImagesIds.indexOf(fileId) : -1;
+        
+        if (newIndex !== -1 && onDeleteNewImage) {
+          onDeleteNewImage(newIndex);
+        }
       } else {
-        // For existing images, find the original index
-        const existingIndex = parseInt(id.replace('existing-image-', ''));
-        if (onDeleteImage) onDeleteImage(existingIndex);
+        const existingIndex = item.originalIndex !== undefined ? item.originalIndex : parseInt(id.replace('existing-image-', ''));
+        if (onDeleteImage && existingIndex !== undefined) {
+          onDeleteImage(existingIndex);
+        }
       }
     } else if (item.type === 'video') {
       if (item.isNew) {
@@ -291,14 +296,11 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     const item = mediaItems[index];
     if (item.isEmpty || item.type !== 'image') return;
     
-    // Find the original index for this image
     let originalIndex;
     if (item.isNew) {
-      // For new images
       const match = id.match(/new-image-(\d+)/);
       originalIndex = match ? parseInt(match[1]) : null;
     } else {
-      // For existing images
       const match = id.match(/existing-image-(\d+)/);
       originalIndex = match ? parseInt(match[1]) : null;
     }
@@ -307,11 +309,25 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
       onSetPrimaryImage(originalIndex);
     }
   };
+
+  // Handle file drop on a specific slot
+  const handleSlotDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (onFilesDrop && e.dataTransfer.files.length > 0) {
+      onFilesDrop(e.dataTransfer.files);
+    }
+  };
   
   // If no items yet, show empty state
   if (totalMediaCount === 0) {
     return (
-      <div className="min-h-[150px] border-2 border-dashed rounded-lg flex items-center justify-center p-6 text-center">
+      <div 
+        className="min-h-[200px] border-2 border-dashed rounded-lg flex items-center justify-center p-6 text-center"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => handleSlotDrop(e, 0)}
+      >
         <div>
           <div className="flex justify-center items-center mb-3">
             <div className="bg-gray-100 rounded-full p-4">
@@ -319,7 +335,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
             </div>
           </div>
           <p className="text-gray-600">Add photos and video to showcase your business</p>
-          <p className="text-xs text-gray-500 mt-1">Drag files or click Select files to upload</p>
+          <p className="text-xs text-gray-500 mt-1">Drag files here or use the Select files button below</p>
         </div>
       </div>
     );
@@ -328,11 +344,18 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   return (
     <TooltipProvider>
       <div className="space-y-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+        <div 
+          className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-1' : ''}`}
+          onDragOver={(e) => e.preventDefault()}
+        >
           {mediaItems.slice(0, 10).map((item, index) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
-                <div>
+                <div 
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleSlotDrop(e, index)}
+                  className="h-full"
+                >
                   <MediaItem
                     item={item}
                     index={index}
@@ -346,7 +369,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
               </TooltipTrigger>
               <TooltipContent side="top">
                 {item.isEmpty ? (
-                  index === 1 ? 'Video slot (optional)' : 'Empty slot'
+                  index === 1 ? 'Video slot (optional)' : 'Drop files here'
                 ) : (
                   index === 0 ? 'Primary image (fixed position)' : 
                   index === 1 ? 'Video (fixed position)' : 
