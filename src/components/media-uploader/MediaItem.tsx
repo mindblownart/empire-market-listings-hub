@@ -1,155 +1,167 @@
 
 import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
+import { MediaItem as MediaItemType, DragItem } from './types';
 import { cn } from '@/lib/utils';
-import { MediaItemProps } from './types';
-import { EmptySlot, ImageItem, VideoItem, MediaItemBadges, MediaItemActions } from './media-item';
+import { X, GripVertical, Play } from 'lucide-react';
+
+interface MediaItemProps {
+  item: MediaItemType;
+  index: number;
+  moveItem: (dragIndex: number, hoverIndex: number) => void;
+  onDelete: () => void;
+  onPreview?: () => void;
+  isVideoSlot?: boolean;
+}
+
+// Item type for drag and drop
+const ITEM_TYPE = 'media-item';
 
 const MediaItem: React.FC<MediaItemProps> = ({ 
   item, 
   index, 
   moveItem, 
   onDelete,
-  onVideoPreview,
-  isFixed = false
+  onPreview,
+  isVideoSlot = false
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
+  // Set up drag functionality - not allowed for video slot
   const [{ isDragging }, drag] = useDrag({
-    type: 'media-item',
-    item: () => ({ id: item.id, index }),
-    canDrag: !isFixed && !item.isEmpty && item.type === 'image',
+    type: ITEM_TYPE,
+    item: () => ({ id: item.id, index, type: item.type }) as DragItem,
+    canDrag: !isVideoSlot && item.type === 'image',
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
   });
 
+  // Set up drop functionality
   const [{ isOver }, drop] = useDrop({
-    accept: 'media-item',
-    hover: (draggedItem: { id: string; index: number }, monitor) => {
+    accept: ITEM_TYPE,
+    hover: (draggedItem: DragItem, monitor) => {
       if (!ref.current) return;
-      const dragIndex = draggedItem.index;
-      const hoverIndex = index;
-
+      
       // Don't replace items with themselves
-      if (dragIndex === hoverIndex) return;
+      if (draggedItem.index === index) return;
       
-      // Don't allow dropping onto fixed video slot (index 1)
-      if (hoverIndex === 1 && item.type === 'video') return;
+      // Don't allow dropping into video slot position
+      if (isVideoSlot) return;
       
-      // Calculate mouse position
+      // Only perform the move when the mouse has crossed half of the item height
       const hoverBoundingRect = ref.current.getBoundingClientRect();
-      const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
+      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
       const clientOffset = monitor.getClientOffset();
+      if (!clientOffset) return;
       
-      // Get horizontal position
-      const hoverClientX = clientOffset ? clientOffset.x - hoverBoundingRect.left : 0;
+      const hoverClientY = clientOffset.y - hoverBoundingRect.top;
       
-      // Only perform the move when the mouse has crossed half of the items height/width
-      if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) return;
-      if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) return;
-
-      moveItem(dragIndex, hoverIndex);
-      draggedItem.index = hoverIndex;
+      // Dragging downwards
+      if (draggedItem.index < index && hoverClientY < hoverMiddleY) {
+        return;
+      }
+      
+      // Dragging upwards
+      if (draggedItem.index > index && hoverClientY > hoverMiddleY) {
+        return;
+      }
+      
+      // Time to actually perform the action
+      moveItem(draggedItem.index, index);
+      
+      // Update the index for the drag source
+      draggedItem.index = index;
     },
     collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
+      isOver: !!monitor.isOver(),
     }),
   });
-
-  // Apply drag and drop refs
-  const dragDropRef = (node: HTMLDivElement | null) => {
-    ref.current = node;
-    
-    // Only apply drag ref if item is draggable
-    if (!isFixed && !item.isEmpty && item.type === 'image') {
-      drag(node);
-    }
-    
-    // Always apply drop ref unless it's the video slot (index 1)
-    if (!(index === 1 && item.type === 'video')) {
-      drop(node);
-    }
-  };
-
-  const handleVideoClick = () => {
-    if (item.type === 'video' && !item.isEmpty && onVideoPreview) {
-      onVideoPreview(item);
-    }
-  };
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onDelete && !item.isEmpty) {
-      onDelete(item.id);
-    }
-  };
-
-  // Don't render delete button for empty slots
-  const showDeleteButton = !item.isEmpty;
   
-  // Determine border color and opacity based on state
-  let borderColorClass = 'border-gray-200';
-  let bgClass = item.isEmpty ? 'bg-gray-50' : '';
+  // Apply the ref to both drag source and drop target
+  const dragDropRef = isVideoSlot ? drop(ref) : drag(drop(ref));
   
-  if (isDragging) {
-    borderColorClass = 'border-dashed border-gray-400';
-    bgClass = 'bg-gray-50/50';
-  } else if (isOver) {
-    borderColorClass = 'border-primary';
-    bgClass = 'bg-primary/5';
-  } else if (item.isPrimary) {
-    borderColorClass = 'border-primary';
-  }
+  // Determine the class names based on state
+  const itemClasses = cn(
+    "relative rounded-md overflow-hidden aspect-square border-2",
+    isDragging ? "opacity-50 border-dashed border-gray-400" : "border-gray-200",
+    isOver ? "border-primary bg-primary/5" : "",
+    item.isPrimary ? "border-primary" : "",
+    isVideoSlot ? "cursor-default" : "cursor-move",
+    "group"
+  );
+  
+  // Handle click for videos
+  const handleClick = () => {
+    if (item.type === 'video' && onPreview) {
+      onPreview();
+    }
+  };
 
   return (
     <div 
       ref={dragDropRef}
-      data-type={item.type}
-      data-index={index}
-      className={cn(
-        "relative group aspect-square rounded-md overflow-hidden border-2 transition-all",
-        borderColorClass,
-        bgClass,
-        isDragging ? 'opacity-60 scale-95' : 'opacity-100',
-        item.isEmpty ? 'border-dashed hover:bg-gray-100 transition-colors' : '',
-        isFixed && !item.isEmpty ? 'cursor-default' : (item.isEmpty ? 'cursor-pointer' : 'cursor-grab')
-      )}
-      onClick={item.type === 'video' ? handleVideoClick : undefined}
+      className={itemClasses}
+      onClick={item.type === 'video' ? handleClick : undefined}
     >
-      {item.isEmpty ? (
-        <EmptySlot 
-          index={index} 
-          type={item.type} 
-          isPrimary={index === 0} 
-        />
-      ) : item.type === 'image' ? (
-        <ImageItem item={item} />
-      ) : (
-        <VideoItem item={item} onVideoPreview={onVideoPreview ? onVideoPreview : () => {}} />
+      {/* Media content */}
+      <div className="w-full h-full">
+        {item.type === 'image' ? (
+          <img 
+            src={item.preview} 
+            alt="Media item" 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="relative w-full h-full">
+            <img 
+              src={item.preview} 
+              alt="Video thumbnail" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <Play className="h-12 w-12 text-white" />
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Primary badge */}
+      {item.isPrimary && (
+        <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full z-20">
+          Primary
+        </div>
       )}
       
-      <MediaItemBadges 
-        index={index}
-        isEmpty={!!item.isEmpty}
-        isNew={!!item.isNew}
-        isPrimary={!!item.isPrimary}
-      />
+      {/* Video badge */}
+      {isVideoSlot && item.type === 'video' && (
+        <div className="absolute top-2 left-2 bg-gray-700/80 text-white text-xs px-2 py-1 rounded-full z-20">
+          Video
+        </div>
+      )}
       
-      <MediaItemActions 
-        isEmpty={!!item.isEmpty}
-        isFixed={isFixed}
-        isPrimary={!!item.isPrimary}
-        type={item.type}
-        onSetPrimary={null}
-        onDelete={handleDelete}
-        showSetPrimaryButton={false}
-        showDeleteButton={showDeleteButton}
-      />
-
+      {/* Grip handle for draggable items */}
+      {!isVideoSlot && item.type === 'image' && (
+        <div className="absolute top-2 right-10 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="bg-black/70 rounded-full p-1.5 cursor-grab">
+            <GripVertical className="h-3.5 w-3.5 text-white" />
+          </div>
+        </div>
+      )}
+      
+      {/* Delete button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="absolute top-2 right-2 bg-red-500/90 hover:bg-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
+      >
+        <X className="h-3.5 w-3.5 text-white" />
+      </button>
+      
       {/* Drop indicator */}
-      {isOver && !isDragging && (
+      {isOver && !isDragging && !isVideoSlot && (
         <div className="absolute inset-0 bg-primary/10 border-2 border-primary border-dashed rounded-md z-10" />
       )}
     </div>

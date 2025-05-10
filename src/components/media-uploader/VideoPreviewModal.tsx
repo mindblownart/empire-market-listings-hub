@@ -1,46 +1,48 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
+import { VideoInfo } from './types';
 
 interface VideoPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  embedUrl: string;
-  platform: string | null;
+  videoUrl: string;
+  videoInfo: VideoInfo | undefined;
 }
 
-const VideoPreviewModal: React.FC<VideoPreviewModalProps> = ({
-  isOpen,
-  onClose,
-  embedUrl,
-  platform
+const VideoPreviewModal: React.FC<VideoPreviewModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  videoUrl,
+  videoInfo
 }) => {
-  if (!embedUrl) return null;
+  if (!videoUrl) return null;
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 overflow-hidden">
         <DialogHeader className="p-4 flex flex-row items-center justify-between">
           <DialogTitle>Video Preview</DialogTitle>
-          <DialogClose onClick={onClose} className="rounded-full hover:bg-gray-200 p-1">
+          <button className="rounded-full hover:bg-gray-100 p-2" onClick={onClose}>
             <X className="h-4 w-4" />
-          </DialogClose>
+          </button>
         </DialogHeader>
+        
         <div className="w-full aspect-video">
-          {platform === 'file' ? (
+          {videoInfo?.platform === 'file' ? (
             <video 
-              src={embedUrl} 
+              src={videoUrl} 
               controls 
               autoPlay 
               className="w-full h-full object-contain bg-black"
             />
           ) : (
             <iframe 
-              src={embedUrl} 
+              src={videoUrl} 
               title="Video Preview" 
               frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
               allowFullScreen
               className="w-full h-full"
             />

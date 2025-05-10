@@ -1,43 +1,49 @@
 
 export interface MediaFile extends File {
-  preview?: string;
   id: string;
+  preview?: string;
+}
+
+export interface VideoInfo {
+  platform: 'youtube' | 'vimeo' | 'file' | null;
+  id: string | null;
+}
+
+export interface MediaItem {
+  id: string;
+  type: 'image' | 'video';
+  file?: MediaFile;
+  url?: string;
+  preview: string;
+  isPrimary: boolean;
+  isNew?: boolean;
+  videoInfo?: VideoInfo;
+}
+
+export interface MediaUploadProps {
+  images: MediaItem[];
+  videoItem: MediaItem | null;
+  onImagesChange: (images: MediaItem[]) => void;
+  onVideoChange: (video: MediaItem | null) => void;
+  onVideoUrlChange: (url: string | null) => void;
+  maxImages?: number;
 }
 
 export interface BusinessMediaUploaderProps {
-  onImagesChange?: (images: File[]) => void;
-  onVideoChange?: (video: File | null) => void;
-  onVideoUrlChange?: (url: string) => void;
   initialImages?: File[] | string[];
   initialVideo?: File | null;
   initialVideoUrl?: string | null;
-  disableImageUpload?: boolean;
   galleryImages?: string[];
+  disableImageUpload?: boolean;
   maxImages?: number;
+  onImagesChange?: (images: File[]) => void;
+  onVideoChange?: (video: File | null) => void;
+  onVideoUrlChange?: (url: string) => void;
   onSetPrimaryImage?: (index: number) => void;
 }
 
-export type MediaItemType = {
+export interface DragItem {
   id: string;
-  type: 'image' | 'video' | 'empty';
-  file?: MediaFile;
-  preview: string;
-  url?: string;
-  isPrimary?: boolean;
-  isEmpty?: boolean;
-  videoInfo?: {
-    platform: string | null;
-    id: string | null;
-  };
-  originalIndex?: number;
-  isNew?: boolean; // Flag to differentiate between existing and new media
-};
-
-export interface MediaItemProps { 
-  item: MediaItemType; 
-  index: number; 
-  moveItem: (dragIndex: number, hoverIndex: number) => void;
-  onDelete: (id: string) => void;
-  onVideoPreview?: (item: MediaItemType) => void;
-  isFixed?: boolean;
+  index: number;
+  type: string;
 }

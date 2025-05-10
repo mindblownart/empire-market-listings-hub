@@ -7,21 +7,19 @@ import { extractVideoInfo } from './video-utils';
 import { BusinessMediaUploaderProps, MediaFile } from './types';
 import MediaUpload from './MediaUpload';
 
-const MAX_IMAGES = 10;
-
 const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
-  onImagesChange,
-  onVideoChange,
-  onVideoUrlChange,
   initialImages = [],
   initialVideo = null,
   initialVideoUrl = null,
-  disableImageUpload = false,
   galleryImages = [],
-  onSetPrimaryImage,
-  maxImages = MAX_IMAGES
+  disableImageUpload = false,
+  maxImages = 10,
+  onImagesChange,
+  onVideoChange,
+  onVideoUrlChange,
+  onSetPrimaryImage
 }) => {
-  // Convert initialImages to proper format if they're strings
+  // State for all media
   const [images, setImages] = useState<MediaFile[]>([]);
   const [video, setVideo] = useState<MediaFile | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>(initialVideoUrl || '');
@@ -66,7 +64,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     const url = event.target.value;
     setVideoUrl(url);
     
-    // Check if it's a valid YouTube or Vimeo URL
+    // Validate YouTube/Vimeo URLs
     if (url && url.trim() !== '') {
       const videoInfo = extractVideoInfo(url);
       if (!videoInfo.platform) {
@@ -74,7 +72,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
           description: 'Please enter a valid YouTube or Vimeo URL.'
         });
       } else {
-        // Valid URL, clear any file video
+        // Clear any file video if URL is valid
         setVideo(null);
         if (onVideoChange) {
           onVideoChange(null);
@@ -82,19 +80,10 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
       }
     }
     
-    // Always notify parent regardless
+    // Notify parent
     if (onVideoUrlChange) {
       onVideoUrlChange(url);
     }
-  };
-
-  // Handle removing an existing image by index
-  const handleDeleteExistingImage = (index: number) => {
-    setExistingImages(prev => {
-      const newExistingImages = [...prev];
-      newExistingImages.splice(index, 1);
-      return newExistingImages;
-    });
   };
 
   // Handle removing video URL
@@ -105,20 +94,22 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     }
   };
 
-  // Handle reordering of existing images
+  // Handle deleting existing image
+  const handleDeleteExistingImage = (index: number) => {
+    setExistingImages(prev => {
+      const newImages = [...prev];
+      newImages.splice(index, 1);
+      return newImages;
+    });
+  };
+
+  // Handle reordering existing images
   const handleReorderExistingImages = (reorderedImages: string[]) => {
     setExistingImages(reorderedImages);
     
-    // Image at index 0 is always primary
+    // First image is always primary
     if (onSetPrimaryImage) {
       onSetPrimaryImage(0);
-    }
-  };
-
-  // Handle setting primary image
-  const handleSetPrimaryImage = (index: number) => {
-    if (index >= 0 && index < existingImages.length && onSetPrimaryImage) {
-      onSetPrimaryImage(index);
     }
   };
 
@@ -127,7 +118,6 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
       <MediaUpload
         existingImages={existingImages}
         existingVideoUrl={videoUrl}
-        primaryImageIndex={0} // First image is always primary
         onImagesChange={(newImages) => {
           setImages(newImages);
           if (onImagesChange) onImagesChange(newImages);
@@ -148,14 +138,14 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
             if (onVideoUrlChange) onVideoUrlChange('');
           }
         }}
-        onSetPrimaryImage={handleSetPrimaryImage}
+        maxImages={maxImages}
         onDeleteExistingImage={handleDeleteExistingImage}
         onDeleteExistingVideo={handleDeleteVideoUrl}
         onImagesReorder={handleReorderExistingImages}
       />
 
       {/* Video URL Input */}
-      <div className="mt-4">
+      <div>
         <label htmlFor="video-url" className="block text-sm font-medium mb-1">
           Video URL (YouTube or Vimeo)
         </label>

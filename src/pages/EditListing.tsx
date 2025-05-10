@@ -132,7 +132,7 @@ const EditListing = () => {
         setImageUrls(imageArray);
       }
       
-      // Format the data for the form - use the properties that match BusinessFormData
+      // Format the data for the form
       updateFormData({
         businessName: typedListing.business_name,
         industry: typedListing.category,
@@ -206,10 +206,10 @@ const EditListing = () => {
         contact_phone: formData.phone || null,
         contact_role: formData.role || null,
         updated_at: new Date().toISOString(),
-        // Keep the existing image URLs - we're not modifying them in this simplified version
+        // Keep the existing image URLs
         gallery_images: imageUrls,
         video_url: formData.businessVideoUrl || null,
-        // No need for primary_image_index since primary is always first
+        // Primary image is always first
         primary_image_index: 0
       };
       
@@ -266,11 +266,6 @@ const EditListing = () => {
   const handleReorderExistingImages = (reorderedImages: string[]) => {
     // First image becomes primary automatically
     setImageUrls(reorderedImages);
-  };
-
-  const handleSetPrimaryImage = () => {
-    // First image is always primary, so no additional action needed
-    // But we need this function to satisfy the prop requirements
   };
 
   const handleBackClick = () => {
@@ -415,12 +410,13 @@ const EditListing = () => {
                       initialImages={[]}
                       initialVideo={null} 
                       initialVideoUrl={formData.businessVideoUrl}
-                      onImagesChange={() => {}} // Disabled for now
+                      onImagesChange={() => {}} // We handle existing images separately
                       onVideoChange={(video) => updateFormData({ businessVideo: video })}
                       onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
                       disableImageUpload={false}
                       galleryImages={imageUrls}
                       maxImages={10}
+                      onSetPrimaryImage={() => {}}
                     />
                   </div>
                 </div>
