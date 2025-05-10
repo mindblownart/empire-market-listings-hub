@@ -90,13 +90,15 @@ const ListingDetail = () => {
             primaryImage={business.primaryImage}
           />
           
-          {/* Media Gallery Section */}
-          <MediaGallery 
-            galleryImages={business.galleryImages}
-            videoURL={business.videoURL}
-          />
+          {/* 2. Media Gallery Section - Now placed directly below hero */}
+          <div className="mb-8">
+            <MediaGallery 
+              galleryImages={business.galleryImages}
+              videoURL={business.videoURL}
+            />
+          </div>
           
-          {/* Main Content Grid */}
+          {/* 3. Main Content Grid - Updated layout with left and right sections */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             {/* Left Column - Business Overview & Highlights */}
             <div className="lg:col-span-2 space-y-8">
