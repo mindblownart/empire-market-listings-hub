@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
 import { toast } from "sonner";
+import { supabase } from '@/lib/supabase';
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -18,6 +20,23 @@ const Submit = () => {
   const navigate = useNavigate();
   const { formData, updateFormData } = useFormData();
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Check if the user is authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      
+      if (!data.session) {
+        // User is not logged in, redirect to login page with return path
+        navigate('/login', { state: { redirect: '/submit' } });
+      } else {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
   
   // Validate a single field
   const validateField = (field: string, value: any) => {
@@ -126,6 +145,16 @@ const Submit = () => {
     
     navigate('/preview-listing');
   };
+
+  // If still checking authentication status, show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <p className="mt-4 text-gray-600">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

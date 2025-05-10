@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SearchableSelect } from '@/components/ui/select';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { useSignup } from '@/hooks/useSignup';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/lib/supabase';
 
 const Signup = () => {
   // Form state
@@ -33,6 +34,26 @@ const Signup = () => {
   
   // Hook for signup functionality
   const { signUp, isLoading, errors } = useSignup();
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get redirect path from location state or query params
+  const redirectPath = location.state?.redirect || 
+    new URLSearchParams(location.search).get('redirect') || '/';
+  
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        // User is already logged in, redirect
+        navigate(redirectPath);
+      }
+    };
+    
+    checkSession();
+  }, [navigate, redirectPath]);
 
   // Country options with flag codes
   const countryOptions = [
@@ -326,7 +347,7 @@ const Signup = () => {
           <CardFooter className="flex flex-col items-center">
             <div className="text-sm text-gray-500 mt-2">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary hover:text-primary-dark font-medium">
+              <Link to={`/login${redirectPath !== '/' ? `?redirect=${encodeURIComponent(redirectPath)}` : ''}`} className="text-primary hover:text-primary-dark font-medium">
                 Sign in
               </Link>
             </div>

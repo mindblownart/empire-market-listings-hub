@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/lib/supabase';
@@ -17,6 +17,24 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get redirect path from location state or query params
+  const redirectPath = location.state?.redirect || 
+    new URLSearchParams(location.search).get('redirect') || '/';
+  
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        // User is already logged in, redirect
+        navigate(redirectPath);
+      }
+    };
+    
+    checkSession();
+  }, [navigate, redirectPath]);
   
   // Toggle password visibility
   const togglePasswordVisibility = () => {
@@ -57,7 +75,8 @@ const Login = () => {
       
       if (data.session) {
         toast.success("Login successful");
-        navigate('/');
+        // Redirect to the specified path after successful login
+        navigate(redirectPath);
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in");
@@ -162,7 +181,7 @@ const Login = () => {
             <div className="w-full bg-[#f8f9fc] p-4 rounded-md border border-gray-100 mt-2">
               <p className="text-center text-sm text-gray-600">
                 New to EmpireMarket?{" "}
-                <Link to="/signup" className="text-primary font-medium hover:underline">
+                <Link to={`/signup${redirectPath !== '/' ? `?redirect=${encodeURIComponent(redirectPath)}` : ''}`} className="text-primary font-medium hover:underline">
                   Create account
                 </Link>
               </p>

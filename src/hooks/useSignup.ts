@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 
@@ -59,7 +58,8 @@ export function useSignup() {
     password: string, 
     confirmPassword: string,
     country: string,
-    acceptedTerms: boolean
+    acceptedTerms: boolean,
+    redirectPath: string = '/'
   ) => {
     // Validate form
     const isValid = validateForm(firstName, lastName, email, password, confirmPassword, country, acceptedTerms);
@@ -100,9 +100,9 @@ export function useSignup() {
           
         if (insertError) throw insertError;
         
-        // Navigate to verification page
+        // Navigate to verification page with redirect info
         navigate('/signup-confirmation', { 
-          state: { email }
+          state: { email, redirectPath }
         });
       }
     } catch (error: any) {

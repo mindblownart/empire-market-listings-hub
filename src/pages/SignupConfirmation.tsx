@@ -11,12 +11,15 @@ const SignupConfirmation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [email, setEmail] = useState<string>('');
+  const [redirectPath, setRedirectPath] = useState<string>('/');
   const { resendVerificationEmail, isLoading } = useSignup();
   const [showResendSuccess, setShowResendSuccess] = useState(false);
 
   useEffect(() => {
     // Get email from location state
     const emailFromState = location.state?.email;
+    const redirectFromState = location.state?.redirectPath || '/';
+    
     if (!emailFromState) {
       // If no email in state, redirect to signup
       navigate('/signup');
@@ -24,6 +27,7 @@ const SignupConfirmation = () => {
     }
     
     setEmail(emailFromState);
+    setRedirectPath(redirectFromState);
   }, [location.state, navigate]);
 
   const handleResendEmail = async () => {
@@ -89,7 +93,7 @@ const SignupConfirmation = () => {
                 )}
               </Button>
               <Button asChild variant="outline">
-                <Link to="/login">Go to Sign In</Link>
+                <Link to={`/login${redirectPath !== '/' ? `?redirect=${encodeURIComponent(redirectPath)}` : ''}`}>Go to Sign In</Link>
               </Button>
               <Button asChild variant="link">
                 <Link to="/">Return to Home</Link>

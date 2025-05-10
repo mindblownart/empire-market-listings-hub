@@ -1,13 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
+import { supabase } from '@/lib/supabase';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Check if we're on the home page
   const isHomePage = location.pathname === '/';
@@ -20,8 +23,23 @@ const Navbar = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
+    
+    // Get current user
+    const getUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUser(data.session?.user || null);
+    };
+    
+    getUser();
+    
+    // Listen for auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      authListener?.subscription.unsubscribe();
     };
   }, []);
 
@@ -42,6 +60,14 @@ const Navbar = () => {
   const isLoginPage = location.pathname === '/login';
   const isPreviewPage = location.pathname === '/preview-listing';
   const isMinimalNavigation = isSignupPage || isLoginPage || isSubmitPage || isPreviewPage;
+
+  // Handle submit business click - check if user is logged in
+  const handleSubmitBusinessClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      navigate('/login', { state: { redirect: '/submit' } });
+    }
+  };
 
   // Determine text color class based on page and scroll state
   const getTextColorClass = () => {
@@ -87,7 +113,11 @@ const Navbar = () => {
                 >
                   Browse Listings
                 </HashLink>
-                <Link to="/submit" className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}>
+                <Link 
+                  to="/submit" 
+                  className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}
+                  onClick={handleSubmitBusinessClick}
+                >
                   Submit a Business
                 </Link>
                 <HashLink 
@@ -105,14 +135,26 @@ const Navbar = () => {
             )}
             {!isSubmitPage && !isPreviewPage && (
               <>
-                <Link to="/login" className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}>
-                  Login
-                </Link>
-                <Link to="/signup">
-                  <Button className="bg-primary hover:bg-primary-light">
-                    Sign Up
+                {!user ? (
+                  <>
+                    <Link to="/login" className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}>
+                      Login
+                    </Link>
+                    <Link to="/signup">
+                      <Button className="bg-primary hover:bg-primary-light">
+                        Sign Up
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}
+                    onClick={() => supabase.auth.signOut().then(() => navigate('/'))}
+                  >
+                    Log out
                   </Button>
-                </Link>
+                )}
               </>
             )}
           </div>
@@ -156,7 +198,17 @@ const Navbar = () => {
                   >
                     Browse Listings
                   </HashLink>
-                  <Link to="/submit" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Link 
+                    to="/submit" 
+                    className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" 
+                    onClick={(e) => {
+                      setIsMobileMenuOpen(false);
+                      if (!user) {
+                        e.preventDefault();
+                        navigate('/login', { state: { redirect: '/submit' } });
+                      }
+                    }}
+                  >
                     Submit a Business
                   </Link>
                   <HashLink 
@@ -173,14 +225,29 @@ const Navbar = () => {
                   </Link>
                 </>
               )}
-              <Link to="/login" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
-                Login
-              </Link>
-              <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button className="bg-primary hover:bg-primary-light w-full">
-                  Sign Up
+              {!user ? (
+                <>
+                  <Link to="/login" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
+                    Login
+                  </Link>
+                  <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button className="bg-primary hover:bg-primary-light w-full">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  className="text-[#2F3542] hover:text-[#1a1f29] transition-colors w-full text-left justify-start"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    supabase.auth.signOut().then(() => navigate('/'));
+                  }}
+                >
+                  Log out
                 </Button>
-              </Link>
+              )}
             </div>
           </div>
         )}
