@@ -19,11 +19,11 @@ const MediaItem: React.FC<MediaItemProps> = ({
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'media-item',
     item: { id: item.id, index },
-    canDrag: !isFixed && item.type === 'image' && !item.isEmpty,
+    canDrag: !isFixed && !item.isEmpty && item.type === 'image',
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-  }));
+  }), [index, item.id, item.isEmpty, isFixed, item.type]);
 
   const [{ isOver }, drop] = useDrop({
     accept: 'media-item',
@@ -35,31 +35,44 @@ const MediaItem: React.FC<MediaItemProps> = ({
       // Don't replace items with themselves
       if (dragIndex === hoverIndex) return;
       
-      // If this is the video slot (index 1), prevent hover
-      if (hoverIndex === 1) return;
+      // Don't allow dropping onto fixed video slot (index 1)
+      if (hoverIndex === 1 && item.type === 'video') return;
       
-      // Don't allow dropping onto empty slots beyond the first available one
-      if (item.type === 'empty' && hoverIndex > 0) {
-        const emptySlotIndex = Array.from(ref.current.parentElement?.children || [])
-          .findIndex(el => (el as HTMLElement).dataset.type === 'empty');
-        
-        if (emptySlotIndex !== -1 && hoverIndex > emptySlotIndex) return;
-      }
+      // Calculate mouse position
+      const hoverBoundingRect = ref.current.getBoundingClientRect();
+      const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
+      const clientOffset = monitor.getClientOffset();
+      
+      // Get horizontal position
+      const hoverClientX = clientOffset ? clientOffset.x - hoverBoundingRect.left : 0;
+      
+      // Only perform the move when crossing half of the item
+      if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) return;
+      if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) return;
 
       moveItem(dragIndex, hoverIndex);
       draggedItem.index = hoverIndex;
     },
     collect: (monitor) => ({
-      isOver: monitor.isOver()
-    })
-  });
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  }), [index, item.type, moveItem]);
 
-  // Only add drag ref if not fixed and not empty
-  if (!isFixed && item.type === 'image' && !item.isEmpty) {
-    drag(drop(ref));
-  } else {
-    drop(ref);
-  }
+  // Apply drag and drop refs
+  const dragDropRef = (node: HTMLDivElement | null) => {
+    ref.current = node;
+    
+    // Only apply drag ref if item is draggable
+    if (!isFixed && !item.isEmpty && item.type === 'image') {
+      drag(node);
+    }
+    
+    // Always apply drop ref unless it's the video slot (index 1)
+    if (!(index === 1 && item.type === 'video')) {
+      drop(node);
+    }
+  };
 
   const handleVideoClick = () => {
     if (item.type === 'video' && !item.isEmpty && onVideoPreview) {
@@ -93,8 +106,9 @@ const MediaItem: React.FC<MediaItemProps> = ({
 
   return (
     <div 
-      ref={ref}
+      ref={dragDropRef}
       data-type={item.type}
+      data-index={index}
       className={cn(
         "relative group aspect-square rounded-md overflow-hidden border-2 transition-all",
         borderColorClass,
@@ -103,6 +117,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
         item.isEmpty ? 'border-dashed hover:bg-gray-100 transition-colors' : '',
         isFixed && !item.isEmpty ? 'cursor-default' : (item.isEmpty ? 'cursor-pointer' : 'cursor-grab')
       )}
+      onClick={item.type === 'video' ? handleVideoClick : undefined}
     >
       {item.isEmpty ? (
         <EmptySlot 
@@ -128,11 +143,16 @@ const MediaItem: React.FC<MediaItemProps> = ({
         isFixed={isFixed}
         isPrimary={!!item.isPrimary}
         type={item.type}
-        onSetPrimary={null}
+        onSetPrimary={onSetPrimary}
         onDelete={handleDelete}
         showSetPrimaryButton={false}
         showDeleteButton={showDeleteButton}
       />
+
+      {/* Drop indicator */}
+      {isOver && !isDragging && (
+        <div className="absolute inset-0 bg-primary/10 border-2 border-primary border-dashed rounded-md z-10" />
+      )}
     </div>
   );
 };

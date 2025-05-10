@@ -234,12 +234,53 @@ const EditListing = () => {
     }
   };
 
-  const handleBackClick = () => {
-    navigate(`/business/${id}`);
+  // Handle deletion of existing images
+  const handleDeleteExistingImage = (index: number) => {
+    setImageUrls(prev => {
+      const newImageUrls = [...prev];
+      newImageUrls.splice(index, 1);
+      
+      // If we deleted the primary image, set the new first image as primary
+      if (index === primaryImageIndex) {
+        setPrimaryImageIndex(0);
+      } 
+      // If we deleted an image before the primary, adjust the primary index
+      else if (index < primaryImageIndex) {
+        setPrimaryImageIndex(prev => Math.max(0, prev - 1));
+      }
+      
+      return newImageUrls;
+    });
+    
+    toast.success("Image deleted", {
+      description: "The image has been removed from your listing."
+    });
+  };
+  
+  // Handle deletion of existing video
+  const handleDeleteExistingVideo = () => {
+    updateFormData({ businessVideoUrl: '' });
+    toast.success("Video deleted", {
+      description: "The video has been removed from your listing."
+    });
   };
 
-  const handleRetry = () => {
-    fetchListing();
+  // Handle reordering of existing images
+  const handleReorderExistingImages = (reorderedImages: string[]) => {
+    setImageUrls(reorderedImages);
+    
+    // Update primary image index based on the new order
+    if (reorderedImages.length > 0) {
+      const primaryImageUrl = imageUrls[primaryImageIndex];
+      const newPrimaryIndex = reorderedImages.findIndex(url => url === primaryImageUrl);
+      
+      if (newPrimaryIndex !== -1) {
+        setPrimaryImageIndex(newPrimaryIndex);
+      } else {
+        // If the primary image is no longer in the array, set the first image as primary
+        setPrimaryImageIndex(0);
+      }
+    }
   };
 
   // Handle setting primary image
@@ -251,8 +292,16 @@ const EditListing = () => {
       });
     }
   };
+  
+  const handleBackClick = () => {
+    navigate(`/business/${id}`);
+  };
 
-  // Handle preview click - this function will be passed to FormContainer
+  const handleRetry = () => {
+    fetchListing();
+  };
+
+  // Handle preview click
   const handlePreview = () => {
     // Store the current listing ID in localStorage so the preview page knows which listing we're editing
     if (id) {
@@ -380,8 +429,8 @@ const EditListing = () => {
                     <div>
                       <h3 className="text-lg font-medium mb-2">Media Gallery</h3>
                       <p className="mb-4 text-sm text-gray-500">
-                        Manage your media gallery below. The primary image is displayed first. 
-                        You can change the primary image by clicking "Set Primary" on any image.
+                        Manage your media gallery below. The primary image is displayed first.
+                        Images can be reordered by dragging and dropping (except for the video slot).
                       </p>
                       
                       <BusinessMediaUploader 
@@ -391,7 +440,7 @@ const EditListing = () => {
                         onImagesChange={() => {}} // Disabled for now
                         onVideoChange={(video) => updateFormData({ businessVideo: video })}
                         onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
-                        disableImageUpload={true}
+                        disableImageUpload={false}
                         galleryImages={imageUrls}
                         onSetPrimaryImage={handleSetPrimaryImage}
                       />

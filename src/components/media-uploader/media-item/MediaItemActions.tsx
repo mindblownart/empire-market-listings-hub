@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Move, X } from 'lucide-react';
+import { GripVertical, X } from 'lucide-react';
 
 interface MediaItemActionsProps {
   isEmpty: boolean;
@@ -28,7 +28,7 @@ const MediaItemActions: React.FC<MediaItemActionsProps> = ({
       {/* Move handle only for draggable items */}
       {!isFixed && !isEmpty && type === 'image' && (
         <div className="absolute top-2 right-10 bg-black/70 hover:bg-black/90 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-20 shadow-md">
-          <Move className="h-3.5 w-3.5 text-white" />
+          <GripVertical className="h-3.5 w-3.5 text-white" />
         </div>
       )}
 
