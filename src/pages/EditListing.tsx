@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFormValidation } from '@/hooks/useFormValidation';
+import MediaUpload from '@/components/media-uploader';
 
 // Define interface for the listing data to handle primary_image_index
 interface ListingData {
@@ -406,17 +407,16 @@ const EditListing = () => {
                       shown in search results. You can drag and drop to reorder images.
                     </p>
                       
-                    <BusinessMediaUploader 
-                      initialImages={[]}
-                      initialVideo={null} 
-                      initialVideoUrl={formData.businessVideoUrl}
-                      onImagesChange={() => {}} // We handle existing images separately
+                    <MediaUpload 
+                      existingImages={imageUrls}
+                      existingVideoUrl={formData.businessVideoUrl}
+                      onImagesChange={(images) => updateFormData({ businessImages: images })}
                       onVideoChange={(video) => updateFormData({ businessVideo: video })}
-                      onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
-                      disableImageUpload={false}
-                      galleryImages={imageUrls}
+                      onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url || '' })}
                       maxImages={10}
-                      onSetPrimaryImage={() => {}}
+                      onDeleteExistingImage={handleDeleteExistingImage}
+                      onDeleteExistingVideo={handleDeleteExistingVideo}
+                      onImagesReorder={handleReorderExistingImages}
                     />
                   </div>
                 </div>

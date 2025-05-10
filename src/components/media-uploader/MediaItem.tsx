@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { MediaItem as MediaItemType, DragItem } from './types';
 import { cn } from '@/lib/utils';
-import { X, GripVertical, Play, Star } from 'lucide-react';
+import { X, Move, Play, Star } from 'lucide-react';
 
 interface MediaItemProps {
   item: MediaItemType;
@@ -48,32 +48,6 @@ const MediaItem: React.FC<MediaItemProps> = ({
       
       // Don't allow dropping into fixed position
       if (isFixed) return;
-      
-      // Get the rectangle for the current hovering component
-      const hoverBoundingRect = ref.current.getBoundingClientRect();
-      
-      // Get middle point of the hover rect
-      const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
-      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-      
-      // Get the mouse position
-      const clientOffset = monitor.getClientOffset();
-      if (!clientOffset) return;
-      
-      // Mouse positions relative to hover item
-      const hoverClientX = clientOffset.x - hoverBoundingRect.left;
-      const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-      
-      // Exit if not crossing the middle
-      // This creates a more natural feel for swapping items
-      if (
-        (draggedItem.index < index && 
-          (hoverClientX < hoverMiddleX / 2 && hoverClientY < hoverMiddleY / 2)) ||
-        (draggedItem.index > index && 
-          (hoverClientX > hoverMiddleX * 1.5 && hoverClientY > hoverMiddleY * 1.5))
-      ) {
-        return;
-      }
       
       // Time to actually perform the action
       moveItem(draggedItem.index, index);
@@ -181,7 +155,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
       {!isFixed && !isEmpty && (
         <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors opacity-0 group-hover:opacity-100 flex items-center justify-center">
           <div className="bg-black/50 rounded-full p-2">
-            <GripVertical className="h-6 w-6 text-white" />
+            <Move className="h-6 w-6 text-white" />
           </div>
         </div>
       )}

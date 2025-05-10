@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Info } from 'lucide-react';
@@ -71,29 +70,37 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   
   // Process video item
   const videoInfo = existingVideoUrl ? extractVideoInfo(existingVideoUrl) : null;
-  const videoItem: MediaItem | null = existingVideoUrl ? {
-    id: 'existing-video',
-    type: 'video',
-    url: existingVideoUrl,
-    preview: videoInfo?.platform === 'youtube' 
-      ? `https://img.youtube.com/vi/${videoInfo?.id || ''}/hqdefault.jpg`
-      : 'https://via.placeholder.com/400x300?text=Video+Thumbnail',
-    isPrimary: false,
-    videoInfo: videoInfo as VideoInfo
-  } : newVideo ? {
-    id: `new-video-${newVideo.name}`,
-    type: 'video',
-    file: newVideo,
-    preview: URL.createObjectURL(newVideo),
-    isPrimary: false,
-    videoInfo: { platform: 'file', id: null }
-  } : null;
+  
+  // Create video item with correct type handling
+  let videoItem: MediaItem | null = null;
+  
+  if (existingVideoUrl && videoInfo) {
+    videoItem = {
+      id: 'existing-video',
+      type: 'video',
+      url: existingVideoUrl,
+      preview: videoInfo.platform === 'youtube' 
+        ? `https://img.youtube.com/vi/${videoInfo.id || ''}/hqdefault.jpg`
+        : 'https://via.placeholder.com/400x300?text=Video+Thumbnail',
+      isPrimary: false,
+      videoInfo: videoInfo as VideoInfo
+    };
+  } else if (newVideo) {
+    videoItem = {
+      id: `new-video-${newVideo.name}`,
+      type: 'video',
+      file: newVideo,
+      preview: URL.createObjectURL(newVideo),
+      isPrimary: false,
+      videoInfo: { platform: 'file', id: null }
+    };
+  }
   
   // Insert video at position 1 if it exists
   if (videoItem) {
-    // If there are no items or just 1 item, we need to ensure correct positioning
+    // Ensure video is always in slot 2 (index 1)
+    // If there are 0 items, add an empty slot first, then the video
     if (allItems.length === 0) {
-      // Add an empty slot for primary image
       allItems.push({
         id: 'empty-primary',
         type: 'empty',
@@ -101,27 +108,33 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         isPrimary: true,
         isEmpty: true
       });
-      // Then add video
       allItems.push(videoItem);
-    } else if (allItems.length === 1) {
-      // Already have primary image, add video at position 1
-      allItems.splice(1, 0, videoItem);
-    } else {
-      // Replace whatever is at position 1 with the video
-      // But first check if position 1 is already a video
-      if (allItems[1]?.type !== 'video') {
-        // It's not a video, so insert and push everything else down
-        allItems.splice(1, 0, videoItem);
-        
-        // Make sure we don't exceed the limit
-        if (allItems.length > maxImages + 2) { // +2 because of primary and video
-          allItems.pop();
-        }
-      } else {
-        // Already a video at position 1, replace it
+    } 
+    // If there's exactly 1 item, add video as second item
+    else if (allItems.length === 1) {
+      allItems.push(videoItem);
+    }
+    // If there are 2+ items
+    else {
+      // If position 1 already has a video, replace it
+      if (allItems[1]?.type === 'video') {
         allItems[1] = videoItem;
       }
+      // Otherwise, insert video at position 1, shifting everything else
+      else {
+        allItems.splice(1, 0, videoItem);
+      }
     }
+  }
+  // If no video, ensure an empty video slot at position 1
+  else if (allItems.length >= 1 && allItems[1]?.type !== 'empty') {
+    allItems.splice(1, 0, {
+      id: `empty-video-${Date.now()}`,
+      type: 'empty',
+      preview: '',
+      isPrimary: false,
+      isEmpty: true
+    });
   }
   
   // Handle drag events
@@ -163,7 +176,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           toast.warning('Maximum images reached', {
             description: `You can only upload up to ${maxImages} images`
           });
-          return; // Skip processing this file
+          return; // Skip this file
         }
       } 
       // Process video

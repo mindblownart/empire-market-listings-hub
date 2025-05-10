@@ -3,11 +3,10 @@ import React, { useState, useCallback } from 'react';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { Image, Video, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import MediaItem from './MediaItem';
 import VideoPreviewModal from './VideoPreviewModal';
 import { MediaItem as MediaItemType } from './types';
-import { extractVideoInfo } from './video-utils';
 
 interface MediaGalleryProps {
   items: MediaItemType[];
@@ -68,10 +67,13 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     // Don't proceed if it's an empty slot
     if (draggedItem.isEmpty) return;
     
-    // Remove the item from its original position
+    // Get the hover item (could be an empty slot)
+    const hoverItem = newItems[hoverIndex];
+    
+    // Remove the dragged item from its original position
     newItems.splice(dragIndex, 1);
     
-    // Insert the item at the new position
+    // Insert the dragged item at the new position
     newItems.splice(hoverIndex, 0, draggedItem);
     
     // Update primary status based on position
@@ -84,56 +86,8 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     onReorder(newItems);
   }, [items, onReorder]);
   
-  // Handle slot drop
-  const handleSlotDrop = useCallback((e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onDrop(e);
-  }, [onDrop]);
-
-  // Create empty grid placeholders to ensure a clean grid layout
-  // Making sure we have a 2-row, 6-column grid with video slot fixed at index 1
-  const ensureCompleteGrid = () => {
-    const result = [...items];
-    
-    // Check if we need to add or ensure a video slot at index 1
-    if (result.length >= 1) {
-      // If index 1 doesn't exist or isn't a video slot
-      if (result.length === 1 || (result[1]?.type !== 'video' && result[1]?.type !== 'empty')) {
-        // Create empty video slot for position 1
-        const videoSlot: MediaItemType = {
-          id: `empty-video-slot-${Date.now()}`,
-          type: 'empty',
-          isEmpty: true,
-          preview: '',
-          isPrimary: false
-        };
-        
-        // Insert at index 1
-        result.splice(1, 0, videoSlot);
-      }
-    }
-    
-    // Fill remaining slots with empty placeholders up to 12 (2 rows of 6)
-    while (result.length < 12) {
-      result.push({
-        id: `empty-slot-${result.length}-${Date.now()}`,
-        type: 'empty',
-        isEmpty: true,
-        preview: '',
-        isPrimary: false
-      });
-    }
-    
-    // Trim to exactly 12 items
-    return result.slice(0, 12);
-  };
-  
-  // Get the complete grid with all slots properly filled
-  const completeGrid = ensureCompleteGrid();
-
   // Handle empty state
-  if (totalMediaCount === 0) {
+  if (items.length === 0 || totalMediaCount === 0) {
     return (
       <TooltipProvider>
         <div 
@@ -141,53 +95,22 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
           onDragOver={e => e.preventDefault()}
           onDrop={onDrop}
         >
-          {/* Primary Image Slot */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="relative aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center">
-                <div className="text-center p-2">
-                  <Image className="w-8 h-8 mx-auto text-gray-300 mb-1" />
-                  <p className="text-xs text-gray-400">Primary Image</p>
-                </div>
-                <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
-                  Primary
-                </div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="top">Drop image here for primary</TooltipContent>
-          </Tooltip>
-          
-          {/* Video Slot */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="relative aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center">
-                <div className="text-center p-2">
-                  <Video className="w-8 h-8 mx-auto text-gray-300 mb-1" />
-                  <p className="text-xs text-gray-400">Video</p>
-                  <p className="text-xs text-gray-300">(Optional)</p>
-                </div>
-                <div className="absolute top-2 left-2 bg-gray-500/70 text-white text-xs px-2 py-1 rounded-full">
-                  Video Slot
-                </div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="top">Drop video here</TooltipContent>
-          </Tooltip>
-          
-          {/* 10 Empty Image Slots */}
-          {Array.from({ length: 10 }).map((_, i) => (
-            <Tooltip key={i}>
-              <TooltipTrigger asChild>
-                <div className="aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center">
-                  <div className="text-center p-2">
-                    <Plus className="w-6 h-6 mx-auto text-gray-300 mb-1" />
-                    <p className="text-xs text-gray-400">Add image</p>
-                    <p className="text-xs text-gray-300">Drop here</p>
-                  </div>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="top">Drop image here</TooltipContent>
-            </Tooltip>
+          {/* Empty slots */}
+          {Array.from({ length: 12 }).map((_, i) => (
+            <MediaItem
+              key={`empty-slot-${i}`}
+              item={{
+                id: `empty-slot-${i}`,
+                type: 'empty',
+                preview: '',
+                isPrimary: i === 0,
+                isEmpty: true
+              }}
+              index={i}
+              moveItem={moveItem}
+              onDelete={() => {}}
+              isFixed={i === 1} // Slot 1 is fixed for video
+            />
           ))}
         </div>
         
@@ -204,20 +127,37 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     );
   }
   
+  // Create a complete grid with empty slots where needed
+  const completeGrid = [...items];
+  
+  // Ensure we always have at least 12 slots (2 rows of 6)
+  while (completeGrid.length < 12) {
+    completeGrid.push({
+      id: `empty-slot-${completeGrid.length}`,
+      type: 'empty',
+      preview: '',
+      isPrimary: false,
+      isEmpty: true
+    });
+  }
+  
   return (
     <TooltipProvider>
       <div className="space-y-4">
         <div 
           className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
           onDragOver={(e) => e.preventDefault()}
-          style={{ minHeight: '200px' }}
         >
-          {completeGrid.slice(0, 12).map((item, index) => (
+          {completeGrid.map((item, index) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
                 <div 
                   onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => handleSlotDrop(e, index)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onDrop(e);
+                  }}
                   className="h-full"
                 >
                   <MediaItem
@@ -226,8 +166,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
                     moveItem={moveItem}
                     onDelete={() => onDelete(item.id)}
                     onPreview={() => handleVideoPreview(item)}
-                    // Only the video slot (index 1) is fixed
-                    isFixed={index === 1}
+                    isFixed={index === 1} // Video slot is fixed
                   />
                 </div>
               </TooltipTrigger>
