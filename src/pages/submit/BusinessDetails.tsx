@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,6 +11,8 @@ import {
   SearchableSelect
 } from '@/components/ui/select';
 import { BusinessFormData } from '@/contexts/FormDataContext';
+import { toast } from 'sonner';
+import { AlertTriangle } from 'lucide-react';
 
 type CountryData = {
   name: string;
@@ -56,13 +58,36 @@ const BusinessDetails: React.FC<BusinessDetailsProps> = ({
   const handleCountryChange = (value: string) => {
     const selectedCountry = countries.find(c => c.flagCode === value);
     
-    // First update the location to trigger UI updates
-    updateFormData({ 
+    // Check if this is actually a change in currency
+    const newCurrencyCode = selectedCountry?.currencyCode;
+    const currentCurrencyCode = formData.currencyCode;
+    
+    // Prepare the update
+    const updateData: Partial<BusinessFormData> = {
       location: value,
       locationName: selectedCountry?.name,
       flagCode: selectedCountry?.flagCode,
-      currencyCode: selectedCountry?.currencyCode
-    });
+      currencyCode: newCurrencyCode,
+    };
+    
+    // If the currency is changing and we have monetary values,
+    // save the original values before the conversion
+    if (newCurrencyCode !== currentCurrencyCode) {
+      // Store original values if this is the first currency change
+      // or update them if they're already set but the currency is changing
+      if (!formData.originalValues.currencyCode || 
+          formData.originalValues.currencyCode === currentCurrencyCode) {
+        updateData.originalValues = {
+          askingPrice: formData.askingPrice,
+          annualRevenue: formData.annualRevenue,
+          annualProfit: formData.annualProfit,
+          currencyCode: currentCurrencyCode || 'USD',
+        };
+      }
+    }
+    
+    // First update the location to trigger UI updates
+    updateFormData(updateData);
     
     validateField('location', value);
   };

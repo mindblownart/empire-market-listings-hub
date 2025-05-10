@@ -2,6 +2,8 @@
 import * as React from "react";
 import { Input } from "./input";
 import { formatLiveCurrency, unformatNumber } from "@/lib/formatters";
+import { convertCurrencyLive } from "@/lib/exchangeRates";
+import { toast } from "sonner";
 
 // Create a useMergedRef hook to combine multiple refs
 function useMergedRef<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
@@ -41,8 +43,48 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
     const [displayValue, setDisplayValue] = React.useState<string>("");
     const [cursorPosition, setCursorPosition] = React.useState<number | null>(null);
     const [isFocused, setIsFocused] = React.useState<boolean>(false);
+    const [isConversionFailed, setIsConversionFailed] = React.useState<boolean>(false);
     const inputRef = React.useRef<HTMLInputElement>(null);
     const mergedRef = useMergedRef(ref, inputRef);
+    
+    // Convert value when currency changes and original values exist
+    React.useEffect(() => {
+      // Only perform conversion if we have an original value and currency
+      if (originalValue && originalCurrency && currencyCode !== originalCurrency) {
+        const convertValue = async () => {
+          try {
+            const { convertedAmount, rateSource } = await convertCurrencyLive(
+              originalValue,
+              originalCurrency,
+              currencyCode
+            );
+            
+            // Update the value
+            onChange(convertedAmount);
+            
+            // Show fallback warning if needed
+            if (rateSource === 'fallback') {
+              setIsConversionFailed(true);
+              toast.warning("Unable to fetch live rates. Using estimated conversion.", {
+                duration: 5000,
+                position: "bottom-center",
+              });
+            } else {
+              setIsConversionFailed(false);
+            }
+          } catch (error) {
+            console.error('Error converting currency:', error);
+            setIsConversionFailed(true);
+            toast.error("Currency conversion error. Using estimated rates.", {
+              duration: 5000,
+              position: "bottom-center",
+            });
+          }
+        };
+        
+        convertValue();
+      }
+    }, [currencyCode, originalValue, originalCurrency, onChange]);
     
     // Update display value whenever value changes from outside
     React.useEffect(() => {
@@ -163,17 +205,24 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
     };
     
     return (
-      <Input
-        {...props}
-        ref={mergedRef}
-        value={displayValue}
-        onChange={handleChange}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        inputMode="decimal"
-        className={className}
-        placeholder={getPlaceholder()}
-      />
+      <div className="relative">
+        <Input
+          {...props}
+          ref={mergedRef}
+          value={displayValue}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          inputMode="decimal"
+          className={className}
+          placeholder={getPlaceholder()}
+        />
+        {isConversionFailed && !isFocused && (
+          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-amber-500">
+            <AlertTriangle className="h-4 w-4" />
+          </div>
+        )}
+      </div>
     );
   }
 );

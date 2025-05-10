@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/formatters';
-import { DollarSign, MapPin, Building, Calendar, Users } from 'lucide-react';
+import { DollarSign, MapPin, Building, Calendar, Users, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface BusinessDetailsProps {
   askingPrice?: string;
@@ -13,6 +14,12 @@ interface BusinessDetailsProps {
   industry?: string;
   yearEstablished?: string;
   employees?: string;
+  originalValues?: {
+    askingPrice?: string;
+    annualRevenue?: string;
+    annualProfit?: string;
+    currencyCode?: string;
+  };
 }
 
 export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
@@ -24,7 +31,10 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
   industry,
   yearEstablished,
   employees,
+  originalValues,
 }) => {
+  const [showFallbackWarning, setShowFallbackWarning] = useState<boolean>(false);
+  
   // Helper function to format industry name
   const formatIndustry = (industryCode?: string): string => {
     if (!industryCode) return 'Not specified';
@@ -38,10 +48,32 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
            industryCode;
   };
 
+  // Show a warning if using fallback rates
+  useEffect(() => {
+    // We would typically check if the rates are from the fallback source
+    // For now, we'll just assume no warning is needed for the preview
+    setShowFallbackWarning(false);
+    
+    // Cleanup the warning after 5 seconds
+    const timer = setTimeout(() => {
+      setShowFallbackWarning(false);
+    }, 5000);
+    
+    return () => clearTimeout(timer);
+  }, [currencyCode]);
+
   return (
     <Card className="shadow-md">
       <CardHeader className="border-b">
         <CardTitle>Business Details</CardTitle>
+        {showFallbackWarning && (
+          <Alert variant="warning" className="mt-2 bg-amber-50 text-amber-800 border-amber-200">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Unable to fetch live rates. Using estimated conversion.
+            </AlertDescription>
+          </Alert>
+        )}
       </CardHeader>
       <CardContent className="pt-6">
         <dl className="space-y-4">

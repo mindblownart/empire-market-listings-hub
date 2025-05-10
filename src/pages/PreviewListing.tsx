@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
@@ -114,6 +113,7 @@ const PreviewListing = () => {
                 industry={formData.industry}
                 yearEstablished={formData.yearEstablished}
                 employees={formData.employees}
+                originalValues={formData.originalValues}
               />
             </div>
           </div>
