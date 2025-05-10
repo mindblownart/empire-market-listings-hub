@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { useFormData } from '@/contexts/FormDataContext';
 import BusinessDetails from './BusinessDetails';
 import FinancialDetails from './FinancialDetails';
 import BusinessDescription from './BusinessDescription';
+import BusinessHighlights from './BusinessHighlights';
 import ContactInformation from './ContactInformation';
 
 const Submit = () => {
@@ -159,6 +159,12 @@ const Submit = () => {
                 updateFormData={updateFormData}
                 validationErrors={validationErrors}
                 validateField={validateField}
+              />
+              
+              {/* Add the Business Highlights component */}
+              <BusinessHighlights
+                formData={formData}
+                updateFormData={updateFormData}
               />
 
               {/* Business Media Section */}

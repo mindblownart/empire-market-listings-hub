@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
@@ -40,22 +39,8 @@ const PreviewListing = () => {
     };
   }, [imageURLs, videoURL, formData.businessVideo]);
 
-  // Helper function to format business highlights from description (optional)
-  const getBusinessHighlights = () => {
-    if (!formData.description) return [];
-    
-    // Simple algorithm to extract potential bullet points
-    // Look for sentences that might be highlights (short, start with action verbs or numbers)
-    const sentences = formData.description.split(/[.!?]/).filter(s => s.trim().length > 0);
-    
-    // Filter for potential highlights (shorter sentences that might be feature points)
-    return sentences
-      .filter(s => s.trim().length > 10 && s.trim().length < 100)
-      .map(s => s.trim())
-      .slice(0, 4); // Limit to 4 highlights
-  };
-
-  const highlights = getBusinessHighlights();
+  // Let's now simply pass the highlights directly from the form data instead of processing description
+  const highlights = formData.highlights || [];
   const primaryImage = imageURLs.length > 0 ? imageURLs[0] : '';
   const galleryImages = imageURLs;
   

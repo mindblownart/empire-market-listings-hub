@@ -10,6 +10,7 @@ export type BusinessFormData = {
   annualRevenue: string;
   annualProfit: string;
   description: string;
+  highlights: string[]; // Added highlights array
   businessImages: File[];
   businessVideo: File | null;
   businessVideoUrl: string;
@@ -62,6 +63,7 @@ const initialFormData: BusinessFormData = {
   annualRevenue: '',
   annualProfit: '',
   description: '',
+  highlights: [], // Initialize highlights as empty array
   businessImages: [],
   businessVideo: null,
   businessVideoUrl: '',

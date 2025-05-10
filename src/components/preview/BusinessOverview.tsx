@@ -29,7 +29,7 @@ export const BusinessOverview: React.FC<BusinessOverviewProps> = ({
       </Card>
 
       {/* Business Highlights (if any) */}
-      {highlights.length > 0 && (
+      {highlights && highlights.length > 0 && (
         <Card className="shadow-md mt-6">
           <CardHeader className="border-b py-4">
             <CardTitle>Business Highlights</CardTitle>
