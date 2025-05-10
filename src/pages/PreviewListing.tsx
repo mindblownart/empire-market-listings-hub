@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
@@ -17,6 +16,7 @@ const PreviewListing = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editListingId, setEditListingId] = useState<string | null>(null);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
   
   // Check if we're editing an existing listing or creating a new one
@@ -26,13 +26,20 @@ const PreviewListing = () => {
       setIsEditing(true);
       setEditListingId(storedListingId);
       
-      // Get stored image URLs if any
+      // Get stored image URLs and primary image index if any
       const storedImagesStr = localStorage.getItem('editingListingImages');
       if (storedImagesStr) {
         try {
-          const storedImages = JSON.parse(storedImagesStr);
-          if (Array.isArray(storedImages)) {
-            setGalleryImages(storedImages);
+          const storedImagesData = JSON.parse(storedImagesStr);
+          if (Array.isArray(storedImagesData)) {
+            // Legacy format - just array of URLs
+            setGalleryImages(storedImagesData);
+          } else if (storedImagesData.urls) {
+            // New format with primaryIndex
+            setGalleryImages(storedImagesData.urls);
+            if (typeof storedImagesData.primaryIndex === 'number') {
+              setPrimaryImageIndex(storedImagesData.primaryIndex);
+            }
           }
         } catch (error) {
           console.error('Error parsing stored images:', error);
@@ -94,7 +101,11 @@ const PreviewListing = () => {
 
   // Use the highlights directly from form data
   const highlights = formData.highlights || [];
-  const primaryImage = imageURLs.length > 0 ? imageURLs[0] : '';
+  
+  // Get primary image based on the primaryImageIndex
+  const primaryImage = isEditing && primaryImageIndex < imageURLs.length 
+    ? imageURLs[primaryImageIndex] 
+    : imageURLs.length > 0 ? imageURLs[0] : '';
 
   // Show loading state until we determine if we're editing or creating
   if (!isInitialized) {
@@ -106,6 +117,20 @@ const PreviewListing = () => {
       </div>
     );
   }
+  
+  // Reorder images to place primary image first when displaying in the gallery
+  const orderedImages = React.useMemo(() => {
+    if (!isEditing || primaryImageIndex === 0) return imageURLs;
+    
+    const result = [...imageURLs];
+    // Move primary image to front if it's not already there
+    if (primaryImageIndex > 0 && primaryImageIndex < result.length) {
+      const primaryImg = result[primaryImageIndex];
+      result.splice(primaryImageIndex, 1); // Remove from current position
+      result.unshift(primaryImg); // Add to beginning
+    }
+    return result;
+  }, [imageURLs, isEditing, primaryImageIndex]);
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -139,7 +164,7 @@ const PreviewListing = () => {
             <div className="lg:col-span-2 space-y-6">
               {/* Media Gallery exactly aligned with Business Overview */}
               <MediaGallery 
-                galleryImages={imageURLs} 
+                galleryImages={orderedImages} 
                 videoURL={videoURL} 
                 autoplayVideo={true} 
               />

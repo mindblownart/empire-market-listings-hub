@@ -12,7 +12,8 @@ interface FormContainerProps {
   onSubmit?: () => Promise<void>;
   submitLabel?: string;
   isSubmitting?: boolean;
-  onPreview?: () => void; // New prop for custom preview handling
+  onPreview?: () => void; // Custom preview handler
+  previewDisabled?: boolean; // New prop to disable preview button
 }
 
 const FormContainer: React.FC<FormContainerProps> = ({ 
@@ -20,7 +21,8 @@ const FormContainer: React.FC<FormContainerProps> = ({
   onSubmit,
   submitLabel,
   isSubmitting,
-  onPreview
+  onPreview,
+  previewDisabled = false
 }) => {
   const navigate = useNavigate();
   const { formData } = useFormData();
@@ -63,6 +65,7 @@ const FormContainer: React.FC<FormContainerProps> = ({
           variant="outline" 
           className="px-10 py-6 text-lg flex items-center gap-2 transition-all hover:bg-gray-100" 
           onClick={handlePreview}
+          disabled={previewDisabled}
         >
           <Eye className="h-5 w-5" /> Preview
         </Button>

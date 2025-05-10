@@ -12,6 +12,8 @@ export interface BusinessMediaUploaderProps {
   initialVideo?: File | null;
   initialVideoUrl?: string | null;
   disableImageUpload?: boolean;
+  galleryImages?: string[];
+  onSetPrimaryImage?: (index: number) => void;
 }
 
 export type MediaItemType = {
@@ -25,6 +27,7 @@ export type MediaItemType = {
     platform: string | null;
     id: string | null;
   };
+  originalIndex?: number;
 };
 
 export interface MediaItemProps { 
@@ -33,5 +36,6 @@ export interface MediaItemProps {
   moveItem: (dragIndex: number, hoverIndex: number) => void;
   onDelete: (id: string) => void;
   onVideoPreview: (item: MediaItemType) => void;
+  onSetPrimary?: (id: string) => void;
   isFixed?: boolean;
 }

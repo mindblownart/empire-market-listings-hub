@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -17,6 +16,7 @@ import { toast } from 'sonner';
 import { Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFormValidation } from '@/hooks/useFormValidation';
+import MediaGallery from '@/components/media-uploader/MediaGallery';
 
 const EditListing = () => {
   const { id } = useParams<{ id: string; }>();
@@ -28,6 +28,7 @@ const EditListing = () => {
   const [error, setError] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [originalListing, setOriginalListing] = useState<any>(null);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
   // Fetch the listing data
   const fetchListing = async () => {
@@ -90,6 +91,10 @@ const EditListing = () => {
       // Store image URLs separately
       if (listing.gallery_images && Array.isArray(listing.gallery_images)) {
         setImageUrls(listing.gallery_images);
+        // Check if primary_image_index is set
+        if (typeof listing.primary_image_index === 'number') {
+          setPrimaryImageIndex(listing.primary_image_index);
+        }
       }
       
       // Format the data for the form - use the properties that match BusinessFormData
@@ -169,6 +174,8 @@ const EditListing = () => {
         // Keep the existing image URLs - we're not modifying them in this simplified version
         gallery_images: imageUrls,
         video_url: formData.businessVideoUrl || null,
+        // Now we also store the primary image index
+        primary_image_index: primaryImageIndex
       };
       
       console.log("Updating listing with data:", updateData);
@@ -207,14 +214,33 @@ const EditListing = () => {
     fetchListing();
   };
 
+  // Handle setting primary image
+  const handleSetPrimaryImage = (index: number) => {
+    if (index >= 0 && index < imageUrls.length) {
+      setPrimaryImageIndex(index);
+      toast.success("Primary image updated", {
+        description: "This image will appear first in your listing."
+      });
+    }
+  };
+
   // Handle preview click - this function will be passed to FormContainer
   const handlePreview = () => {
     // Store the current listing ID in localStorage so the preview page knows which listing we're editing
     if (id) {
       localStorage.setItem('editingListingId', id);
       
-      // Also store image URLs since they're not in formData
-      localStorage.setItem('editingListingImages', JSON.stringify(imageUrls));
+      // Also store image URLs since they're not in formData, including the primary image index
+      const imageData = {
+        urls: imageUrls,
+        primaryIndex: primaryImageIndex
+      };
+      localStorage.setItem('editingListingImages', JSON.stringify(imageData));
+      
+      // Store video URL if available
+      if (formData.businessVideoUrl) {
+        localStorage.setItem('editingListingVideoUrl', formData.businessVideoUrl);
+      }
     }
     
     // Navigate to preview
@@ -321,25 +347,37 @@ const EditListing = () => {
 
                 <div className="pt-4 border-t border-gray-100">
                   <h2 className="text-xl font-semibold mb-4">Business Media</h2>
-                  <p className="mb-4 text-sm text-gray-500">Current images will be preserved. To modify images, please delete this listing and create a new one.</p>
-                  {imageUrls.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
-                      {imageUrls.map((url, index) => (
-                        <div key={index} className="relative rounded-lg overflow-hidden h-40">
-                          <img 
-                            src={url} 
-                            alt={`Business image ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 italic">No images available</p>
-                  )}
                   
-                  <div className="mt-4">
+                  {/* Media Gallery Section */}
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-2">Current Images</h3>
+                    <p className="mb-4 text-sm text-gray-500">
+                      Manage your media gallery below. The first image is your primary image and will be displayed prominently.
+                      You can rearrange images by dragging them (except for the primary image and video).
+                    </p>
+                    
+                    {imageUrls.length > 0 ? (
+                      <div className="mb-6">
+                        <MediaGallery 
+                          images={imageUrls} 
+                          videoUrl={formData.businessVideoUrl} 
+                          onSetPrimaryImage={handleSetPrimaryImage}
+                        />
+                        <p className="text-xs text-gray-500 mt-2">
+                          * The primary image and video positions are fixed. Other images can be rearranged.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 italic">No images available</p>
+                    )}
+                  </div>
+                  
+                  {/* Video URL Section */}
+                  <div className="mt-6">
                     <h3 className="text-lg font-medium mb-2">Video URL</h3>
+                    <p className="mb-2 text-sm text-gray-500">
+                      You can update the YouTube or Vimeo video URL for your listing.
+                    </p>
                     <BusinessMediaUploader 
                       initialImages={[]}
                       initialVideo={null} 

@@ -1,8 +1,9 @@
 
 import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { Move, X, Play, Link as LinkIcon } from 'lucide-react';
+import { Move, X, Play, Link as LinkIcon, Star } from 'lucide-react';
 import { MediaItemProps } from './types';
+import { Button } from '@/components/ui/button';
 
 export const MediaItem: React.FC<MediaItemProps> = ({ 
   item, 
@@ -10,6 +11,7 @@ export const MediaItem: React.FC<MediaItemProps> = ({
   moveItem, 
   onDelete,
   onVideoPreview,
+  onSetPrimary,
   isFixed = false
 }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -50,6 +52,13 @@ export const MediaItem: React.FC<MediaItemProps> = ({
   const handleVideoClick = () => {
     if (item.type === 'video') {
       onVideoPreview(item);
+    }
+  };
+
+  const handleSetPrimary = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onSetPrimary && item.type === 'image' && !item.isPrimary) {
+      onSetPrimary(item.id);
     }
   };
 
@@ -100,9 +109,21 @@ export const MediaItem: React.FC<MediaItemProps> = ({
       
       {/* Badge for primary image */}
       {item.isPrimary && (
-        <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
-          Primary
+        <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+          <Star className="h-3 w-3" /> Primary
         </div>
+      )}
+      
+      {/* Set as Primary button (only for non-primary images) */}
+      {item.type === 'image' && !item.isPrimary && onSetPrimary && (
+        <Button
+          variant="secondary"
+          size="sm"
+          className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
+          onClick={handleSetPrimary}
+        >
+          <Star className="h-3 w-3" /> Set Primary
+        </Button>
       )}
       
       {/* Move handle only for draggable images */}
