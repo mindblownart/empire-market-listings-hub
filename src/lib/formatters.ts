@@ -18,7 +18,7 @@ export function formatNumberWithCommas(value: string | number, locale: string = 
     // Format with thousands separators using Intl.NumberFormat
     return new Intl.NumberFormat(locale, {
       maximumFractionDigits: 2,
-      minimumFractionDigits: 0,
+      minimumFractionDigits: 2, // Always show 2 decimal places
     }).format(numericValue);
   } catch (error) {
     console.error('Error formatting number:', error);

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/carousel';
 import { DollarSign, MapPin, Phone, Mail, User, Building, Calendar, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { formatNumberWithCommas } from '@/lib/formatters';
 
 // Function to get the display prefix for a currency
 const getCurrencyDisplay = (currencyCode: string): string => {
@@ -27,6 +29,15 @@ const getCurrencyDisplay = (currencyCode: string): string => {
   if (currencyCode === "INR") return "INR ₹";
   if (currencyCode === "MYR") return "MYR RM";
   return currencyCode;
+};
+
+// Format financial values with currency symbol, thousands separators, and 2 decimal places
+const formatCurrencyValue = (value: string | undefined, currencyCode: string): string => {
+  if (!value || value === "0" || value === "") return "0.00";
+  
+  // Format with commas and always show 2 decimal places
+  const formattedValue = formatNumberWithCommas(parseFloat(value).toFixed(2));
+  return formattedValue;
 };
 
 const PreviewListing = () => {
@@ -299,7 +310,7 @@ const PreviewListing = () => {
                         <DollarSign className="h-4 w-4 mr-2" /> Asking Price
                       </dt>
                       <dd className="w-1/2 font-medium">
-                        {currencyDisplay} {formData.askingPrice || '0'}
+                        {currencyDisplay} {formatCurrencyValue(formData.askingPrice, formData.currencyCode || 'USD')}
                       </dd>
                     </div>
                     <div className="flex items-center">
@@ -307,7 +318,7 @@ const PreviewListing = () => {
                         <DollarSign className="h-4 w-4 mr-2" /> Annual Revenue
                       </dt>
                       <dd className="w-1/2 font-medium">
-                        {currencyDisplay} {formData.annualRevenue || '0'}
+                        {currencyDisplay} {formatCurrencyValue(formData.annualRevenue, formData.currencyCode || 'USD')}
                       </dd>
                     </div>
                     <div className="flex items-center">
@@ -315,7 +326,7 @@ const PreviewListing = () => {
                         <DollarSign className="h-4 w-4 mr-2" /> Annual Profit
                       </dt>
                       <dd className="w-1/2 font-medium">
-                        {currencyDisplay} {formData.annualProfit || '0'}
+                        {currencyDisplay} {formatCurrencyValue(formData.annualProfit, formData.currencyCode || 'USD')}
                       </dd>
                     </div>
                     <div className="flex items-center">
