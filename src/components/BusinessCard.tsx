@@ -19,6 +19,7 @@ interface BusinessCardProps {
   currencyCode?: string;
   isNew?: boolean;
   isHot?: boolean;
+  isOwnListing?: boolean;
 }
 
 const BusinessCard = ({
@@ -32,7 +33,8 @@ const BusinessCard = ({
   imageUrl,
   currencyCode = 'USD',
   isNew,
-  isHot
+  isHot,
+  isOwnListing
 }: BusinessCardProps) => {
   const [isFavorite, setIsFavorite] = useState(false);
   
@@ -55,6 +57,11 @@ const BusinessCard = ({
           {isHot && (
             <Badge className="bg-red-500 text-white">
               Hot
+            </Badge>
+          )}
+          {isOwnListing && (
+            <Badge className="bg-purple-500 text-white">
+              Your Listing
             </Badge>
           )}
         </div>
@@ -105,7 +112,7 @@ const BusinessCard = ({
       </CardContent>
       
       <CardFooter className="p-5 pt-0 mt-auto">
-        <Link to={`/listing/${id}`} className="w-full">
+        <Link to={`/business/${id}`} className="w-full">
           <Button variant="default" className="w-full bg-primary hover:bg-primary-light">
             View Details
           </Button>
