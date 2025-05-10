@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Info } from 'lucide-react';
@@ -38,7 +39,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Convert to MediaItem format - with correct typing
+  // Convert to MediaItem format with correct typing
   const items: MediaItem[] = [];
   
   // Add existing images first
@@ -255,7 +256,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     const updatedExistingImages: string[] = [];
     const updatedNewImages: MediaFile[] = [];
     
-    // Process each item
+    // Process each item - respecting the primary image as first position
     updatedItems.forEach(item => {
       if (item.id.startsWith('existing-image-')) {
         // Existing image - get URL
@@ -334,7 +335,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       <div className="bg-blue-50 border border-blue-200 rounded-md p-4 flex gap-3">
         <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-gray-700 space-y-1">
-          <p>• Images: Up to {maxImages} images, 1200px+ width recommended for best quality (5MB max)</p>
+          <p>• Images: Up to 10 images, 1200px+ width recommended for best quality (5MB max)</p>
           <p>• Video: One video file (MP4, 50MB max) or YouTube/Vimeo URL</p>
           <p>• First image is always the Primary Image</p>
           <p>• You can drag and drop to reorder images (video always stays in fixed position)</p>

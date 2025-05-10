@@ -2,7 +2,6 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import BusinessMediaUploader from '@/components/media-uploader';
 import { useFormData } from '@/contexts/FormDataContext';
 import AuthCheck from '@/components/auth/AuthCheck';
 import FormContainer from '@/components/submit/FormContainer';
@@ -12,6 +11,8 @@ import BusinessDescription from './BusinessDescription';
 import BusinessHighlights from './BusinessHighlights';
 import ContactInformation from './ContactInformation';
 import { useBusinessSubmission } from '@/hooks/useBusinessSubmission';
+import { MediaUpload } from '@/components/media-uploader';
+import DragContext from '@/components/media-uploader/DragContext';
 
 const Submit = () => {
   const { formData, updateFormData } = useFormData();
@@ -63,15 +64,14 @@ const Submit = () => {
                     Add photos and videos of your business. The first image will be your primary image
                     shown in search results. You can drag and drop to reorder images.
                   </p>
-                  <BusinessMediaUploader 
-                    initialImages={formData.businessImages}
-                    initialVideo={formData.businessVideo}
-                    initialVideoUrl={formData.businessVideoUrl}
-                    onImagesChange={(images) => updateFormData({ businessImages: images })}
-                    onVideoChange={(video) => updateFormData({ businessVideo: video })}
-                    onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
-                    maxImages={10}
-                  />
+                  <DragContext>
+                    <MediaUpload 
+                      onImagesChange={(images) => updateFormData({ businessImages: images })}
+                      onVideoChange={(video) => updateFormData({ businessVideo: video })}
+                      onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url || '' })}
+                      maxImages={10}
+                    />
+                  </DragContext>
                 </div>
 
                 <ContactInformation 

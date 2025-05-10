@@ -53,7 +53,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, []);
   
-  // Handle reordering of items with proper swapping
+  // Handle reordering of items with proper swapping - this is the key function that needs fixing
   const moveItem = useCallback((dragIndex: number, hoverIndex: number) => {
     // Don't allow moving to/from video slot (index 1)
     if (dragIndex === 1 || hoverIndex === 1) return;
@@ -70,11 +70,9 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     // Get the hover item (could be an empty slot)
     const hoverItem = newItems[hoverIndex];
     
-    // Remove the dragged item from its original position
-    newItems.splice(dragIndex, 1);
-    
-    // Insert the dragged item at the new position
-    newItems.splice(hoverIndex, 0, draggedItem);
+    // Perform a proper swap (not duplication)
+    newItems.splice(dragIndex, 1); // Remove dragged item
+    newItems.splice(hoverIndex, 0, draggedItem); // Insert at new position
     
     // Update primary status based on position
     // First image (index 0) is always primary
@@ -86,52 +84,11 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     onReorder(newItems);
   }, [items, onReorder]);
   
-  // Handle empty state
-  if (items.length === 0 || totalMediaCount === 0) {
-    return (
-      <TooltipProvider>
-        <div 
-          className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
-          onDragOver={e => e.preventDefault()}
-          onDrop={onDrop}
-        >
-          {/* Empty slots */}
-          {Array.from({ length: 12 }).map((_, i) => (
-            <MediaItem
-              key={`empty-slot-${i}`}
-              item={{
-                id: `empty-slot-${i}`,
-                type: 'empty',
-                preview: '',
-                isPrimary: i === 0,
-                isEmpty: true
-              }}
-              index={i}
-              moveItem={moveItem}
-              onDelete={() => {}}
-              isFixed={i === 1} // Slot 1 is fixed for video
-            />
-          ))}
-        </div>
-        
-        <div className="flex justify-center mt-4">
-          <Button 
-            variant="outline" 
-            onClick={onFileSelect} 
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" /> Select Files
-          </Button>
-        </div>
-      </TooltipProvider>
-    );
-  }
-  
   // Create a complete grid with empty slots where needed
   const completeGrid = [...items];
   
-  // Ensure we always have at least 12 slots (2 rows of 6)
-  while (completeGrid.length < 12) {
+  // Ensure we always have at least the required number of slots (2 rows of 6 - total 11 media slots)
+  while (completeGrid.length < 11) {
     completeGrid.push({
       id: `empty-slot-${completeGrid.length}`,
       type: 'empty',
@@ -145,7 +102,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     <TooltipProvider>
       <div className="space-y-4">
         <div 
-          className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
+          className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
           onDragOver={(e) => e.preventDefault()}
         >
           {completeGrid.map((item, index) => (
