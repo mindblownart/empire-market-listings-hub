@@ -85,24 +85,23 @@ const PreviewListing = () => {
             currencyCode={formData.currencyCode || 'USD'}
           />
           
-          {/* Media Gallery Section - Centered below hero */}
-          <MediaGallery 
-            galleryImages={galleryImages} 
-            videoURL={videoURL} 
-            autoplayVideo={true} 
-          />
-            
-          {/* Main content */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6">
-            {/* Left Column - Business Overview */}
-            <div className="md:col-span-2 space-y-8">
-              {/* Business Overview */}
+          {/* Revised layout with 2 columns starting right below the hero */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            {/* Left Column - Media Gallery and Business Overview */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Media Gallery exactly aligned with Business Overview */}
+              <MediaGallery 
+                galleryImages={galleryImages} 
+                videoURL={videoURL} 
+                autoplayVideo={true} 
+              />
+              
+              {/* Business Overview & Highlights */}
               <BusinessOverview description={formData.description} highlights={highlights} />
             </div>
             
-            {/* Right Column - Business Details */}
-            <div className="space-y-8">
-              {/* Business Details Card */}
+            {/* Right Column - Business Details & Contact Information */}
+            <div className="space-y-6">
               <BusinessDetails 
                 annualRevenue={formData.annualRevenue}
                 annualProfit={formData.annualProfit}
@@ -114,7 +113,6 @@ const PreviewListing = () => {
                 originalValues={formData.originalValues}
               />
               
-              {/* Contact Information */}
               <ContactInformation 
                 fullName={formData.fullName}
                 email={formData.email}
