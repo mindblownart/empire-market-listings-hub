@@ -5,20 +5,34 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SearchableSelect } from '@/components/ui/select';
-import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
+import { useSignup } from '@/hooks/useSignup';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Signup = () => {
+  // Form state
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [country, setCountry] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  
+  // Password visibility state
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [password, setPassword] = useState('');
+  
+  // Password strength state
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [passwordMessage, setPasswordMessage] = useState('');
   const [hasTyped, setHasTyped] = useState(false);
-  const [country, setCountry] = useState('');
+  
+  // Hook for signup functionality
+  const { signUp, isLoading, errors } = useSignup();
 
   // Country options with flag codes
   const countryOptions = [
@@ -112,6 +126,12 @@ const Signup = () => {
     return 'text-yellow-500';
   };
 
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    signUp(firstName, lastName, email, password, confirmPassword, country, acceptedTerms);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Logo placement at top left */}
@@ -128,21 +148,49 @@ const Signup = () => {
             <CardDescription>Enter your details to create your account</CardDescription>
           </CardHeader>
           <CardContent>
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="grid gap-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="first-name">First name</Label>
-                    <Input id="first-name" placeholder="John" />
+                    <Input 
+                      id="first-name" 
+                      placeholder="John" 
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className={errors.firstName ? 'border-red-500' : ''}
+                    />
+                    {errors.firstName && (
+                      <p className="text-xs text-red-500 mt-1">{errors.firstName}</p>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="last-name">Last name</Label>
-                    <Input id="last-name" placeholder="Doe" />
+                    <Input 
+                      id="last-name" 
+                      placeholder="Doe" 
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className={errors.lastName ? 'border-red-500' : ''}
+                    />
+                    {errors.lastName && (
+                      <p className="text-xs text-red-500 mt-1">{errors.lastName}</p>
+                    )}
                   </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="name@example.com" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="name@example.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={errors.email ? 'border-red-500' : ''}
+                  />
+                  {errors.email && (
+                    <p className="text-xs text-red-500 mt-1">{errors.email}</p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="password">Password</Label>
@@ -152,7 +200,7 @@ const Signup = () => {
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={handlePasswordChange}
-                      className={getPasswordBorderClass()}
+                      className={`${getPasswordBorderClass()} ${errors.password ? 'border-red-500' : ''}`}
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                       <TooltipProvider>
@@ -174,6 +222,9 @@ const Signup = () => {
                       </TooltipProvider>
                     </div>
                   </div>
+                  {errors.password && (
+                    <p className="text-xs text-red-500 mt-1">{errors.password}</p>
+                  )}
                   {hasTyped && (
                     <div className="mt-1">
                       <div className="flex justify-between items-center mb-1">
@@ -191,6 +242,9 @@ const Signup = () => {
                     <Input 
                       id="confirm-password" 
                       type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className={errors.confirmPassword ? 'border-red-500' : ''}
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                       <TooltipProvider>
@@ -212,6 +266,9 @@ const Signup = () => {
                       </TooltipProvider>
                     </div>
                   </div>
+                  {errors.confirmPassword && (
+                    <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>
+                  )}
                 </div>
 
                 {/* Country Dropdown */}
@@ -224,25 +281,45 @@ const Signup = () => {
                     placeholder="Select your country"
                     required
                   />
+                  {errors.country && (
+                    <p className="text-xs text-red-500 mt-1">{errors.country}</p>
+                  )}
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="terms" />
-                  <label
-                    htmlFor="terms"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    I agree to the{' '}
-                    <Link to="/terms" className="text-primary hover:text-primary-dark">
-                      terms of service
-                    </Link>{' '}
-                    and{' '}
-                    <Link to="/privacy" className="text-primary hover:text-primary-dark">
-                      privacy policy
-                    </Link>
-                  </label>
+                <div className="flex items-start space-x-2">
+                  <Checkbox 
+                    id="terms" 
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => setAcceptedTerms(!!checked)}
+                    className={errors.terms ? 'border-red-500' : ''}
+                  />
+                  <div>
+                    <label
+                      htmlFor="terms"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      I agree to the{' '}
+                      <Link to="/terms" className="text-primary hover:text-primary-dark">
+                        terms of service
+                      </Link>{' '}
+                      and{' '}
+                      <Link to="/privacy" className="text-primary hover:text-primary-dark">
+                        privacy policy
+                      </Link>
+                    </label>
+                    {errors.terms && (
+                      <p className="text-xs text-red-500 mt-1">{errors.terms}</p>
+                    )}
+                  </div>
                 </div>
-                <Button className="w-full bg-primary hover:bg-primary-light">Create account</Button>
+                
+                <Button 
+                  className="w-full bg-primary hover:bg-primary-light" 
+                  type="submit"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Creating account...' : 'Create account'}
+                </Button>
               </div>
             </form>
           </CardContent>

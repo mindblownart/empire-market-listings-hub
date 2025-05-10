@@ -12,7 +12,8 @@ import ListingDetail from "./pages/ListingDetail";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Submit from "./pages/submit/Submit";  // Updated path to correct location
+import SignupConfirmation from "./pages/SignupConfirmation";
+import Submit from "./pages/submit/Submit";
 import Pricing from "./pages/Pricing";
 import ForgotPassword from "./pages/ForgotPassword";
 import PrivacyTerms from "./pages/PrivacyTerms";
@@ -36,6 +37,7 @@ const App = () => {
                 <Route path="/listing/:id" element={<ListingDetail />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/signup-confirmation" element={<SignupConfirmation />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/submit" element={<Submit />} />
                 <Route path="/preview-listing" element={<PreviewListing />} />
