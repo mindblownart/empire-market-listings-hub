@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -11,22 +12,14 @@ import FinancialDetails from './submit/FinancialDetails';
 import BusinessDescription from './submit/BusinessDescription';
 import BusinessHighlights from './submit/BusinessHighlights';
 import ContactInformation from './submit/ContactInformation';
-import { useBusinessSubmission } from '@/hooks/useBusinessSubmission';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-// Helper function to convert URLs to File objects if needed
-const convertUrlsToFiles = async (urls: string[]): Promise<File[]> => {
-  // In edit mode, we keep strings as they are, since they are URLs of already uploaded files
-  return [] as File[];
-};
 
 const EditListing = () => {
   const { id } = useParams<{ id: string; }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { formData, updateFormData, resetFormData } = useFormData();
   const { validationErrors, validateField } = useBusinessSubmission();
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +30,11 @@ const EditListing = () => {
   // Fetch the listing data
   useEffect(() => {
     const fetchListing = async () => {
-      if (!id) return;
+      if (!id) {
+        setError('No listing ID provided');
+        setIsLoading(false);
+        return;
+      }
       
       try {
         setIsLoading(true);
@@ -62,7 +59,14 @@ const EditListing = () => {
           .single();
         
         if (error) {
+          console.error('Error fetching listing:', error);
           throw error;
+        }
+        
+        if (!listing) {
+          setError('Listing not found');
+          setIsLoading(false);
+          return;
         }
         
         // Check if the current user is the owner
@@ -77,7 +81,7 @@ const EditListing = () => {
         }
 
         // Store image URLs separately
-        if (listing.gallery_images) {
+        if (listing.gallery_images && Array.isArray(listing.gallery_images)) {
           setImageUrls(listing.gallery_images);
         }
         
@@ -101,7 +105,6 @@ const EditListing = () => {
           email: listing.contact_email || '',
           phone: listing.contact_phone || '',
           role: listing.contact_role || '',
-          // Keep the rest of the fields from the original formData
           originalValues: {
             askingPrice: listing.asking_price,
             annualRevenue: listing.annual_revenue,
@@ -171,7 +174,6 @@ const EditListing = () => {
       toast({
         title: "Listing updated successfully",
         description: "Your business listing has been updated.",
-        variant: "default",
       });
       
       // Navigate back to the listing detail page
@@ -186,6 +188,10 @@ const EditListing = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleBackClick = () => {
+    navigate(`/business/${id}`);
   };
 
   if (isLoading) {
@@ -232,13 +238,25 @@ const EditListing = () => {
         
         <div className="py-20 px-4">
           <div className="container mx-auto max-w-4xl">
+            <Button 
+              variant="ghost" 
+              onClick={handleBackClick}
+              className="mb-6 flex items-center gap-1"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back to Listing
+            </Button>
+            
             <h1 className="text-3xl font-bold mb-6 text-center">Edit Business Listing</h1>
             <p className="text-gray-600 mb-10 text-center max-w-2xl mx-auto">
               Update your business listing details below.
             </p>
             
             <div className="bg-white rounded-xl shadow-md p-8">
-              <FormContainer>
+              <FormContainer 
+                onSubmit={handleSubmit}
+                submitLabel={isSaving ? "Saving..." : "Save Changes"}
+                isSubmitting={isSaving}
+              >
                 <BusinessDetails 
                   formData={formData}
                   updateFormData={updateFormData}
@@ -293,6 +311,7 @@ const EditListing = () => {
                       onImagesChange={() => {}} // Disabled for now
                       onVideoChange={(video) => updateFormData({ businessVideo: video })}
                       onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url })}
+                      disableImageUpload={true}
                     />
                   </div>
                 </div>
@@ -301,16 +320,6 @@ const EditListing = () => {
                   formData={formData}
                   updateFormData={updateFormData}
                 />
-
-                <div className="pt-6 flex justify-center">
-                  <Button 
-                    onClick={handleSubmit} 
-                    disabled={isSaving}
-                    className="bg-primary hover:bg-primary-light px-10 py-2 text-lg transition-all"
-                  >
-                    {isSaving ? "Saving..." : "Save Changes"}
-                  </Button>
-                </div>
               </FormContainer>
             </div>
           </div>
