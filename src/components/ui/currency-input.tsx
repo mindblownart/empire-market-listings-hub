@@ -67,6 +67,7 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
   }, ref) => {
     // Store both raw value and formatted display value
     const [displayValue, setDisplayValue] = React.useState<string>("");
+    const [isFocused, setIsFocused] = React.useState<boolean>(false);
     const [isFirstMount, setIsFirstMount] = React.useState(true);
     const prevCurrencyRef = React.useRef<string>(currencyCode);
     const inputRef = React.useRef<HTMLInputElement>(null);
@@ -75,9 +76,15 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
     // Format the initial value when it changes externally
     React.useEffect(() => {
       if (value !== undefined) {
-        setDisplayValue(value ? formatNumberWithCommas(value, locale) : "");
+        // Only format when not focused
+        if (!isFocused) {
+          setDisplayValue(value ? formatNumberWithCommas(value, locale) : "");
+        } else {
+          // When focused, just use the raw value
+          setDisplayValue(value);
+        }
       }
-    }, [value, locale]);
+    }, [value, locale, isFocused]);
     
     // Handle currency code changes and perform conversion if needed
     React.useEffect(() => {
@@ -100,8 +107,12 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
           currencyCode
         );
         
-        // Update display value with proper formatting
-        setDisplayValue(convertedValue ? formatNumberWithCommas(convertedValue, locale) : "");
+        // Update display value with proper formatting (only if not focused)
+        if (!isFocused) {
+          setDisplayValue(convertedValue ? formatNumberWithCommas(convertedValue, locale) : "");
+        } else {
+          setDisplayValue(convertedValue);
+        }
         
         // Pass the raw numeric value to parent
         onChange(convertedValue);
@@ -110,56 +121,65 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
       // Store current currency for next comparison
       prevCurrencyRef.current = currencyCode;
       
-    }, [currencyCode, originalValue, originalCurrency, onChange, locale, isFirstMount]);
+    }, [currencyCode, originalValue, originalCurrency, onChange, locale, isFirstMount, isFocused]);
     
     // Handle input changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
       
-      // Remove all non-numeric characters except decimal point
-      const numericValue = unformatNumber(inputValue);
-      
-      // Validate: Allow empty string or valid number patterns with up to 2 decimal places
-      if (numericValue === "" || /^[0-9]+(\.[0-9]{0,2})?$/.test(numericValue)) {
-        // Update the display value with proper formatting
-        setDisplayValue(numericValue ? formatNumberWithCommas(numericValue, locale) : "");
-        
-        // Pass the raw numeric value to parent
-        onChange(numericValue);
+      // When editing, we work with the raw numeric input
+      // Allow decimal point and digits
+      if (/^[0-9]*\.?[0-9]*$/.test(inputValue) || inputValue === "") {
+        setDisplayValue(inputValue);
+        onChange(inputValue);
       }
     };
 
-    // Focus handler to select all text when focusing
+    // Focus handler
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(true);
+      
+      // When focusing, convert display value to raw numeric value
+      if (value) {
+        const rawValue = unformatNumber(value);
+        setDisplayValue(rawValue);
+      }
+      
       if (props.onFocus) props.onFocus(e);
-      e.target.select();
     };
 
-    // Cursor position management
-    React.useEffect(() => {
-      // Fix cursor position after number formatting
-      if (inputRef.current && document.activeElement === inputRef.current) {
-        // Keep cursor position adjustment functionality
+    // Blur handler
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false);
+      
+      // Format the value when input loses focus
+      if (displayValue) {
+        // Format with commas and decimals
+        const formattedValue = formatNumberWithCommas(displayValue, locale);
+        setDisplayValue(formattedValue);
       }
-    }, [displayValue]);
-    
-    // Get the currency prefix
-    const currencyPrefix = getCurrencyPrefix(currencyCode);
+      
+      if (props.onBlur) props.onBlur(e);
+    };
     
     return (
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-          {currencyPrefix}
-        </div>
+        {!isFocused && displayValue && (
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+            {getCurrencyPrefix(currencyCode)}
+          </div>
+        )}
         <Input
           {...props}
           ref={mergedRef}
           value={displayValue}
           onChange={handleChange}
           onFocus={handleFocus}
+          onBlur={handleBlur}
           inputMode="decimal"
-          className={`pl-[${currencyPrefix.length * 0.6 + 3}rem] ${className}`}
-          style={{ paddingLeft: `${currencyPrefix.length * 0.6 + 0.75}rem` }}
+          className={`${!isFocused && displayValue ? `pl-[${getCurrencyPrefix(currencyCode).length * 0.6 + 3}rem]` : ''} ${className}`}
+          style={!isFocused && displayValue ? { paddingLeft: `${getCurrencyPrefix(currencyCode).length * 0.6 + 0.75}rem` } : {}}
+          placeholder={props.placeholder || "Enter amount"}
         />
       </div>
     );
