@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -342,110 +341,105 @@ const Listings = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      {/* Fixed search and filter section that stays below the navbar */}
-      <div className="fixed top-[72px] left-0 right-0 bg-white shadow-md z-50 border-b border-gray-200">
-        <div className="container mx-auto px-4">
-          <div className="p-4 flex flex-wrap items-center gap-4">
-            <div className="relative w-full md:w-auto flex-grow">
-              <Input
-                type="search"
-                placeholder="Search listings..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </div>
-
-            <div className="w-full md:w-auto flex flex-wrap gap-2 md:ml-auto">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button 
-                variant="outline" 
-                onClick={toggleFilters}
-                className="flex items-center gap-2"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                Filters
-              </Button>
-            </div>
-          </div>
-
-          {/* Advanced Filters - Collapsible */}
-          {isFilterVisible && (
-            <div className="border-t border-gray-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(cat => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                <Select value={location} onValueChange={setLocation}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations.map(loc => (
-                      <SelectItem key={loc.value} value={loc.value}>
-                        {loc.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price Range: {formatPriceDisplay(priceRange[0])} - {formatPriceDisplay(priceRange[1])}
-                </label>
-                <Slider
-                  defaultValue={[0, maxPrice]}
-                  min={0}
-                  max={maxPrice}
-                  step={50000}
-                  value={priceRange}
-                  onValueChange={setPriceRange}
-                  className="py-4"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Main content with appropriate spacing from the fixed header */}
-      <main className="flex-grow pb-12 pt-24">
-        <div className="container mx-auto px-4">
+      {/* Main content with appropriate spacing */}
+      <main className="flex-grow pb-12">
+        <div className="container mx-auto px-4 mt-8">
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">Available Businesses</h1>
-            <p className="text-gray-600">Browse our curated selection of high-potential businesses for sale.</p>
-          </div>
+            <p className="text-gray-600 mb-8">Browse our curated selection of high-potential businesses for sale.</p>
+            
+            {/* Search and filter section moved below the subtitle */}
+            <div className="bg-white mb-10">
+              <div className="p-4 flex flex-wrap items-center gap-4">
+                <div className="relative w-full md:w-auto flex-grow">
+                  <Input
+                    type="search"
+                    placeholder="Search listings..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                </div>
 
-          {/* Add extra padding to account for the fixed filter bar */}
-          <div className="pt-[130px]">
+                <div className="w-full md:w-auto flex flex-wrap gap-2 md:ml-auto">
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sortOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Button 
+                    variant="outline" 
+                    onClick={toggleFilters}
+                    className="flex items-center gap-2"
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                    Filters
+                  </Button>
+                </div>
+              </div>
+
+              {/* Advanced Filters - Collapsible */}
+              {isFilterVisible && (
+                <div className="border-t border-gray-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <Select value={category} onValueChange={setCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(cat => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <Select value={location} onValueChange={setLocation}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locations.map(loc => (
+                          <SelectItem key={loc.value} value={loc.value}>
+                            {loc.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price Range: {formatPriceDisplay(priceRange[0])} - {formatPriceDisplay(priceRange[1])}
+                    </label>
+                    <Slider
+                      defaultValue={[0, maxPrice]}
+                      min={0}
+                      max={maxPrice}
+                      step={50000}
+                      value={priceRange}
+                      onValueChange={setPriceRange}
+                      className="py-4"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Listings Grid */}
             {currentItems.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
