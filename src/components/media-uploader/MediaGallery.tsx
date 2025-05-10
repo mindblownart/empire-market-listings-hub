@@ -91,8 +91,8 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     onDrop(e);
   }, [onDrop]);
 
-  // Create empty grid placeholders to ensure we always have 12 items (3x4 grid)
-  // Making sure video slot is always at index 1
+  // Create empty grid placeholders to ensure a clean grid layout
+  // Making sure we have a 2-row, 6-column grid with video slot fixed at index 1
   const ensureCompleteGrid = () => {
     const result = [...items];
     
@@ -114,7 +114,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
       }
     }
     
-    // Fill remaining slots with empty placeholders up to 12
+    // Fill remaining slots with empty placeholders up to 12 (2 rows of 6)
     while (result.length < 12) {
       result.push({
         id: `empty-slot-${result.length}-${Date.now()}`,
@@ -137,7 +137,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     return (
       <TooltipProvider>
         <div 
-          className={`grid grid-cols-3 sm:grid-cols-4 gap-3 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
+          className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
           onDragOver={e => e.preventDefault()}
           onDrop={onDrop}
         >
@@ -208,7 +208,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     <TooltipProvider>
       <div className="space-y-4">
         <div 
-          className={`grid grid-cols-3 sm:grid-cols-4 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
+          className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
           onDragOver={(e) => e.preventDefault()}
           style={{ minHeight: '200px' }}
         >

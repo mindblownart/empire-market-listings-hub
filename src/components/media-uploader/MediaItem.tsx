@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { MediaItem as MediaItemType, DragItem } from './types';
 import { cn } from '@/lib/utils';
-import { X, GripVertical, Play } from 'lucide-react';
+import { X, GripVertical, Play, Star } from 'lucide-react';
 
 interface MediaItemProps {
   item: MediaItemType;
@@ -49,21 +49,29 @@ const MediaItem: React.FC<MediaItemProps> = ({
       // Don't allow dropping into fixed position
       if (isFixed) return;
       
-      // Only perform the move when the mouse has crossed half of the item height
+      // Get the rectangle for the current hovering component
       const hoverBoundingRect = ref.current.getBoundingClientRect();
+      
+      // Get middle point of the hover rect
+      const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
       const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      
+      // Get the mouse position
       const clientOffset = monitor.getClientOffset();
       if (!clientOffset) return;
       
+      // Mouse positions relative to hover item
+      const hoverClientX = clientOffset.x - hoverBoundingRect.left;
       const hoverClientY = clientOffset.y - hoverBoundingRect.top;
       
-      // Dragging downwards
-      if (draggedItem.index < index && hoverClientY < hoverMiddleY) {
-        return;
-      }
-      
-      // Dragging upwards
-      if (draggedItem.index > index && hoverClientY > hoverMiddleY) {
+      // Exit if not crossing the middle
+      // This creates a more natural feel for swapping items
+      if (
+        (draggedItem.index < index && 
+          (hoverClientX < hoverMiddleX / 2 && hoverClientY < hoverMiddleY / 2)) ||
+        (draggedItem.index > index && 
+          (hoverClientX > hoverMiddleX * 1.5 && hoverClientY > hoverMiddleY * 1.5))
+      ) {
         return;
       }
       
@@ -78,18 +86,10 @@ const MediaItem: React.FC<MediaItemProps> = ({
     }),
   });
   
-  // Fix the reference issue by proper assignment - use ref callback pattern
+  // Fix the reference issue by proper assignment
   const dragDropRef = (node: HTMLDivElement | null) => {
-    // Apply the drag ref
-    if (!isFixed) {
-      drag(node);
-    }
-    // Apply the drop ref
-    drop(node);
-    // Set the ref value
-    if (ref.current !== node) {
-      ref.current = node;
-    }
+    drag(drop(node));
+    ref.current = node;
   };
   
   // Determine if this is an empty slot
@@ -165,8 +165,8 @@ const MediaItem: React.FC<MediaItemProps> = ({
       
       {/* Primary badge */}
       {item.isPrimary && (
-        <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full z-20">
-          Primary
+        <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full z-20 flex items-center gap-1">
+          <Star className="h-3 w-3" /> Primary
         </div>
       )}
       
@@ -177,11 +177,11 @@ const MediaItem: React.FC<MediaItemProps> = ({
         </div>
       )}
       
-      {/* Grip handle for draggable items */}
-      {!isFixed && (
-        <div className="absolute top-2 right-10 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="bg-black/70 rounded-full p-1.5 cursor-grab">
-            <GripVertical className="h-3.5 w-3.5 text-white" />
+      {/* Drag handle overlay on hover */}
+      {!isFixed && !isEmpty && (
+        <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors opacity-0 group-hover:opacity-100 flex items-center justify-center">
+          <div className="bg-black/50 rounded-full p-2">
+            <GripVertical className="h-6 w-6 text-white" />
           </div>
         </div>
       )}
@@ -193,13 +193,18 @@ const MediaItem: React.FC<MediaItemProps> = ({
           onDelete();
         }}
         className="absolute top-2 right-2 bg-red-500/90 hover:bg-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
+        aria-label="Delete"
       >
         <X className="h-3.5 w-3.5 text-white" />
       </button>
       
       {/* Drop indicator */}
       {isOver && !isDragging && !isFixed && (
-        <div className="absolute inset-0 bg-primary/10 border-2 border-primary border-dashed rounded-md z-10" />
+        <div className="absolute inset-0 bg-primary/10 border-2 border-primary border-dashed rounded-md z-10 flex items-center justify-center">
+          <div className="bg-primary/70 text-white px-3 py-1.5 rounded-full text-xs">
+            Drop Here
+          </div>
+        </div>
       )}
     </div>
   );

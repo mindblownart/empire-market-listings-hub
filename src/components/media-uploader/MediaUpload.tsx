@@ -1,7 +1,8 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Info } from 'lucide-react';
-import { MediaItem, MediaFile } from './types';
+import { MediaItem, MediaFile, VideoInfo } from './types';
 import { extractVideoInfo } from './video-utils';
 import MediaGallery from './MediaGallery';
 
@@ -162,8 +163,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           toast.warning('Maximum images reached', {
             description: `You can only upload up to ${maxImages} images`
           });
-          // Removed the invalid 'break' statement that was causing an error
-          return; // Use return instead to exit the current iteration
+          return; // Skip processing this file
         }
       } 
       // Process video
