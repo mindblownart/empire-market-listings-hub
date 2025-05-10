@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,8 +9,9 @@ import { Link } from 'react-router-dom';
 import BusinessCard from '@/components/BusinessCard';
 import Navbar from '@/components/Navbar';
 import HomeFooter from '@/components/HomeFooter';
-import { supabase } from '@/integrations/supabase/client'; // Updated import to use the client from integrations
+import { supabase } from '@/integrations/supabase/client';
 import { BusinessListing } from '@/types/supabase';
+import { useToast } from '@/components/ui/use-toast';
 
 // Categories and locations for filtering
 const categories = [{
@@ -83,6 +83,7 @@ const Listings = () => {
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userSession, setUserSession] = useState(null);
+  const { toast } = useToast();
   const itemsPerPage = 9;
   const maxPrice = 2000000;
 
@@ -106,56 +107,67 @@ const Listings = () => {
   }, []);
 
   // Fetch businesses from Supabase
-  useEffect(() => {
-    const fetchBusinesses = async () => {
-      setIsLoading(true);
-      try {
-        // Modified query to include all published listings OR the user's own listings
-        let query = supabase.from('business_listings').select('*');
-        
-        // If user is logged in, get published listings OR their own listings
-        // If not logged in, only get published listings
-        if (userSession) {
-          query = query.or(`is_published.eq.true,user_id.eq.${userSession.user.id}`);
-        } else {
-          query = query.eq('is_published', true);
-        }
-        
-        const { data, error } = await query;
-        
-        if (error) {
-          console.error('Error fetching business listings:', error);
-          setBusinesses([]);
-        } else if (data && data.length > 0) {
-          // Map the business listings to match the BusinessCard component props
-          const mappedBusinesses = data.map(listing => ({
-            id: listing.id,
-            title: listing.business_name,
-            price: listing.asking_price,
-            description: listing.description,
-            category: listing.category,
-            location: listing.location,
-            revenue: listing.annual_revenue,
-            imageUrl: listing.primary_image_url || '/placeholder.svg',
-            currencyCode: listing.currency_code,
-            isNew: listing.is_new,
-            isHot: listing.is_hot,
-            // Add a property to indicate if this is the current user's listing
-            isOwnListing: userSession && listing.user_id === userSession.user.id
-          }));
-          
-          setBusinesses(mappedBusinesses);
-        } else {
-          setBusinesses([]);
-        }
-      } catch (error) {
-        console.error('Error fetching business listings:', error);
-        setBusinesses([]);
-      } finally {
-        setIsLoading(false);
+  const fetchBusinesses = async () => {
+    setIsLoading(true);
+    try {
+      // Modified query to include all published listings OR the user's own listings
+      let query = supabase.from('business_listings').select('*');
+      
+      // If user is logged in, get published listings OR their own listings
+      // If not logged in, only get published listings
+      if (userSession) {
+        query = query.or(`is_published.eq.true,user_id.eq.${userSession.user.id}`);
+      } else {
+        query = query.eq('is_published', true);
       }
-    };
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching business listings:', error);
+        toast({
+          title: "Error loading listings",
+          description: "There was a problem loading the business listings. Please try again.",
+          variant: "destructive",
+        });
+        setBusinesses([]);
+      } else if (data && data.length > 0) {
+        // Map the business listings to match the BusinessCard component props
+        const mappedBusinesses = data.map(listing => ({
+          id: listing.id,
+          title: listing.business_name,
+          price: listing.asking_price,
+          description: listing.description,
+          category: listing.category,
+          location: listing.location,
+          revenue: listing.annual_revenue,
+          imageUrl: listing.primary_image_url || '/placeholder.svg',
+          currencyCode: listing.currency_code,
+          isNew: listing.is_new,
+          isHot: listing.is_hot,
+          // Add a property to indicate if this is the current user's listing
+          isOwnListing: userSession && listing.user_id === userSession.user.id,
+          userId: listing.user_id
+        }));
+        
+        setBusinesses(mappedBusinesses);
+      } else {
+        setBusinesses([]);
+      }
+    } catch (error) {
+      console.error('Error fetching business listings:', error);
+      toast({
+        title: "Error loading listings",
+        description: "There was a problem loading the business listings. Please try again.",
+        variant: "destructive",
+      });
+      setBusinesses([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBusinesses();
   }, [userSession]); // Re-fetch when user session changes
 
@@ -417,14 +429,13 @@ const Listings = () => {
                     {/* Listings Grid */}
                     {currentItems.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {currentItems.map(business => {
-                          // Add visual indicator for own listings
-                          const businessWithBadge = { 
-                            ...business,
-                            // Optional: add a badge or indicator for own listings
-                          };
-                          return <BusinessCard key={business.id} {...businessWithBadge} />;
-                        })}
+                        {currentItems.map(business => (
+                          <BusinessCard 
+                            key={business.id} 
+                            {...business} 
+                            onDelete={fetchBusinesses} 
+                          />
+                        ))}
                       </div>
                     ) : (
                       <div className="text-center py-16 bg-gray-50 rounded-lg">

@@ -1,25 +1,39 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { BusinessHeader, BusinessOverview, BusinessDetails, MediaGallery, ContactInformation } from '@/components/preview';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Edit, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessListing } from '@/types/supabase';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const ListingDetail = () => {
   const { id } = useParams<{ id: string; }>();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [isCurrentUserOwner, setIsCurrentUserOwner] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Log the ID to confirm it's defined
   console.log('Listing ID:', id);
 
   // Fetch business listing data from Supabase
-  const { data: business, isLoading, error } = useQuery({
+  const { data: business, isLoading, error, refetch } = useQuery({
     queryKey: ['business', id],
     queryFn: async () => {
       if (!id) throw new Error('Listing ID is not defined');
@@ -39,6 +53,55 @@ const ListingDetail = () => {
     },
     enabled: !!id,
   });
+
+  // Check if current user is the owner of the listing
+  useEffect(() => {
+    const checkOwnership = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && business) {
+        setIsCurrentUserOwner(session.user.id === business.user_id);
+      } else {
+        setIsCurrentUserOwner(false);
+      }
+    };
+    
+    checkOwnership();
+  }, [business]);
+
+  // Handle delete listing
+  const handleDelete = async () => {
+    if (!id) return;
+    
+    try {
+      setIsDeleting(true);
+      const { error } = await supabase
+        .from('business_listings')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Listing deleted successfully",
+        description: "Your business listing has been removed.",
+        variant: "default",
+      });
+      
+      navigate('/listings');
+    } catch (error) {
+      console.error('Error deleting listing:', error);
+      toast({
+        title: "Error deleting listing",
+        description: "There was a problem deleting your listing. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   // Show error toast if there was a problem fetching the data
   useEffect(() => {
@@ -106,6 +169,28 @@ const ListingDetail = () => {
             <span>Back to Listings</span>
           </Link>
           
+          {/* Owner Actions */}
+          {isCurrentUserOwner && (
+            <div className="flex justify-end gap-3 mb-4">
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={() => navigate(`/edit-listing/${id}`)}
+              >
+                <Edit className="h-4 w-4" />
+                Edit Listing
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Listing
+              </Button>
+            </div>
+          )}
+          
           {/* 1. Hero Section with Business Header and Asking Price */}
           <div className="mb-6">
             <BusinessHeader 
@@ -163,6 +248,28 @@ const ListingDetail = () => {
       </main>
       
       <Footer />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this listing?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your business listing.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-500 text-white hover:bg-red-600"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

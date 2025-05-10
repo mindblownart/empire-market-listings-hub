@@ -15,6 +15,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import SignupConfirmation from "./pages/SignupConfirmation";
 import Submit from "./pages/submit/Submit";
+import EditListing from "./pages/EditListing"; // Import the new EditListing page
 import Pricing from "./pages/Pricing";
 import ForgotPassword from "./pages/ForgotPassword";
 import PrivacyTerms from "./pages/PrivacyTerms";
@@ -38,6 +39,7 @@ const App = () => {
                 <Route path="/listings" element={<Listings />} />
                 <Route path="/listing/:id" element={<ListingDetail />} />
                 <Route path="/business/:id" element={<ListingDetail />} />
+                <Route path="/edit-listing/:id" element={<EditListing />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/signup-confirmation" element={<SignupConfirmation />} />
