@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -341,6 +342,101 @@ const Listings = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
+      {/* Fixed search and filter section that stays below the navbar */}
+      <div className="fixed top-[72px] left-0 right-0 bg-white shadow-md z-50 border-b border-gray-200">
+        <div className="container mx-auto px-4">
+          <div className="p-4 flex flex-wrap items-center gap-4">
+            <div className="relative w-full md:w-auto flex-grow">
+              <Input
+                type="search"
+                placeholder="Search listings..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </div>
+
+            <div className="w-full md:w-auto flex flex-wrap gap-2 md:ml-auto">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button 
+                variant="outline" 
+                onClick={toggleFilters}
+                className="flex items-center gap-2"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
+              </Button>
+            </div>
+          </div>
+
+          {/* Advanced Filters - Collapsible */}
+          {isFilterVisible && (
+            <div className="border-t border-gray-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(cat => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <Select value={location} onValueChange={setLocation}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locations.map(loc => (
+                      <SelectItem key={loc.value} value={loc.value}>
+                        {loc.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price Range: {formatPriceDisplay(priceRange[0])} - {formatPriceDisplay(priceRange[1])}
+                </label>
+                <Slider
+                  defaultValue={[0, maxPrice]}
+                  min={0}
+                  max={maxPrice}
+                  step={50000}
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  className="py-4"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main content with appropriate spacing from the fixed header */}
       <main className="flex-grow pb-12 pt-24">
         <div className="container mx-auto px-4">
           <div className="mb-8">
@@ -348,139 +444,50 @@ const Listings = () => {
             <p className="text-gray-600">Browse our curated selection of high-potential businesses for sale.</p>
           </div>
 
-          {/* Search and Filter Section with enhanced sticky positioning */}
-          <div className="bg-white sticky top-[72px] z-50 rounded-lg shadow-md mb-8 border-b border-gray-100">
-            <div className="p-4 flex flex-wrap items-center gap-4">
-              <div className="relative w-full md:w-auto flex-grow">
-                <Input
-                  type="search"
-                  placeholder="Search listings..."
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              </div>
-
-              <div className="w-full md:w-auto flex flex-wrap gap-2 md:ml-auto">
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Button 
-                  variant="outline" 
-                  onClick={toggleFilters}
-                  className="flex items-center gap-2"
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                  Filters
-                </Button>
-              </div>
-            </div>
-
-            {/* Advanced Filters - Collapsible */}
-            {isFilterVisible && (
-              <div className="border-t border-gray-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(cat => (
-                        <SelectItem key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                  <Select value={location} onValueChange={setLocation}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {locations.map(loc => (
-                        <SelectItem key={loc.value} value={loc.value}>
-                          {loc.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Price Range: {formatPriceDisplay(priceRange[0])} - {formatPriceDisplay(priceRange[1])}
-                  </label>
-                  <Slider
-                    defaultValue={[0, maxPrice]}
-                    min={0}
-                    max={maxPrice}
-                    step={50000}
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    className="py-4"
+          {/* Add extra padding to account for the fixed filter bar */}
+          <div className="pt-[130px]">
+            {/* Listings Grid */}
+            {currentItems.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {currentItems.map(business => (
+                  <BusinessCard
+                    key={business.id}
+                    {...business}
                   />
-                </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-gray-50 rounded-lg">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No listings found</h3>
+                <p className="text-gray-600">
+                  No listings match your search. Try adjusting filters or check back later.
+                </p>
               </div>
             )}
+
+            {/* Pagination */}
+            {filteredBusinesses.length > 0 && (
+              <Pagination className="mt-8">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  
+                  {getPaginationItems()}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
           </div>
-
-          {/* Listings Grid */}
-          {currentItems.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentItems.map(business => (
-                <BusinessCard
-                  key={business.id}
-                  {...business}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No listings found</h3>
-              <p className="text-gray-600">
-                No listings match your search. Try adjusting filters or check back later.
-              </p>
-            </div>
-          )}
-
-          {/* Pagination */}
-          {filteredBusinesses.length > 0 && (
-            <Pagination className="mt-8">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-                
-                {getPaginationItems()}
-                
-                <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          )}
         </div>
       </main>
 
