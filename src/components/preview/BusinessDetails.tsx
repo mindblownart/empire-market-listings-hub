@@ -2,11 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/formatters';
-import { MapPin, Building, Calendar, Users, AlertTriangle, DollarSign } from 'lucide-react';
+import { MapPin, Building, Calendar, Users, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface BusinessDetailsProps {
-  askingPrice?: string;
   annualRevenue?: string;
   annualProfit?: string;
   currencyCode: string;
@@ -22,7 +21,6 @@ interface BusinessDetailsProps {
 }
 
 export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
-  askingPrice,
   annualRevenue,
   annualProfit,
   currencyCode,
@@ -76,16 +74,6 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
       </CardHeader>
       <CardContent className="pt-4 pb-4">
         <dl className="space-y-3">
-          {askingPrice && (
-            <div className="flex items-center">
-              <dt className="flex items-center w-1/2 text-gray-500">
-                <DollarSign className="h-4 w-4 mr-2" /> Asking Price
-              </dt>
-              <dd className="w-1/2 font-medium text-blue-600">
-                {formatCurrency(askingPrice || '0', currencyCode)}
-              </dd>
-            </div>
-          )}
           <div className="flex items-center">
             <dt className="flex items-center w-1/2 text-gray-500">
               <MapPin className="h-4 w-4 mr-2" /> Annual Revenue

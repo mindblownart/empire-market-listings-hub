@@ -4,6 +4,7 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin } from 'lucide-react';
+import { formatCurrency } from '@/lib/formatters';
 
 interface BusinessHeaderProps {
   businessName: string;
@@ -11,6 +12,8 @@ interface BusinessHeaderProps {
   locationName?: string;
   flagCode?: string;
   primaryImage?: string;
+  askingPrice?: string;
+  currencyCode?: string;
 }
 
 export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
@@ -19,6 +22,8 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   locationName,
   flagCode,
   primaryImage,
+  askingPrice,
+  currencyCode = 'USD',
 }) => {
   // Render hero banner with image or fallback card
   if (primaryImage) {
@@ -52,6 +57,18 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
               </div>
             )}
           </div>
+          
+          {/* Asking Price Box */}
+          {askingPrice && (
+            <div className="absolute top-8 right-8">
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <div className="text-sm font-medium text-gray-600">Asking Price</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {formatCurrency(askingPrice, currencyCode)}
+                </div>
+              </div>
+            </div>
+          )}
         </AspectRatio>
       </div>
     );
@@ -60,7 +77,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   // Fallback card header when no image is available
   return (
     <Card className="mb-8 shadow-md">
-      <CardHeader>
+      <CardHeader className="relative">
         <Badge className="w-fit mb-2">{industry || 'Uncategorized'}</Badge>
         <CardTitle className="text-2xl">{businessName || 'Unnamed Business'}</CardTitle>
         {locationName && (
@@ -78,6 +95,18 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
               )}
               {locationName}
             </span>
+          </div>
+        )}
+        
+        {/* Asking Price Box */}
+        {askingPrice && (
+          <div className="absolute top-4 right-4">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="text-sm font-medium text-gray-600">Asking Price</div>
+              <div className="text-xl font-bold text-blue-600">
+                {formatCurrency(askingPrice, currencyCode)}
+              </div>
+            </div>
           </div>
         )}
       </CardHeader>

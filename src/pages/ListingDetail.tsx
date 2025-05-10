@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/formatters';
 import { 
   BusinessHeader, 
   BusinessOverview, 
@@ -80,9 +79,9 @@ const ListingDetail = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow pt-20 px-4">
+      <main className="flex-grow pt-20 px-4 pb-12">
         <div className="container mx-auto max-w-7xl">
-          {/* 1. Hero Section with Business Header */}
+          {/* 1. Hero Section with Business Header and Asking Price */}
           <div className="mb-6">
             <BusinessHeader 
               businessName={business.title}
@@ -90,11 +89,13 @@ const ListingDetail = () => {
               locationName={business.location}
               flagCode={business.flagCode}
               primaryImage={business.primaryImage}
+              askingPrice={business.price}
+              currencyCode={business.currencyCode}
             />
           </div>
           
           {/* 2. Media Gallery Section - Compact height */}
-          <div className="mb-6">
+          <div className="my-6">
             <MediaGallery 
               galleryImages={business.galleryImages}
               videoURL={business.videoURL}
@@ -102,20 +103,19 @@ const ListingDetail = () => {
             />
           </div>
           
-          {/* 3. Restructured Content Sections - Two column layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+          {/* 3. Two-column layout for content */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left Column (8/12) - Business Overview & Highlights */}
-            <div className="lg:col-span-8 space-y-6">
+            <div className="lg:col-span-7 xl:col-span-8 space-y-6">
               <BusinessOverview 
                 description={business.description}
                 highlights={business.highlights}
               />
             </div>
             
-            {/* Right Column (4/12) - Business Details, Contact, & CTA button */}
-            <div className="lg:col-span-4 space-y-6">
+            {/* Right Column (4/12) - Business Details & Contact Information */}
+            <div className="lg:col-span-5 xl:col-span-4 space-y-6">
               <BusinessDetails 
-                askingPrice={business.price}
                 annualRevenue={business.revenue}
                 annualProfit={business.profit}
                 currencyCode={business.currencyCode}
@@ -132,8 +132,8 @@ const ListingDetail = () => {
                 role={business.sellerInfo.role}
               />
               
-              {/* Contact Seller Button - Bottom right */}
-              <Button className="w-full bg-[#9b87f5] hover:bg-[#8673e0] py-2 h-auto text-white font-medium">
+              {/* Contact Seller Button */}
+              <Button className="w-full bg-[#9b87f5] hover:bg-[#8673e0] py-6 h-auto text-white text-lg font-medium">
                 Contact Seller
               </Button>
             </div>
