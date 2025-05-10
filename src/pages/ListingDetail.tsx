@@ -22,7 +22,7 @@ const businessesData = {
     established: '2015',
     employees: '12',
     currencyCode: 'USD',
-    primaryImage: 'public/lovable-uploads/8762974f-66a2-45ad-a90a-b43bb0c00331.png',
+    primaryImage: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     galleryImages: ['https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'],
     videoURL: null,
     sellerInfo: {
@@ -58,6 +58,9 @@ const ListingDetail = () => {
       </div>;
   }
 
+  // Use the first image from the gallery as the primary image if not explicitly set
+  const heroImage = business.primaryImage || (business.galleryImages.length > 0 ? business.galleryImages[0] : undefined);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -66,7 +69,15 @@ const ListingDetail = () => {
         <div className="container mx-auto max-w-7xl">
           {/* 1. Hero Section with Business Header and Asking Price */}
           <div className="mb-6">
-            <BusinessHeader businessName={business.title} industry={business.category} locationName={business.location} flagCode={business.flagCode} primaryImage={business.primaryImage} askingPrice={business.price} currencyCode={business.currencyCode} />
+            <BusinessHeader 
+              businessName={business.title} 
+              industry={business.category} 
+              locationName={business.location} 
+              flagCode={business.flagCode} 
+              primaryImage={heroImage} 
+              askingPrice={business.price} 
+              currencyCode={business.currencyCode} 
+            />
           </div>
           
           {/* Revised layout with 2 columns starting right below the hero */}

@@ -28,14 +28,15 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   // Render hero banner with image or fallback card
   if (primaryImage) {
     return (
-      <div className="w-full overflow-hidden rounded-lg shadow-md">
-        <AspectRatio ratio={21/9} className="bg-gray-200">
+      <div className="w-full overflow-hidden rounded-lg shadow-md relative">
+        <AspectRatio ratio={21/9} className="bg-gradient-to-b from-gray-700 to-gray-900">
           <img 
             src={primaryImage} 
             alt={businessName || 'Business banner'} 
             className="w-full h-full object-cover"
+            loading="eager" // Use eager loading for the hero image
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
           <div className="absolute bottom-8 left-8">
             <Badge className="mb-2 bg-blue-600">{industry || 'Uncategorized'}</Badge>
             <h1 className="text-4xl font-bold text-white mb-2">{businessName || 'Unnamed Business'}</h1>
