@@ -1,5 +1,4 @@
-
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import MediaItem from './MediaItem';
 import VideoPreviewModal from './VideoPreviewModal';
 import { extractVideoInfo } from './video-utils';
@@ -55,151 +54,163 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   const totalMediaCount = totalImageCount + (hasVideo ? 1 : 0);
   
   // Convert images and newImages to MediaItemType format
-  const [mediaItems, setMediaItems] = React.useState<MediaItemType[]>([]);
+  const [mediaItems, setMediaItems] = useState<MediaItemType[]>([]);
   
   // Update media items when props change
-  React.useEffect(() => {
-    const items: MediaItemType[] = [];
-    
-    // Always add primary slot first (either with image or empty)
-    if (images.length > 0) {
-      items.push({
-        id: `existing-image-0`,
-        type: 'image',
-        preview: images[0],
-        isPrimary: true,
-        originalIndex: 0,
-        isNew: false
-      });
-    } else if (newImages.length > 0) {
-      const mediaFile = newImages[0] as MediaFile;
-      if (!mediaFile.id) {
-        mediaFile.id = `new-image-0-${Date.now()}`;
-      }
+  useEffect(() => {
+    const buildMediaItems = () => {
+      const items: MediaItemType[] = [];
       
-      items.push({
-        id: `new-image-0`,
-        type: 'image',
-        file: mediaFile,
-        preview: URL.createObjectURL(mediaFile),
-        isPrimary: true,
-        originalIndex: 0,
-        isNew: true
-      });
-    } else {
-      // Add empty primary slot
-      items.push({
-        id: 'empty-primary-slot',
-        type: 'image',
-        isEmpty: true,
-        preview: '',
-        isPrimary: true,
-        isNew: false
-      });
-    }
-    
-    // Always add video slot second (either with video or empty)
-    if (videoUrl) {
-      const videoInfo = extractVideoInfo(videoUrl);
-      items.push({
-        id: 'existing-video',
-        type: 'video',
-        url: videoUrl,
-        preview: videoInfo.platform && videoInfo.id 
-          ? `https://img.youtube.com/vi/${videoInfo.id}/hqdefault.jpg`
-          : '',
-        videoInfo,
-        isNew: false
-      });
-    } else if (newVideo) {
-      const mediaFile = newVideo as MediaFile;
-      if (!mediaFile.id) {
-        mediaFile.id = `new-video-${Date.now()}`;
-      }
-      
-      items.push({
-        id: 'new-video',
-        type: 'video',
-        file: mediaFile,
-        preview: URL.createObjectURL(newVideo),
-        videoInfo: { platform: 'file', id: null },
-        isNew: true
-      });
-    } else {
-      // Add empty video slot
-      items.push({
-        id: 'empty-video-slot',
-        type: 'video',
-        isEmpty: true,
-        preview: '',
-        videoInfo: { platform: null, id: null },
-        isNew: false
-      });
-    }
-    
-    // Add remaining existing images (skipping the first one)
-    if (images.length > 1) {
-      for (let i = 1; i < images.length; i++) {
+      // Always add primary slot first (either with image or empty)
+      if (images.length > 0) {
         items.push({
-          id: `existing-image-${i}`,
+          id: `existing-image-0`,
           type: 'image',
-          preview: images[i],
-          isPrimary: false,
-          originalIndex: i,
+          preview: images[0],
+          isPrimary: true,
+          originalIndex: 0,
           isNew: false
         });
-      }
-    }
-    
-    // Add remaining new images (skipping the first one if it was added as primary)
-    if (newImages.length > 0) {
-      const startIdx = images.length > 0 ? 0 : 1; // Skip first new image if it became primary
-      for (let i = startIdx; i < newImages.length; i++) {
-        const mediaFile = newImages[i] as MediaFile;
+      } else if (newImages.length > 0) {
+        const mediaFile = newImages[0] as MediaFile;
         if (!mediaFile.id) {
-          mediaFile.id = `new-image-${i}-${Date.now()}`;
+          mediaFile.id = `new-image-0-${Date.now()}`;
         }
         
         items.push({
-          id: `new-image-${i}`,
+          id: `new-image-0`,
           type: 'image',
           file: mediaFile,
-          preview: URL.createObjectURL(newImages[i]),
-          isPrimary: false,
-          originalIndex: i,
+          preview: URL.createObjectURL(mediaFile),
+          isPrimary: true,
+          originalIndex: 0,
           isNew: true
         });
+      } else {
+        // Add empty primary slot
+        items.push({
+          id: 'empty-primary-slot',
+          type: 'image',
+          isEmpty: true,
+          preview: '',
+          isPrimary: true,
+          isNew: false
+        });
       }
-    }
+      
+      // Always add video slot second (either with video or empty)
+      if (videoUrl) {
+        const videoInfo = extractVideoInfo(videoUrl);
+        items.push({
+          id: 'existing-video',
+          type: 'video',
+          url: videoUrl,
+          preview: videoInfo.platform && videoInfo.id 
+            ? `https://img.youtube.com/vi/${videoInfo.id}/hqdefault.jpg`
+            : '',
+          videoInfo,
+          isNew: false
+        });
+      } else if (newVideo) {
+        const mediaFile = newVideo as MediaFile;
+        if (!mediaFile.id) {
+          mediaFile.id = `new-video-${Date.now()}`;
+        }
+        
+        items.push({
+          id: 'new-video',
+          type: 'video',
+          file: mediaFile,
+          preview: URL.createObjectURL(newVideo),
+          videoInfo: { platform: 'file', id: null },
+          isNew: true
+        });
+      } else {
+        // Add empty video slot
+        items.push({
+          id: 'empty-video-slot',
+          type: 'video',
+          isEmpty: true,
+          preview: '',
+          videoInfo: { platform: null, id: null },
+          isNew: false
+        });
+      }
+      
+      // Add remaining existing images (skipping the first one)
+      if (images.length > 1) {
+        for (let i = 1; i < images.length; i++) {
+          items.push({
+            id: `existing-image-${i}`,
+            type: 'image',
+            preview: images[i],
+            isPrimary: false,
+            originalIndex: i,
+            isNew: false
+          });
+        }
+      }
+      
+      // Add remaining new images (skipping the first one if it was added as primary)
+      if (newImages.length > 0) {
+        const startIdx = images.length > 0 ? 0 : 1; // Skip first new image if it became primary
+        for (let i = startIdx; i < newImages.length; i++) {
+          const mediaFile = newImages[i] as MediaFile;
+          if (!mediaFile.id) {
+            mediaFile.id = `new-image-${i}-${Date.now()}`;
+          }
+          
+          items.push({
+            id: `new-image-${i}`,
+            type: 'image',
+            file: mediaFile,
+            preview: URL.createObjectURL(newImages[i]),
+            isPrimary: false,
+            originalIndex: i,
+            isNew: true
+          });
+        }
+      }
+      
+      // Always add empty slots to reach exactly 11 total slots (10 images + 1 video)
+      const currentItemCount = items.length;
+      const emptySlots = Math.max(0, 11 - currentItemCount);
+      
+      for (let i = 0; i < emptySlots; i++) {
+        items.push({
+          id: `empty-slot-${i}-${Date.now()}`,
+          type: 'empty',
+          isEmpty: true,
+          preview: '',
+          isNew: false
+        });
+      }
+      
+      // Ensure we have exactly 11 slots total (trim if needed)
+      return items.slice(0, 11);
+    };
     
-    // Always add empty slots to reach exactly 11 total slots (10 images + 1 video)
-    const currentItemCount = items.length;
-    const emptySlots = Math.max(0, 11 - currentItemCount);
-    
-    for (let i = 0; i < emptySlots; i++) {
-      items.push({
-        id: `empty-slot-${i}-${Date.now()}`,
-        type: 'empty',
-        isEmpty: true,
-        preview: '',
-        isNew: false
-      });
-    }
-    
-    // Ensure we have exactly 11 slots total (trim if needed)
-    const finalItems = items.slice(0, 11);
-    setMediaItems(finalItems);
+    const newMediaItems = buildMediaItems();
+    setMediaItems(newMediaItems);
     
     // Cleanup function for URL.createObjectURL
     return () => {
       newImages.forEach(file => {
         if (file instanceof File) {
-          URL.revokeObjectURL(URL.createObjectURL(file));
+          try {
+            URL.revokeObjectURL(URL.createObjectURL(file));
+          } catch (e) {
+            // Ignore revocation errors
+          }
         }
       });
       
       if (newVideo) {
-        URL.revokeObjectURL(URL.createObjectURL(newVideo));
+        try {
+          URL.revokeObjectURL(URL.createObjectURL(newVideo));
+        } catch (e) {
+          // Ignore revocation errors
+        }
       }
     };
   }, [images, newImages, videoUrl, newVideo]);
@@ -227,35 +238,46 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   };
   
   // Handle reordering of items
-  const moveItem = (dragIndex: number, hoverIndex: number) => {
+  const moveItem = useCallback((dragIndex: number, hoverIndex: number) => {
     // Don't allow moving to/from video slot (index 1)
     if (dragIndex === 1 || hoverIndex === 1) return;
     
-    const draggedItem = mediaItems[dragIndex];
-    if (draggedItem.type === 'empty') return;
-    
     setMediaItems(prevItems => {
+      // Create a new array to avoid direct mutation
       const newItems = [...prevItems];
+      
+      // Get the item being dragged
+      const draggedItem = newItems[dragIndex];
+      if (draggedItem.type === 'empty') return prevItems;
+      
+      // Remove the item from its original position
       newItems.splice(dragIndex, 1);
+      
+      // Insert the item at the new position
       newItems.splice(hoverIndex, 0, draggedItem);
       
-      // If we're moving to/from the primary slot (index 0), update isPrimary flag
+      // Update primary status based on position
       if (hoverIndex === 0 || dragIndex === 0) {
-        // The item that's now in the primary slot becomes primary
-        newItems[0] = { ...newItems[0], isPrimary: true };
+        // First, ensure no item is primary
+        newItems.forEach(item => {
+          if (item.isPrimary) {
+            item.isPrimary = false;
+          }
+        });
         
-        // If we moved the primary item elsewhere, it's no longer primary
-        if (dragIndex === 0) {
-          draggedItem.isPrimary = false;
+        // Then set the first item as primary
+        if (newItems[0].type === 'image' && !newItems[0].isEmpty) {
+          newItems[0].isPrimary = true;
         }
       }
       
+      // Update parent components if needed
       if (onReorderImages || onReorderNewImages) {
         const existingImages: string[] = [];
         const newImageFiles: File[] = [];
         
-        // Collect reordered images - primary is always first in result array
-        newItems.forEach((item, idx) => {
+        // Collect reordered images
+        newItems.forEach(item => {
           if (item.type === 'image' && !item.isEmpty) {
             if (!item.isNew && item.preview) {
               existingImages.push(item.preview);
@@ -265,38 +287,44 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
           }
         });
         
-        // Update parent components if needed
+        // Update parent components
         if (onReorderImages) onReorderImages([...existingImages]);
         if (onReorderNewImages) onReorderNewImages(newImageFiles);
         
-        // Update primary image index if it changed
-        if (onSetPrimaryImage) {
-          const primaryItem = newItems[0];
-          if (primaryItem.type === 'image' && !primaryItem.isEmpty) {
-            let primaryIndex = primaryItem.originalIndex;
+        // Update primary image index
+        if (onSetPrimaryImage && newItems[0].type === 'image' && !newItems[0].isEmpty) {
+          let primaryIndex = 0;
+          
+          // Find the primary image index relative to its origin array
+          if (!newItems[0].isNew && newItems[0].originalIndex !== undefined) {
+            primaryIndex = newItems[0].originalIndex;
+          } else if (newItems[0].isNew && newItems[0].file) {
+            const mediaFile = newItems[0].file as MediaFile;
+            const newImagesWithIds = newImages.map((file, idx) => {
+              const typedFile = file as MediaFile;
+              return { file: typedFile, id: typedFile.id || `new-image-${idx}`, index: idx };
+            });
             
-            // If it's a new image, we need to find its position in newImages
-            if (primaryItem.isNew && primaryItem.file) {
-              const mediaFile = primaryItem.file as MediaFile;
-              primaryIndex = newImages.findIndex(file => (file as MediaFile).id === mediaFile.id);
-              
-              if (primaryIndex === -1) {
-                // For newly added images that don't have an index yet
-                primaryIndex = 0;
-              }
+            const fileItem = newImagesWithIds.find(item => 
+              item.id === mediaFile.id || 
+              (item.file.name === mediaFile.name && item.file.size === mediaFile.size)
+            );
+            
+            if (fileItem) {
+              primaryIndex = fileItem.index;
             }
-            
-            onSetPrimaryImage(primaryIndex);
           }
+          
+          onSetPrimaryImage(primaryIndex);
         }
       }
       
       return newItems;
     });
-  };
+  }, [onReorderImages, onReorderNewImages, onSetPrimaryImage, newImages]);
   
   // Handle deletion
-  const handleDelete = (id: string) => {
+  const handleDelete = useCallback((id: string) => {
     const index = mediaItems.findIndex(item => item.id === id);
     if (index === -1) return;
     
@@ -305,31 +333,54 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     
     if (item.type === 'image') {
       if (item.isNew) {
-        const newImagesIds = newImages.map((img, idx) => {
-          const mediaFile = img as MediaFile;
-          return mediaFile.id || `new-image-${idx}`;
-        });
+        // Find index in newImages array
+        let newIndex = -1;
         
-        const fileId = item.file?.id;
-        const newIndex = fileId ? newImagesIds.indexOf(fileId) : -1;
+        // Try to find by id first
+        if (item.file) {
+          const mediaFile = item.file as MediaFile;
+          const newImagesWithIds = newImages.map((file, idx) => {
+            const typedFile = file as MediaFile;
+            return { file: typedFile, id: typedFile.id || `new-image-${idx}`, index: idx };
+          });
+          
+          const fileItem = newImagesWithIds.find(nim => 
+            nim.id === mediaFile.id || 
+            (nim.file.name === mediaFile.name && nim.file.size === mediaFile.size)
+          );
+          
+          if (fileItem) {
+            newIndex = fileItem.index;
+          }
+        }
+        
+        // Fallback to original index
+        if (newIndex === -1 && item.originalIndex !== undefined) {
+          newIndex = item.originalIndex;
+        }
         
         if (newIndex !== -1 && onDeleteNewImage) {
           onDeleteNewImage(newIndex);
         }
       } else {
-        const existingIndex = item.originalIndex !== undefined ? item.originalIndex : parseInt(id.replace('existing-image-', ''));
-        if (onDeleteImage && existingIndex !== undefined) {
+        // Handle existing image deletion
+        const existingIndex = item.originalIndex !== undefined ? 
+          item.originalIndex : 
+          parseInt(id.replace('existing-image-', ''));
+          
+        if (onDeleteImage && !isNaN(existingIndex)) {
           onDeleteImage(existingIndex);
         }
       }
     } else if (item.type === 'video') {
+      // Handle video deletion
       if (item.isNew) {
         if (onDeleteNewVideo) onDeleteNewVideo();
       } else {
         if (onDeleteVideo) onDeleteVideo();
       }
     }
-  };
+  }, [mediaItems, newImages, onDeleteImage, onDeleteNewImage, onDeleteVideo, onDeleteNewVideo]);
 
   // Handle file drop on a specific slot
   const handleSlotDrop = (e: React.DragEvent, index: number) => {
