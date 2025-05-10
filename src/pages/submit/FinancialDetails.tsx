@@ -1,7 +1,5 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { BusinessFormData } from '@/contexts/FormDataContext';
 import {
@@ -13,7 +11,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronDown, Search } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FinancialDetailsProps {
@@ -100,7 +98,7 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({
     <div>
       <div className="grid gap-4 md:grid-cols-1">
         <div className="space-y-2">
-          <Label htmlFor="business-askingprice">Asking Price ({currentCurrency})</Label>
+          <Label htmlFor="business-askingprice">Asking Price</Label>
           <CurrencyInput 
             id="business-askingprice" 
             value={formData.askingPrice}
@@ -108,7 +106,7 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({
             onKeyDown={(e) => handleKeyDown(e, 'business-annualrevenue')}
             currencyCode={currentCurrency}
             locale={currentLocale}
-            placeholder={`Enter asking price in ${currentCurrency}`}
+            placeholder="Enter asking price"
             aria-invalid={!!validationErrors.askingPrice}
             className={validationErrors.askingPrice ? "border-red-500 focus-visible:ring-red-500" : ""}
             autoComplete="off"
@@ -123,7 +121,7 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({
 
       <div className="grid gap-4 md:grid-cols-2 mt-4">
         <div className="space-y-2">
-          <Label htmlFor="business-annualrevenue">Annual Revenue ({currentCurrency})</Label>
+          <Label htmlFor="business-annualrevenue">Annual Revenue</Label>
           <CurrencyInput
             id="business-annualrevenue" 
             value={formData.annualRevenue}
@@ -131,7 +129,7 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({
             onKeyDown={(e) => handleKeyDown(e, 'business-annualprofit')}
             currencyCode={currentCurrency}
             locale={currentLocale}
-            placeholder={`Enter annual revenue in ${currentCurrency}`}
+            placeholder="Enter annual revenue"
             aria-invalid={!!validationErrors.annualRevenue}
             className={validationErrors.annualRevenue ? "border-red-500 focus-visible:ring-red-500" : ""}
             autoComplete="off"
@@ -143,7 +141,7 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="business-annualprofit">Annual Profit ({currentCurrency})</Label>
+          <Label htmlFor="business-annualprofit">Annual Profit</Label>
           <CurrencyInput
             id="business-annualprofit"
             value={formData.annualProfit}
@@ -151,7 +149,7 @@ const FinancialDetails: React.FC<FinancialDetailsProps> = ({
             onKeyDown={(e) => handleKeyDown(e, 'business-yearestablished')}
             currencyCode={currentCurrency}
             locale={currentLocale}
-            placeholder={`Enter annual profit in ${currentCurrency}`}
+            placeholder="Enter annual profit"
             aria-invalid={!!validationErrors.annualProfit}
             className={validationErrors.annualProfit ? "border-red-500 focus-visible:ring-red-500" : ""}
             autoComplete="off"

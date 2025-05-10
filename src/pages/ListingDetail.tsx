@@ -1,9 +1,32 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import { 
+  DollarSign, 
+  EuroIcon, 
+  PoundSterlingIcon, 
+  JapaneseYen 
+} from 'lucide-react';
+
+// Get the appropriate currency icon based on currency code
+const getCurrencyIcon = (currencyCode: string) => {
+  switch(currencyCode) {
+    case 'EUR':
+      return <EuroIcon className="h-4 w-4 mr-2" />;
+    case 'GBP':
+      return <PoundSterlingIcon className="h-4 w-4 mr-2" />;
+    case 'JPY':
+      return <JapaneseYen className="h-4 w-4 mr-2" />;
+    case 'USD':
+    case 'SGD':
+    case 'AUD':
+    case 'CAD':
+    default:
+      return <DollarSign className="h-4 w-4 mr-2" />;
+  }
+};
 
 // Mock business data - in a real app, this would come from an API
 const businessesData = {

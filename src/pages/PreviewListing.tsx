@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
@@ -15,6 +14,20 @@ import {
 } from '@/components/ui/carousel';
 import { DollarSign, MapPin, Phone, Mail, User, Building, Calendar, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+
+// Function to get the display prefix for a currency
+const getCurrencyDisplay = (currencyCode: string): string => {
+  if (currencyCode === "USD") return "USD $";
+  if (currencyCode === "SGD") return "SGD $";
+  if (currencyCode === "GBP") return "GBP £";
+  if (currencyCode === "EUR") return "EUR €";
+  if (currencyCode === "JPY") return "JPY ¥";
+  if (currencyCode === "AUD") return "AUD $";
+  if (currencyCode === "CAD") return "CAD $";
+  if (currencyCode === "INR") return "INR ₹";
+  if (currencyCode === "MYR") return "MYR RM";
+  return currencyCode;
+};
 
 const PreviewListing = () => {
   const { formData } = useFormData();
@@ -65,6 +78,9 @@ const PreviewListing = () => {
   const hasAdditionalImages = imageURLs.length > 1;
   const primaryImage = imageURLs.length > 0 ? imageURLs[0] : '';
   const galleryImages = imageURLs.slice(1);
+  
+  // Get the formatted currency display
+  const currencyDisplay = getCurrencyDisplay(formData.currencyCode || "USD");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -283,7 +299,7 @@ const PreviewListing = () => {
                         <DollarSign className="h-4 w-4 mr-2" /> Asking Price
                       </dt>
                       <dd className="w-1/2 font-medium">
-                        {formData.currencyCode} {formData.askingPrice || '0'}
+                        {currencyDisplay} {formData.askingPrice || '0'}
                       </dd>
                     </div>
                     <div className="flex items-center">
@@ -291,7 +307,7 @@ const PreviewListing = () => {
                         <DollarSign className="h-4 w-4 mr-2" /> Annual Revenue
                       </dt>
                       <dd className="w-1/2 font-medium">
-                        {formData.currencyCode} {formData.annualRevenue || '0'}
+                        {currencyDisplay} {formData.annualRevenue || '0'}
                       </dd>
                     </div>
                     <div className="flex items-center">
@@ -299,7 +315,7 @@ const PreviewListing = () => {
                         <DollarSign className="h-4 w-4 mr-2" /> Annual Profit
                       </dt>
                       <dd className="w-1/2 font-medium">
-                        {formData.currencyCode} {formData.annualProfit || '0'}
+                        {currencyDisplay} {formData.annualProfit || '0'}
                       </dd>
                     </div>
                     <div className="flex items-center">

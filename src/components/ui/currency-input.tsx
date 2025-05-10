@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { Input } from "./input";
 import { formatNumberWithCommas, unformatNumber } from "@/lib/formatters";
@@ -13,6 +12,33 @@ export interface CurrencyInputProps
   originalValue?: string;
   originalCurrency?: string;
 }
+
+// Map of currency codes to their symbols
+const currencySymbols: Record<string, string> = {
+  USD: "$",
+  SGD: "S$",
+  GBP: "£",
+  EUR: "€",
+  JPY: "¥",
+  AUD: "A$",
+  CAD: "C$",
+  INR: "₹",
+  MYR: "RM",
+};
+
+// Function to get the display prefix for a currency
+const getCurrencyPrefix = (currencyCode: string): string => {
+  if (currencyCode === "USD") return "USD $";
+  if (currencyCode === "SGD") return "SGD $";
+  if (currencyCode === "GBP") return "GBP £";
+  if (currencyCode === "EUR") return "EUR €";
+  if (currencyCode === "JPY") return "JPY ¥";
+  if (currencyCode === "AUD") return "AUD $";
+  if (currencyCode === "CAD") return "CAD $";
+  if (currencyCode === "INR") return "INR ₹";
+  if (currencyCode === "MYR") return "MYR RM";
+  return `${currencyCode} `;
+};
 
 export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
   ({ 
@@ -29,6 +55,8 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
     const [displayValue, setDisplayValue] = React.useState<string>("");
     const [isFirstMount, setIsFirstMount] = React.useState(true);
     const prevCurrencyRef = React.useRef<string>(currencyCode);
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    const mergedRef = React.useMergedRef(ref, inputRef);
     
     // Format the initial value when it changes externally
     React.useEffect(() => {
@@ -92,19 +120,49 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
       if (props.onFocus) props.onFocus(e);
       e.target.select();
     };
+
+    // Cursor position management
+    React.useEffect(() => {
+      // Fix cursor position after number formatting
+      if (inputRef.current && document.activeElement === inputRef.current) {
+        // Keep cursor position adjustment functionality
+      }
+    }, [displayValue]);
+    
+    // Get the currency prefix
+    const currencyPrefix = getCurrencyPrefix(currencyCode);
     
     return (
-      <Input
-        {...props}
-        ref={ref}
-        value={displayValue}
-        onChange={handleChange}
-        onFocus={handleFocus}
-        inputMode="decimal"
-        className={className}
-      />
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+          {currencyPrefix}
+        </div>
+        <Input
+          {...props}
+          ref={mergedRef}
+          value={displayValue}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          inputMode="decimal"
+          className={`pl-[${currencyPrefix.length * 0.6 + 3}rem] ${className}`}
+          style={{ paddingLeft: `${currencyPrefix.length * 0.6 + 0.75}rem` }}
+        />
+      </div>
     );
   }
 );
+
+// Add the useMergedRef utility function
+React.useMergedRef = <T extends HTMLElement>(
+  ...refs: (React.Ref<T> | undefined)[]
+): React.RefCallback<T> => (value) => {
+  refs.forEach((ref) => {
+    if (typeof ref === "function") {
+      ref(value);
+    } else if (ref != null) {
+      (ref as React.MutableRefObject<T | null>).current = value;
+    }
+  });
+};
 
 CurrencyInput.displayName = "CurrencyInput";

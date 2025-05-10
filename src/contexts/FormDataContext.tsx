@@ -32,6 +32,22 @@ export type BusinessFormData = {
   };
 };
 
+// Map of countries to their currency codes
+const countryCurrencyMap: Record<string, string> = {
+  us: 'USD',
+  gb: 'GBP',
+  de: 'EUR',
+  fr: 'EUR',
+  es: 'EUR',
+  it: 'EUR',
+  jp: 'JPY',
+  au: 'AUD',
+  ca: 'CAD',
+  sg: 'SGD',
+  in: 'INR',
+  my: 'MYR',
+};
+
 type FormDataContextType = {
   formData: BusinessFormData;
   updateFormData: (data: Partial<BusinessFormData>) => void;
@@ -74,9 +90,14 @@ export const FormDataProvider = ({ children }: { children: ReactNode }) => {
   const updateFormData = (data: Partial<BusinessFormData>) => {
     console.log('Updating form data:', data);
     setFormData(prevData => {
-      // Special handling for currency values to update original values when directly modified
-      // and not during a country change
+      // Create the new data object by spreading the previous data and new data
       const newData = { ...prevData, ...data };
+      
+      // Handle currency code updates when location changes
+      if (data.location && data.location !== prevData.location) {
+        const newCurrencyCode = countryCurrencyMap[data.location] || 'USD';
+        newData.currencyCode = newCurrencyCode;
+      }
       
       // Track original values when directly changing a monetary value
       // but not when location/currency is changing or when setting original values explicitly
