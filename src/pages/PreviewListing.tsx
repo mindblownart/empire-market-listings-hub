@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
@@ -80,6 +81,8 @@ const PreviewListing = () => {
             locationName={formData.locationName}
             flagCode={formData.flagCode}
             primaryImage={primaryImage}
+            askingPrice={formData.askingPrice}
+            currencyCode={formData.currencyCode}
           />
           
           {/* Media and Video Section */}
@@ -105,7 +108,6 @@ const PreviewListing = () => {
             <div className="space-y-8">
               {/* Business Details Card */}
               <BusinessDetails 
-                askingPrice={formData.askingPrice}
                 annualRevenue={formData.annualRevenue}
                 annualProfit={formData.annualProfit}
                 currencyCode={formData.currencyCode || 'USD'}
