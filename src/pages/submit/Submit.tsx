@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -132,8 +133,7 @@ const Submit = () => {
         }
         
         // Prepare business listing data with proper type conversions
-        const businessData: Partial<BusinessListing> = {
-          // No need to explicitly set user_id as it defaults to auth.uid() in the database
+        const businessData = {
           business_name: formData.businessName,
           category: formData.industry,
           location: formData.location,
@@ -217,7 +217,7 @@ const Submit = () => {
         // Insert the business listing into the database
         const { data: insertedBusiness, error: insertError } = await supabase
           .from('business_listings')
-          .insert([businessData])
+          .insert(businessData)
           .select()
           .single();
           
