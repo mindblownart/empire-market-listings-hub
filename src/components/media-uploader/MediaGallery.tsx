@@ -1,4 +1,3 @@
-
 import React from 'react';
 import MediaItem from './MediaItem';
 import VideoPreviewModal from './VideoPreviewModal';
@@ -6,7 +5,7 @@ import { extractVideoInfo } from './video-utils';
 import { MediaItemType, MediaFile } from './types';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Image, Video } from 'lucide-react';
+import { Image, Video, Plus } from 'lucide-react';
 
 interface MediaGalleryProps {
   images?: string[];
