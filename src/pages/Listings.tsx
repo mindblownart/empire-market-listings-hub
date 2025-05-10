@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import BusinessCard from '@/components/BusinessCard';
 import Navbar from '@/components/Navbar';
 import HomeFooter from '@/components/HomeFooter';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client'; // Updated import to use the client from integrations
 import { BusinessListing } from '@/types/supabase';
 
 // Categories and locations for filtering
@@ -110,11 +110,18 @@ const Listings = () => {
     const fetchBusinesses = async () => {
       setIsLoading(true);
       try {
-        // Query business_listings table
-        const { data, error } = await supabase
-          .from('business_listings')
-          .select('*')
-          .eq('is_published', true);
+        // Modified query to include all published listings OR the user's own listings
+        let query = supabase.from('business_listings').select('*');
+        
+        // If user is logged in, get published listings OR their own listings
+        // If not logged in, only get published listings
+        if (userSession) {
+          query = query.or(`is_published.eq.true,user_id.eq.${userSession.user.id}`);
+        } else {
+          query = query.eq('is_published', true);
+        }
+        
+        const { data, error } = await query;
         
         if (error) {
           console.error('Error fetching business listings:', error);
@@ -132,7 +139,9 @@ const Listings = () => {
             imageUrl: listing.primary_image_url || '/placeholder.svg',
             currencyCode: listing.currency_code,
             isNew: listing.is_new,
-            isHot: listing.is_hot
+            isHot: listing.is_hot,
+            // Add a property to indicate if this is the current user's listing
+            isOwnListing: userSession && listing.user_id === userSession.user.id
           }));
           
           setBusinesses(mappedBusinesses);
@@ -408,7 +417,14 @@ const Listings = () => {
                     {/* Listings Grid */}
                     {currentItems.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {currentItems.map(business => <BusinessCard key={business.id} {...business} />)}
+                        {currentItems.map(business => {
+                          // Add visual indicator for own listings
+                          const businessWithBadge = { 
+                            ...business,
+                            // Optional: add a badge or indicator for own listings
+                          };
+                          return <BusinessCard key={business.id} {...businessWithBadge} />;
+                        })}
                       </div>
                     ) : (
                       <div className="text-center py-16 bg-gray-50 rounded-lg">
