@@ -132,13 +132,14 @@ const Submit = () => {
           return;
         }
         
-        // Prepare business listing data
-        const businessData = {
+        // Prepare business listing data with proper type conversions
+        const businessData: Partial<BusinessListing> = {
           user_id: session.user.id,
           business_name: formData.businessName,
           category: formData.industry,
           location: formData.location,
-          year_established: formData.yearEstablished,
+          // Convert year_established from string to number or null
+          year_established: formData.yearEstablished ? parseInt(formData.yearEstablished) : null,
           employees: formData.employees,
           asking_price: formData.askingPrice,
           annual_revenue: formData.annualRevenue,
@@ -150,9 +151,9 @@ const Submit = () => {
           contact_email: formData.email,
           contact_phone: formData.phone,
           contact_role: formData.role,
-          is_published: true, // Ensure the listing is published by default
+          is_published: true,
           is_new: true
-        } as Partial<BusinessListing>;
+        };
         
         // Handle image uploads if there are any
         let primaryImageUrl = '';
@@ -207,9 +208,11 @@ const Submit = () => {
         }
         
         // Add media URLs to business data
-        businessData.primary_image_url = primaryImageUrl;
-        businessData.gallery_images = galleryImages.length > 0 ? galleryImages : undefined;
-        businessData.video_url = formData.businessVideoUrl || '';
+        businessData.primary_image_url = primaryImageUrl || null;
+        businessData.gallery_images = galleryImages.length > 0 ? galleryImages : null;
+        businessData.video_url = formData.businessVideoUrl || null;
+        
+        console.log("Submitting business data:", businessData);
         
         // Insert the business listing into the database
         const { data: insertedBusiness, error: insertError } = await supabase
