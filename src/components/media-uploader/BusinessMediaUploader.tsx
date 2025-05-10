@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { extractVideoInfo } from './video-utils';
 import { BusinessMediaUploaderProps, MediaFile } from './types';
@@ -122,51 +123,63 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     }
   };
 
+  const hasMediaUploaded = images.length > 0 || existingImages.length > 0 || video || videoUrl;
+
   return (
     <div className="space-y-6">
-      {/* MediaUpload Component with Integrated Gallery */}
-      <MediaUpload
-        existingImages={existingImages}
-        existingVideoUrl={videoUrl}
-        primaryImageIndex={0}
-        onImagesChange={(newImages) => {
-          // Ensure all new images have unique IDs
-          const uniqueImages = newImages.map(img => {
-            if (!img.id) {
-              (img as MediaFile).id = `img-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      {/* Media Upload Component with Enhanced Empty State */}
+      <div className={`${!hasMediaUploaded ? 'border-2 border-dashed border-gray-300 rounded-lg p-6' : ''}`}>
+        <MediaUpload
+          existingImages={existingImages}
+          existingVideoUrl={videoUrl}
+          primaryImageIndex={0}
+          onImagesChange={(newImages) => {
+            // Ensure all new images have unique IDs
+            const uniqueImages = newImages.map(img => {
+              if (!img.id) {
+                (img as MediaFile).id = `img-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+              }
+              return img;
+            });
+            
+            setImages(uniqueImages);
+            if (onImagesChange) onImagesChange(uniqueImages);
+          }}
+          onVideoChange={(newVideo) => {
+            // Ensure video has a unique ID
+            if (newVideo && !newVideo.id) {
+              (newVideo as MediaFile).id = `video-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
             }
-            return img;
-          });
-          
-          setImages(uniqueImages);
-          if (onImagesChange) onImagesChange(uniqueImages);
-        }}
-        onVideoChange={(newVideo) => {
-          // Ensure video has a unique ID
-          if (newVideo && !newVideo.id) {
-            (newVideo as MediaFile).id = `video-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-          }
-          
-          setVideo(newVideo);
-          if (onVideoChange) onVideoChange(newVideo);
-          
-          // Clear video URL if we're setting a file
-          if (newVideo) {
-            setVideoUrl('');
-            if (onVideoUrlChange) onVideoUrlChange('');
-          }
-        }}
-        onVideoUrlChange={(url) => {
-          if (url === null) {
-            setVideoUrl('');
-            if (onVideoUrlChange) onVideoUrlChange('');
-          }
-        }}
-        onSetPrimaryImage={onSetPrimaryImage}
-        onDeleteExistingImage={handleDeleteExistingImage}
-        onDeleteExistingVideo={handleDeleteVideoUrl}
-        onImagesReorder={handleReorderExistingImages}
-      />
+            
+            setVideo(newVideo);
+            if (onVideoChange) onVideoChange(newVideo);
+            
+            // Clear video URL if we're setting a file
+            if (newVideo) {
+              setVideoUrl('');
+              if (onVideoUrlChange) onVideoUrlChange('');
+            }
+          }}
+          onVideoUrlChange={(url) => {
+            if (url === null) {
+              setVideoUrl('');
+              if (onVideoUrlChange) onVideoUrlChange('');
+            }
+          }}
+          onSetPrimaryImage={onSetPrimaryImage}
+          onDeleteExistingImage={handleDeleteExistingImage}
+          onDeleteExistingVideo={handleDeleteVideoUrl}
+          onImagesReorder={handleReorderExistingImages}
+        />
+
+        {!hasMediaUploaded && (
+          <div className="text-center py-8">
+            <Upload className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+            <p className="text-xl font-medium text-gray-700 mb-2">Add up to 10 photos and 1 video</p>
+            <p className="text-sm text-gray-500 mb-6">Drag and drop files here or click to browse</p>
+          </div>
+        )}
+      </div>
 
       {/* Video URL Input */}
       <div className="mt-4">
