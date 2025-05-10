@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
@@ -13,8 +12,6 @@ import {
   CarouselNext,
   CarouselPrevious
 } from '@/components/ui/carousel';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DollarSign, MapPin, Phone, Mail, User, Building, Calendar, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
