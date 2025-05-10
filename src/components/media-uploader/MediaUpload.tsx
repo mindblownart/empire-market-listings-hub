@@ -85,7 +85,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     file: newVideo,
     preview: URL.createObjectURL(newVideo),
     isPrimary: false,
-    videoInfo: { platform: 'file', id: null }
+    videoInfo: { platform: 'file' as const, id: null }
   } : null;
   
   // Insert video at position 1 if it exists
@@ -162,7 +162,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           toast.warning('Maximum images reached', {
             description: `You can only upload up to ${maxImages} images`
           });
-          break;
+          // Removed the invalid 'break' statement that was causing an error
+          return; // Use return instead to exit the current iteration
         }
       } 
       // Process video

@@ -78,8 +78,19 @@ const MediaItem: React.FC<MediaItemProps> = ({
     }),
   });
   
-  // Apply the ref to both drag source and drop target
-  const dragDropRef = isFixed ? drop(ref) : drag(drop(ref));
+  // Fix the reference issue by proper assignment - use ref callback pattern
+  const dragDropRef = (node: HTMLDivElement | null) => {
+    // Apply the drag ref
+    if (!isFixed) {
+      drag(node);
+    }
+    // Apply the drop ref
+    drop(node);
+    // Set the ref value
+    if (ref.current !== node) {
+      ref.current = node;
+    }
+  };
   
   // Determine if this is an empty slot
   const isEmpty = item.isEmpty || item.type === 'empty';

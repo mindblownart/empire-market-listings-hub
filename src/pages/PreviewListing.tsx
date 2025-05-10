@@ -156,8 +156,7 @@ const PreviewListing = () => {
               <MediaGallery 
                 galleryImages={orderedImages} 
                 videoURL={videoURL} 
-                autoplayVideo={true} 
-                primaryImageIndex={primaryImageIndex}
+                autoplayVideo={true}
               />
               
               {/* Business Overview & Highlights */}
