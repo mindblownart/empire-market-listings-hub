@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Link } from 'react-router-dom';
 import BusinessCard from '@/components/BusinessCard';
 import Navbar from '@/components/Navbar';
 import HomeFooter from '@/components/HomeFooter';
@@ -302,6 +303,10 @@ const Listings = () => {
   const toggleFilters = () => {
     setIsFilterVisible(!isFilterVisible);
   };
+
+  // Check if there are any listings available
+  const hasListings = sampleBusinesses.length > 0;
+
   return <div className="min-h-screen flex flex-col">
       <Navbar />
 
@@ -312,96 +317,119 @@ const Listings = () => {
             <h1 className="text-3xl md:text-4xl font-bold mb-4">Available Businesses</h1>
             <p className="text-gray-600 mb-8">Browse our curated selection of high-potential businesses for sale.</p>
             
-            {/* Search and filter section - below the subtitle */}
-            <div className="bg-white mb-10">
-              <div className="p-4 flex flex-wrap items-center gap-4 px-0">
-                <div className="relative w-full md:w-auto flex-grow">
-                  <Input type="search" placeholder="Search listings..." className="pl-10" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            {/* Only show search and filters if we have listings */}
+            {hasListings && (
+              <div className="bg-white mb-10">
+                <div className="p-4 flex flex-wrap items-center gap-4 px-0">
+                  <div className="relative w-full md:w-auto flex-grow">
+                    <Input type="search" placeholder="Search listings..." className="pl-10" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  </div>
+
+                  <div className="w-full md:w-auto flex flex-wrap gap-2 md:ml-auto">
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sortOptions.map(option => <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>)}
+                      </SelectContent>
+                    </Select>
+
+                    <Button variant="outline" onClick={toggleFilters} className="flex items-center gap-2">
+                      <SlidersHorizontal className="h-4 w-4" />
+                      Filters
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="w-full md:w-auto flex flex-wrap gap-2 md:ml-auto">
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sortOptions.map(option => <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                {/* Advanced Filters - Collapsible */}
+                {isFilterVisible && <div className="border-t border-gray-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                      <Select value={category} onValueChange={setCategory}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map(cat => <SelectItem key={cat.value} value={cat.value}>
+                              {cat.label}
+                            </SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <Button variant="outline" onClick={toggleFilters} className="flex items-center gap-2">
-                    <SlidersHorizontal className="h-4 w-4" />
-                    Filters
-                  </Button>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                      <Select value={location} onValueChange={setLocation}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select location" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {locations.map(loc => <SelectItem key={loc.value} value={loc.value}>
+                              {loc.label}
+                            </SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Price Range: {formatPriceDisplay(priceRange[0])} - {formatPriceDisplay(priceRange[1])}
+                      </label>
+                      <Slider defaultValue={[0, maxPrice]} min={0} max={maxPrice} step={50000} value={priceRange} onValueChange={setPriceRange} className="py-4" />
+                    </div>
+                  </div>}
               </div>
+            )}
 
-              {/* Advanced Filters - Collapsible */}
-              {isFilterVisible && <div className="border-t border-gray-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map(cat => <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <Select value={location} onValueChange={setLocation}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select location" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {locations.map(loc => <SelectItem key={loc.value} value={loc.value}>
-                            {loc.label}
-                          </SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Price Range: {formatPriceDisplay(priceRange[0])} - {formatPriceDisplay(priceRange[1])}
-                    </label>
-                    <Slider defaultValue={[0, maxPrice]} min={0} max={maxPrice} step={50000} value={priceRange} onValueChange={setPriceRange} className="py-4" />
-                  </div>
-                </div>}
-            </div>
-
-            {/* Listings Grid */}
-            {currentItems.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {currentItems.map(business => <BusinessCard key={business.id} {...business} />)}
-              </div> : <div className="text-center py-16 bg-gray-50 rounded-lg">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No listings found</h3>
-                <p className="text-gray-600">
-                  No listings match your search. Try adjusting filters or check back later.
+            {/* Empty state when no listings are available */}
+            {!hasListings ? (
+              <div className="text-center py-20 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+                <h3 className="text-xl font-medium text-gray-900 mb-4">No listings yet. Be the first to submit your business!</h3>
+                <p className="text-gray-600 mb-6 max-w-lg mx-auto">
+                  Our marketplace is ready for your business listing. Submit your business details to find the right buyer.
                 </p>
-              </div>}
+                <Button asChild className="px-6 py-6 text-lg">
+                  <Link to="/submit">Submit a Business</Link>
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* Listings Grid */}
+                {currentItems.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {currentItems.map(business => <BusinessCard key={business.id} {...business} />)}
+                  </div>
+                ) : (
+                  <div className="text-center py-16 bg-gray-50 rounded-lg">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No listings found</h3>
+                    <p className="text-gray-600">
+                      No listings match your search. Try adjusting filters or check back later.
+                    </p>
+                  </div>
+                )}
 
-            {/* Pagination */}
-            {filteredBusinesses.length > 0 && <Pagination className="mt-8">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} className={currentPage === 1 ? "pointer-events-none opacity-50" : ""} />
-                  </PaginationItem>
-                  
-                  {getPaginationItems()}
-                  
-                  <PaginationItem>
-                    <PaginationNext onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""} />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>}
+                {/* Pagination */}
+                {filteredBusinesses.length > 0 && (
+                  <Pagination className="mt-8">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} className={currentPage === 1 ? "pointer-events-none opacity-50" : ""} />
+                      </PaginationItem>
+                      
+                      {getPaginationItems()}
+                      
+                      <PaginationItem>
+                        <PaginationNext onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""} />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
+              </>
+            )}
           </div>
         </div>
       </main>
