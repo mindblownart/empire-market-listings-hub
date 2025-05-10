@@ -25,7 +25,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
     }),
   }), [index, item.id, item.isEmpty, isFixed, item.type]);
 
-  const [{ isOver }, drop] = useDrop({
+  const [{ isOver }, drop] = useDrop(() => ({
     accept: 'media-item',
     hover: (draggedItem: { id: string; index: number }, monitor) => {
       if (!ref.current) return;
