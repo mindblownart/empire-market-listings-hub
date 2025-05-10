@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState, useRef, useCallback } from 'react';
 import MediaItem from './MediaItem';
 import VideoPreviewModal from './VideoPreviewModal';
 import { extractVideoInfo } from './video-utils';
@@ -6,6 +7,7 @@ import { MediaItemType, MediaFile } from './types';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Image, Video, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface MediaGalleryProps {
   images?: string[];
@@ -20,6 +22,7 @@ interface MediaGalleryProps {
   onDeleteVideo?: () => void;
   onDeleteNewVideo?: () => void;
   onFilesDrop?: (files: FileList) => void;
+  onFilesSelect?: (files: FileList) => void;
   isDragging?: boolean;
 }
 
@@ -36,13 +39,15 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   onDeleteVideo,
   onDeleteNewVideo,
   onFilesDrop,
+  onFilesSelect,
   isDragging = false,
 }) => {
-  const [isVideoModalOpen, setIsVideoModalOpen] = React.useState(false);
-  const [currentVideoPreview, setCurrentVideoPreview] = React.useState<{
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [currentVideoPreview, setCurrentVideoPreview] = useState<{
     embedUrl: string;
     platform: string | null;
   } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Calculate total media count
   const totalImageCount = images.length + newImages.length;
@@ -223,8 +228,8 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   
   // Handle reordering of items
   const moveItem = (dragIndex: number, hoverIndex: number) => {
-    // Don't allow moving to/from first two positions
-    if (dragIndex <= 1 || hoverIndex <= 1) return;
+    // Don't allow moving to/from video slot (index 1)
+    if (dragIndex === 1 || hoverIndex === 1) return;
     
     const draggedItem = mediaItems[dragIndex];
     if (draggedItem.type === 'empty') return;
@@ -234,19 +239,24 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
       newItems.splice(dragIndex, 1);
       newItems.splice(hoverIndex, 0, draggedItem);
       
+      // If we're moving to/from the primary slot (index 0), update isPrimary flag
+      if (hoverIndex === 0 || dragIndex === 0) {
+        // The item that's now in the primary slot becomes primary
+        newItems[0] = { ...newItems[0], isPrimary: true };
+        
+        // If we moved the primary item elsewhere, it's no longer primary
+        if (dragIndex === 0) {
+          draggedItem.isPrimary = false;
+        }
+      }
+      
       if (onReorderImages || onReorderNewImages) {
         const existingImages: string[] = [];
         const newImageFiles: File[] = [];
         
-        // First image is always primary
-        if (images.length > 0) {
-          existingImages.push(images[0]);
-        }
-        
-        // Collect reordered images
+        // Collect reordered images - primary is always first in result array
         newItems.forEach((item, idx) => {
-          // Skip first two positions (primary and video)
-          if (idx > 1 && item.type === 'image' && !item.isEmpty) {
+          if (item.type === 'image' && !item.isEmpty) {
             if (!item.isNew && item.preview) {
               existingImages.push(item.preview);
             } else if (item.isNew && item.file) {
@@ -258,6 +268,27 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
         // Update parent components if needed
         if (onReorderImages) onReorderImages([...existingImages]);
         if (onReorderNewImages) onReorderNewImages(newImageFiles);
+        
+        // Update primary image index if it changed
+        if (onSetPrimaryImage) {
+          const primaryItem = newItems[0];
+          if (primaryItem.type === 'image' && !primaryItem.isEmpty) {
+            let primaryIndex = primaryItem.originalIndex;
+            
+            // If it's a new image, we need to find its position in newImages
+            if (primaryItem.isNew && primaryItem.file) {
+              const mediaFile = primaryItem.file as MediaFile;
+              primaryIndex = newImages.findIndex(file => (file as MediaFile).id === mediaFile.id);
+              
+              if (primaryIndex === -1) {
+                // For newly added images that don't have an index yet
+                primaryIndex = 0;
+              }
+            }
+            
+            onSetPrimaryImage(primaryIndex);
+          }
+        }
       }
       
       return newItems;
@@ -300,28 +331,6 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   };
 
-  // Handle set primary
-  const handleSetPrimary = (id: string) => {
-    const index = mediaItems.findIndex(item => item.id === id);
-    if (index === -1 || index <= 1) return;
-    
-    const item = mediaItems[index];
-    if (item.isEmpty || item.type !== 'image') return;
-    
-    let originalIndex;
-    if (item.isNew) {
-      const match = id.match(/new-image-(\d+)/);
-      originalIndex = match ? parseInt(match[1]) : null;
-    } else {
-      const match = id.match(/existing-image-(\d+)/);
-      originalIndex = match ? parseInt(match[1]) : null;
-    }
-    
-    if (originalIndex !== null && onSetPrimaryImage) {
-      onSetPrimaryImage(originalIndex);
-    }
-  };
-
   // Handle file drop on a specific slot
   const handleSlotDrop = (e: React.DragEvent, index: number) => {
     e.preventDefault();
@@ -331,72 +340,109 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
       onFilesDrop(e.dataTransfer.files);
     }
   };
+
+  // Handle file selection via button
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0 && onFilesSelect) {
+      onFilesSelect(e.target.files);
+      // Reset the input value to allow selecting the same file again
+      e.target.value = '';
+    }
+  };
   
   // If no items yet, show empty state with 11 slots
   if (totalMediaCount === 0) {
     return (
       <TooltipProvider>
-        <div className="grid grid-cols-5 gap-3" onDragOver={e => e.preventDefault()}>
-          {/* Primary Image Slot */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div 
-                className="relative aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center"
-                onDrop={(e) => handleSlotDrop(e, 0)}
-                onDragOver={(e) => e.preventDefault()}
-              >
-                <div className="text-center p-2">
-                  <Image className="w-8 h-8 mx-auto text-gray-300 mb-1" />
-                  <p className="text-xs text-gray-400">Primary Image</p>
-                </div>
-                <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
-                  Primary
-                </div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="top">Drop files here for primary image</TooltipContent>
-          </Tooltip>
-          
-          {/* Video Slot */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div 
-                className="relative aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center"
-                onDrop={(e) => handleSlotDrop(e, 1)}
-                onDragOver={(e) => e.preventDefault()}
-              >
-                <div className="text-center p-2">
-                  <Video className="w-8 h-8 mx-auto text-gray-300 mb-1" />
-                  <p className="text-xs text-gray-400">Video</p>
-                  <p className="text-xs text-gray-300">(Optional)</p>
-                </div>
-                <div className="absolute top-2 left-2 bg-gray-500/70 text-white text-xs px-2 py-1 rounded-full">
-                  Video Slot
-                </div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="top">Drop video file here</TooltipContent>
-          </Tooltip>
-          
-          {/* 9 Empty Image Slots */}
-          {Array.from({ length: 9 }).map((_, i) => (
-            <Tooltip key={i}>
+        <div className="space-y-4">
+          <div 
+            className="grid grid-cols-5 gap-3"
+            onDragOver={e => e.preventDefault()}
+            style={{ minHeight: '200px' }}
+          >
+            {/* Primary Image Slot */}
+            <Tooltip>
               <TooltipTrigger asChild>
                 <div 
-                  className="aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center"
-                  onDrop={(e) => handleSlotDrop(e, i + 2)}
+                  className="relative aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center"
+                  onDrop={(e) => handleSlotDrop(e, 0)}
                   onDragOver={(e) => e.preventDefault()}
                 >
                   <div className="text-center p-2">
-                    <Plus className="w-6 h-6 mx-auto text-gray-300 mb-1" />
-                    <p className="text-xs text-gray-400">Add image</p>
-                    <p className="text-xs text-gray-300">Drop files here</p>
+                    <Image className="w-8 h-8 mx-auto text-gray-300 mb-1" />
+                    <p className="text-xs text-gray-400">Primary Image</p>
+                  </div>
+                  <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
+                    Primary
                   </div>
                 </div>
               </TooltipTrigger>
-              <TooltipContent side="top">Drop files here</TooltipContent>
+              <TooltipContent side="top">Drop files here for primary image</TooltipContent>
             </Tooltip>
-          ))}
+            
+            {/* Video Slot */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div 
+                  className="relative aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center"
+                  onDrop={(e) => handleSlotDrop(e, 1)}
+                  onDragOver={(e) => e.preventDefault()}
+                >
+                  <div className="text-center p-2">
+                    <Video className="w-8 h-8 mx-auto text-gray-300 mb-1" />
+                    <p className="text-xs text-gray-400">Video</p>
+                    <p className="text-xs text-gray-300">(Optional)</p>
+                  </div>
+                  <div className="absolute top-2 left-2 bg-gray-500/70 text-white text-xs px-2 py-1 rounded-full">
+                    Video Slot
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top">Drop video file here</TooltipContent>
+            </Tooltip>
+            
+            {/* 9 Empty Image Slots */}
+            {Array.from({ length: 9 }).map((_, i) => (
+              <Tooltip key={i}>
+                <TooltipTrigger asChild>
+                  <div 
+                    className="aspect-square rounded-md border-2 border-dashed border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center"
+                    onDrop={(e) => handleSlotDrop(e, i + 2)}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    <div className="text-center p-2">
+                      <Plus className="w-6 h-6 mx-auto text-gray-300 mb-1" />
+                      <p className="text-xs text-gray-400">Add image</p>
+                      <p className="text-xs text-gray-300">Drop files here</p>
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top">Drop files here</TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+          
+          <div className="flex justify-center">
+            <Button 
+              variant="outline" 
+              onClick={handleFileSelect} 
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" /> Select Files
+            </Button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileInputChange}
+              className="hidden"
+              accept="image/jpeg,image/png,image/webp,video/mp4"
+              multiple
+            />
+          </div>
         </div>
       </TooltipProvider>
     );
@@ -408,6 +454,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
         <div 
           className={`grid grid-cols-5 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
           onDragOver={(e) => e.preventDefault()}
+          style={{ minHeight: '200px' }}
         >
           {mediaItems.map((item, index) => (
             <Tooltip key={item.id}>
@@ -423,8 +470,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
                     moveItem={moveItem}
                     onDelete={handleDelete}
                     onVideoPreview={handleVideoPreview}
-                    onSetPrimary={handleSetPrimary}
-                    isFixed={index <= 1} // Primary image and video are fixed
+                    isFixed={index === 1} // Only video slot (index 1) is fixed
                   />
                 </div>
               </TooltipTrigger>
@@ -432,7 +478,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
                 {item.isEmpty ? (
                   index === 1 ? 'Video slot (optional)' : 'Drop files here'
                 ) : (
-                  index === 0 ? 'Primary image (fixed position)' : 
+                  index === 0 ? 'Primary image (drag to reorder)' : 
                   index === 1 ? 'Video (fixed position)' : 
                   `Image ${index} (can be reordered)`
                 )}
@@ -441,14 +487,27 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
           ))}
         </div>
         
-        <div className="text-sm text-gray-500 flex justify-between mt-1">
-          <div>
+        <div className="flex justify-between items-center mt-1">
+          <div className="text-sm text-gray-500">
             <span className="font-medium">{totalMediaCount}</span> of <span className="font-medium">11</span> media slots used 
             {totalImageCount > 0 && <span> ({totalImageCount} images{hasVideo ? ', 1 video' : ''})</span>}
           </div>
-          <div className="text-xs italic">
-            Primary image and video positions are fixed
-          </div>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleFileSelect} 
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" /> Select Files
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileInputChange}
+            className="hidden"
+            accept="image/jpeg,image/png,image/webp,video/mp4"
+            multiple
+          />
         </div>
         
         {/* Video Preview Modal */}

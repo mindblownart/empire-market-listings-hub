@@ -87,6 +87,10 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
               description: 'Maximum file size is 5MB'
             });
           }
+        } else if (existingImagesCount + newImagesCount + imageFiles.length >= MAX_IMAGES) {
+          toast.warning('Maximum images reached', {
+            description: `You can only upload a maximum of ${MAX_IMAGES} images.`
+          });
         }
       } 
       // Process video
@@ -111,7 +115,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         }
       } else {
         toast.error(`Unsupported file type: ${file.name}`, {
-          description: 'Please upload images (JPG, PNG, WebP, GIF) or videos (MP4, WebM, QuickTime)'
+          description: 'Please upload images (JPG, PNG, WebP) or videos (MP4)'
         });
       }
     });
@@ -139,11 +143,19 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         onVideoUrlChange(null);
       }
     }
+    
+    // Reset drag state
+    setDragActive(false);
   }, [existingImagesCount, newImagesCount, hasVideo, existingVideoUrl, newImages, onImagesChange, onVideoChange, onVideoUrlChange]);
   
   // Handle file drop on gallery
   const handleFilesDrop = useCallback((files: FileList) => {
     setDragActive(false);
+    processFiles(files);
+  }, [processFiles]);
+  
+  // Handle files selection from button
+  const handleFilesSelect = useCallback((files: FileList) => {
     processFiles(files);
   }, [processFiles]);
   
@@ -196,6 +208,16 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       <div 
         className="space-y-4"
         onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFilesDrop(e.dataTransfer.files);
+          }
+          setDragActive(false);
+        }}
       >
         <MediaGallery 
           images={existingImages}
@@ -210,6 +232,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           onDeleteVideo={onDeleteExistingVideo}
           onDeleteNewVideo={handleDeleteNewVideo}
           onFilesDrop={handleFilesDrop}
+          onFilesSelect={handleFilesSelect}
           isDragging={dragActive}
         />
         
@@ -218,9 +241,9 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-gray-700 space-y-1">
             <p>• Images: Up to 10 images, 1200px+ width recommended for best quality (5MB max)</p>
-            <p>• Video: One video file (MP4, WebM, QuickTime, 50MB max) or YouTube/Vimeo URL</p>
-            <p>• Primary image will always appear first. Video (if present) will stay in second position.</p>
-            <p>• Drag and drop files directly onto empty slots in the gallery</p>
+            <p>• Video: One video file (MP4, 50MB max) or YouTube/Vimeo URL</p>
+            <p>• First image is always the Primary Image. Video is fixed in the second position.</p>
+            <p>• You can drag and drop to reorder images (except video) or drop files directly onto the gallery.</p>
           </div>
         </div>
       </div>

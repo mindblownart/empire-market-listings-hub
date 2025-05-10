@@ -35,9 +35,8 @@ const MediaItem: React.FC<MediaItemProps> = ({
       // Don't replace items with themselves
       if (dragIndex === hoverIndex) return;
       
-      // If this is the video slot (index 1) or primary slot (index 0), prevent hover
-      if (hoverIndex === 0 || hoverIndex === 1) return;
-      if (dragIndex === 0 || dragIndex === 1) return;
+      // If this is the video slot (index 1), prevent hover
+      if (hoverIndex === 1) return;
       
       // Don't allow dropping onto empty slots beyond the first available one
       if (item.type === 'empty' && hoverIndex > 0) {
@@ -68,12 +67,6 @@ const MediaItem: React.FC<MediaItemProps> = ({
     }
   };
 
-  const handleSetPrimary = () => {
-    if (onSetPrimary && !item.isPrimary && item.type === 'image') {
-      onSetPrimary(item.id);
-    }
-  };
-
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onDelete && !item.isEmpty) {
@@ -81,9 +74,8 @@ const MediaItem: React.FC<MediaItemProps> = ({
     }
   };
 
-  // Don't render delete button for empty slots
-  const showDeleteButton = !item.isEmpty && !isFixed;
-  const showSetPrimaryButton = !item.isEmpty && !item.isPrimary && item.type === 'image' && onSetPrimary;
+  // Don't render delete button for empty slots or video slot if empty
+  const showDeleteButton = !item.isEmpty;
   
   // Determine border color and opacity based on state
   let borderColorClass = 'border-gray-200';
@@ -134,9 +126,9 @@ const MediaItem: React.FC<MediaItemProps> = ({
         isFixed={isFixed}
         isPrimary={!!item.isPrimary}
         type={item.type}
-        onSetPrimary={handleSetPrimary}
+        onSetPrimary={null}
         onDelete={handleDelete}
-        showSetPrimaryButton={!!showSetPrimaryButton}
+        showSetPrimaryButton={false}
         showDeleteButton={!!showDeleteButton}
       />
     </div>

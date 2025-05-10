@@ -13,7 +13,7 @@ const MediaItemBadges: React.FC<MediaItemBadgesProps> = ({ index, isEmpty, isNew
   return (
     <>
       {/* Primary badge */}
-      {index === 0 && (
+      {(index === 0 || isPrimary) && (
         <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
           <Star className="h-3 w-3" /> Primary
         </div>
