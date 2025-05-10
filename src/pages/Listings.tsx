@@ -341,14 +341,14 @@ const Listings = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      {/* Main content with appropriate spacing */}
-      <main className="flex-grow pb-12">
-        <div className="container mx-auto px-4 mt-8">
+      {/* Main content with improved spacing */}
+      <main className="flex-grow pb-12 pt-24 md:pt-28">
+        <div className="container mx-auto px-4">
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">Available Businesses</h1>
             <p className="text-gray-600 mb-8">Browse our curated selection of high-potential businesses for sale.</p>
             
-            {/* Search and filter section moved below the subtitle */}
+            {/* Search and filter section - below the subtitle */}
             <div className="bg-white mb-10">
               <div className="p-4 flex flex-wrap items-center gap-4">
                 <div className="relative w-full md:w-auto flex-grow">
