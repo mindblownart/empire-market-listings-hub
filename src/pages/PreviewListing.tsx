@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
@@ -105,7 +106,7 @@ const PreviewListing = () => {
   // Get primary image based on the primaryImageIndex
   const primaryImage = isEditing && primaryImageIndex < imageURLs.length 
     ? imageURLs[primaryImageIndex] 
-    : imageURLs.length > 0 ? imageURLs[0] : '';
+    : (imageURLs.length > 0 ? imageURLs[0] : '');
 
   // Show loading state until we determine if we're editing or creating
   if (!isInitialized) {
@@ -118,19 +119,8 @@ const PreviewListing = () => {
     );
   }
   
-  // Reorder images to place primary image first when displaying in the gallery
-  const orderedImages = React.useMemo(() => {
-    if (!isEditing || primaryImageIndex === 0) return imageURLs;
-    
-    const result = [...imageURLs];
-    // Move primary image to front if it's not already there
-    if (primaryImageIndex > 0 && primaryImageIndex < result.length) {
-      const primaryImg = result[primaryImageIndex];
-      result.splice(primaryImageIndex, 1); // Remove from current position
-      result.unshift(primaryImg); // Add to beginning
-    }
-    return result;
-  }, [imageURLs, isEditing, primaryImageIndex]);
+  // Process images for the gallery with primary image first
+  const orderedImages = imageURLs;
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -167,6 +157,7 @@ const PreviewListing = () => {
                 galleryImages={orderedImages} 
                 videoURL={videoURL} 
                 autoplayVideo={true} 
+                primaryImageIndex={primaryImageIndex}
               />
               
               {/* Business Overview & Highlights */}

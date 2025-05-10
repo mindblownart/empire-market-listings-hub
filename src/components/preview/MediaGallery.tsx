@@ -27,22 +27,6 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const hasImages = Array.isArray(galleryImages) && galleryImages.length > 0;
   const hasMedia = hasVideo || hasImages;
   
-  // Organize images by priority
-  const organizedImages = React.useMemo(() => {
-    if (!hasImages) return [];
-    
-    // If primaryImageIndex is valid, move that image to first position
-    if (typeof primaryImageIndex === 'number' && 
-        primaryImageIndex >= 0 && 
-        primaryImageIndex < galleryImages.length) {
-      const images = [...galleryImages];
-      const primaryImage = images.splice(primaryImageIndex, 1)[0];
-      return [primaryImage, ...images];
-    }
-    
-    return galleryImages;
-  }, [galleryImages, primaryImageIndex, hasImages]);
-
   // Handle mute toggle
   const toggleMute = () => {
     if (videoRef.current) {
@@ -63,6 +47,22 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       }
     }
   }, [autoplayVideo, isMuted]);
+  
+  // Organize images by priority - this must be outside of render to avoid hook order issues
+  const organizedImages = React.useMemo(() => {
+    if (!hasImages) return [];
+    
+    // If primaryImageIndex is valid, move that image to first position
+    if (typeof primaryImageIndex === 'number' && 
+        primaryImageIndex >= 0 && 
+        primaryImageIndex < galleryImages.length) {
+      const images = [...galleryImages];
+      const primaryImage = images.splice(primaryImageIndex, 1)[0];
+      return [primaryImage, ...images];
+    }
+    
+    return galleryImages;
+  }, [galleryImages, primaryImageIndex, hasImages]);
 
   if (!hasMedia) {
     // Fallback placeholder when no media is available
