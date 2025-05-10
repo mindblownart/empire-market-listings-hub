@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -82,8 +81,8 @@ const ListingDetail = () => {
       
       <main className="flex-grow pt-20 px-4">
         <div className="container mx-auto max-w-7xl">
-          {/* 1. Hero Section with Business Header - with price badge */}
-          <div className="relative mb-6">
+          {/* 1. Hero Section with Business Header - Keep as is but without price badge */}
+          <div className="mb-6">
             <BusinessHeader 
               businessName={business.title}
               industry={business.category}
@@ -91,17 +90,9 @@ const ListingDetail = () => {
               flagCode={business.flagCode}
               primaryImage={business.primaryImage}
             />
-            
-            {/* Asking Price Badge */}
-            <div className="absolute top-6 right-6 bg-white px-4 py-2 rounded-full shadow-lg">
-              <div className="text-sm font-medium text-gray-500">Asking Price</div>
-              <div className="text-xl font-bold text-primary">
-                {formatCurrency(business.price, business.currencyCode)}
-              </div>
-            </div>
           </div>
           
-          {/* 2. Media Gallery Section - Compact media gallery */}
+          {/* 2. Media Gallery Section - Compact height */}
           <div className="mb-6">
             <MediaGallery 
               galleryImages={business.galleryImages}
@@ -110,18 +101,18 @@ const ListingDetail = () => {
             />
           </div>
           
-          {/* 3. Content Sections - Stacked full-width layout on mobile, two columns on desktop */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-            {/* Left Column - Business Overview & Highlights (wider on desktop) */}
-            <div className="lg:col-span-2 space-y-6">
+          {/* 3. Restructured Content Sections - Two column layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+            {/* Left Column (8/12) - Business Overview & Highlights */}
+            <div className="lg:col-span-8 space-y-6">
               <BusinessOverview 
                 description={business.description}
                 highlights={business.highlights}
               />
             </div>
             
-            {/* Right Column - Business Details & Contact */}
-            <div className="space-y-6">
+            {/* Right Column (4/12) - Business Details, Contact, & CTA button */}
+            <div className="lg:col-span-4 space-y-6">
               <BusinessDetails 
                 askingPrice={business.price}
                 annualRevenue={business.revenue}
@@ -140,7 +131,8 @@ const ListingDetail = () => {
                 role={business.sellerInfo.role}
               />
               
-              <Button className="w-full bg-primary hover:bg-primary-light py-2 h-auto">
+              {/* Contact Seller Button - Bottom right */}
+              <Button className="w-full bg-[#9b87f5] hover:bg-[#8673e0] py-2 h-auto text-white font-medium">
                 Contact Seller
               </Button>
             </div>

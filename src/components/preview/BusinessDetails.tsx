@@ -77,11 +77,12 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
       </CardHeader>
       <CardContent className="pt-4 pb-4">
         <dl className="space-y-3">
+          {/* Asking Price (moved from hero section) */}
           <div className="flex items-center">
             <dt className="flex items-center w-1/2 text-gray-500">
               <DollarSign className="h-4 w-4 mr-2" /> Asking Price
             </dt>
-            <dd className="w-1/2 font-medium">
+            <dd className="w-1/2 font-bold text-lg">
               {formatCurrency(askingPrice || '0', currencyCode)}
             </dd>
           </div>
