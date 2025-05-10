@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -16,12 +15,13 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useFormValidation } from '@/hooks/useFormValidation';
 
 const EditListing = () => {
   const { id } = useParams<{ id: string; }>();
   const navigate = useNavigate();
   const { formData, updateFormData, resetFormData } = useFormData();
-  const { validationErrors, validateField } = useBusinessSubmission();
+  const { validationErrors, validateField } = useFormValidation();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,10 +42,8 @@ const EditListing = () => {
         // Verify user has permission to edit this listing
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user) {
-          toast({
-            title: "Authentication required",
+          toast("Authentication required", {
             description: "Please log in to edit listings.",
-            variant: "destructive",
           });
           navigate('/login');
           return;
@@ -71,10 +69,8 @@ const EditListing = () => {
         
         // Check if the current user is the owner
         if (listing.user_id !== session.user.id) {
-          toast({
-            title: "Access denied",
+          toast("Access denied", {
             description: "You don't have permission to edit this listing.",
-            variant: "destructive",
           });
           navigate('/listings');
           return;
@@ -115,10 +111,8 @@ const EditListing = () => {
       } catch (error) {
         console.error('Error fetching listing:', error);
         setError('Failed to load listing. Please try again.');
-        toast({
-          title: "Error loading listing",
-          description: "There was a problem loading this business listing. Please try again.",
-          variant: "destructive",
+        toast("Error loading listing", {
+          description: "There was a problem loading this business listing. Please try again."
         });
       } finally {
         setIsLoading(false);
@@ -131,7 +125,7 @@ const EditListing = () => {
     return () => {
       resetFormData();
     };
-  }, [id, navigate, toast, updateFormData, resetFormData]);
+  }, [id, navigate, updateFormData, resetFormData]);
   
   // Handle form submission
   const handleSubmit = async () => {
@@ -171,19 +165,16 @@ const EditListing = () => {
         throw error;
       }
       
-      toast({
-        title: "Listing updated successfully",
-        description: "Your business listing has been updated.",
+      toast("Listing updated successfully", {
+        description: "Your business listing has been updated."
       });
       
       // Navigate back to the listing detail page
       navigate(`/business/${id}`);
     } catch (error) {
       console.error('Error updating listing:', error);
-      toast({
-        title: "Error updating listing",
-        description: "There was a problem updating your listing. Please try again.",
-        variant: "destructive",
+      toast("Error updating listing", {
+        description: "There was a problem updating your listing. Please try again."
       });
     } finally {
       setIsSaving(false);
