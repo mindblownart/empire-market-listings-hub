@@ -33,6 +33,7 @@ const PreviewListing = () => {
       const sessionData = sessionStorage.getItem('previewFormData');
       const sessionImages = sessionStorage.getItem('previewImageUrls');
       const sessionVideo = sessionStorage.getItem('previewVideoUrl');
+      const sessionOrdering = sessionStorage.getItem('previewImageOrdering');
       
       if (sessionData) {
         // We have data in session storage, use it
@@ -42,10 +43,32 @@ const PreviewListing = () => {
         if (sessionImages) {
           const parsedImages = JSON.parse(sessionImages);
           
+          // Apply custom ordering if available
+          let orderedImages = parsedImages;
+          if (sessionOrdering) {
+            try {
+              const orderMap = JSON.parse(sessionOrdering);
+              // Apply custom ordering if it exists
+              if (Array.isArray(orderMap) && orderMap.length > 0) {
+                orderedImages = [...parsedImages].sort((a, b) => {
+                  const indexA = orderMap.indexOf(a);
+                  const indexB = orderMap.indexOf(b);
+                  
+                  // If an item isn't in the order map, put it at the end
+                  if (indexA === -1) return 1;
+                  if (indexB === -1) return -1;
+                  return indexA - indexB;
+                });
+              }
+            } catch (error) {
+              console.error("Error parsing image ordering:", error);
+            }
+          }
+          
           // Set primary image to first image
-          if (parsedImages.length > 0) {
-            setPrimaryImage(parsedImages[0]);
-            setGalleryImages(parsedImages);
+          if (orderedImages.length > 0) {
+            setPrimaryImage(orderedImages[0]);
+            setGalleryImages(orderedImages);
           } else {
             setGalleryImages([]);
           }
@@ -118,6 +141,9 @@ const PreviewListing = () => {
       } else {
         // Use the current form data
         setPreviewData(formData);
+        
+        // Check if we have stored image ordering
+        const storedImageOrdering = localStorage.getItem('imageOrdering');
         
         // If we have businessImages in formData, we need to convert them to URLs
         if (formData.businessImages && formData.businessImages.length > 0) {

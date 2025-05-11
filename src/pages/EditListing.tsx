@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -329,8 +328,17 @@ const EditListing = () => {
 
   // Handle reordering of existing images
   const handleReorderExistingImages = (reorderedImages: string[]) => {
-    // First image becomes primary automatically
+    // Store the reordered images both in state and in sessionStorage
     setImageUrls(reorderedImages);
+    
+    // Also save the ordering to sessionStorage for preview
+    sessionStorage.setItem('previewImageOrdering', JSON.stringify(reorderedImages));
+    
+    // First image becomes primary automatically
+    if (reorderedImages.length > 0) {
+      // Only update the primary image in the backend when saving the form
+      console.log("Images reordered with primary:", reorderedImages[0]);
+    }
   };
 
   const handleBackClick = () => {
@@ -341,13 +349,15 @@ const EditListing = () => {
     fetchListing();
   };
 
-  // Handle preview click - updated to ensure data persistence
+  // Handle preview click - updated to ensure data persistence including image ordering
   const handlePreview = () => {
     // Store the current form data in sessionStorage
     sessionStorage.setItem('previewFormData', JSON.stringify(formData));
     
     // Store image URLs and video URL in sessionStorage
     sessionStorage.setItem('previewImageUrls', JSON.stringify(imageUrls));
+    sessionStorage.setItem('previewImageOrdering', JSON.stringify(imageUrls));
+    
     if (formData.businessVideoUrl) {
       sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
     }

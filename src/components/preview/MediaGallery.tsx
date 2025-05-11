@@ -50,15 +50,15 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, [autoplayVideo, isMuted]);
   
-  // Organize media items to ensure correct order
+  // Organize media items to ensure correct order based on settings
   const mediaItems = React.useMemo(() => {
     const items = [];
     
     // Primary image should NOT be in the carousel if skipPrimaryImage is true
     // It should be displayed elsewhere (as hero image)
-    const startIdx = !skipPrimaryImage ? 0 : 1;
+    const startIdx = skipPrimaryImage ? 1 : 0;
 
-    // Add video as next item if it exists
+    // Add video as first item if it exists
     if (hasVideo) {
       items.push({
         type: 'video',
@@ -70,7 +70,10 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     // Add all images except primary (if primary should be shown elsewhere)
     if (hasImages) {
       // Skip the primary image if skipPrimaryImage is true
-      galleryImages.slice(startIdx).forEach((url) => {
+      const imagesToInclude = galleryImages.slice(startIdx);
+      
+      // Add the images in the exact order they appear in the gallery array
+      imagesToInclude.forEach((url) => {
         items.push({
           type: 'image',
           url,
@@ -81,6 +84,14 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     
     return items;
   }, [galleryImages, hasImages, hasVideo, videoURL, skipPrimaryImage]);
+
+  // Reset active index when media items change
+  useEffect(() => {
+    setActiveIndex(0);
+    if (carouselRef.current) {
+      carouselRef.current.scrollTo(0);
+    }
+  }, [mediaItems]);
 
   if (!hasMedia) {
     // Fallback placeholder when no media is available

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { X } from 'lucide-react';
@@ -104,12 +103,15 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     });
   };
 
-  // Handle reordering existing images
+  // Handle reordering existing images with proper ordering preservation
   const handleReorderExistingImages = (reorderedImages: string[]) => {
     setExistingImages(reorderedImages);
     
+    // Store the reordering in session storage for persistence
+    sessionStorage.setItem('imageOrder', JSON.stringify(reorderedImages));
+    
     // First image is always primary
-    if (onSetPrimaryImage) {
+    if (onSetPrimaryImage && reorderedImages.length > 0) {
       onSetPrimaryImage(0);
     }
   };

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { MediaItem, MediaFile, VideoInfo } from './types';
@@ -300,7 +299,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     });
   }, [newVideo, existingVideoUrl, onVideoUrlChange]);
   
-  // Handle image reordering
+  // Handle reordering with enhanced order persistence
   const handleReorder = useCallback((updatedItems: MediaItem[]) => {
     // Split items into existing and new
     const updatedExistingImages: string[] = [];
@@ -327,6 +326,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     
     // Notify parent about reordered existing images
     if (onImagesReorder && updatedExistingImages.length > 0) {
+      // Save the ordering to session storage for persistence across preview
+      sessionStorage.setItem('imageOrder', JSON.stringify(updatedExistingImages)); 
       onImagesReorder(updatedExistingImages);
     }
   }, [onImagesChange, onImagesReorder]);
