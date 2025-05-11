@@ -4,17 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Mail, Phone, AtSign } from 'lucide-react';
 
 interface ContactInformationProps {
-  fullName?: string;
-  email?: string;
-  phone?: string;
-  role?: string;
+  contactName?: string; // Changed from fullName to contactName
+  contactEmail?: string; // Changed from email to contactEmail
+  contactPhone?: string; // Changed from phone to contactPhone  
+  contactRole?: string; // Changed from role to contactRole
 }
 
 export const ContactInformation: React.FC<ContactInformationProps> = ({
-  fullName,
-  email,
-  phone,
-  role
+  contactName,
+  contactEmail,
+  contactPhone,
+  contactRole
 }) => {
   return (
     <Card className="shadow-md">
@@ -30,7 +30,7 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
               <span className="text-gray-500">Full Name</span>
             </div>
             <div className="w-[60%] text-right font-medium break-words">
-              {fullName || 'Not provided'}
+              {contactName || 'Not provided'}
             </div>
           </div>
           
@@ -41,7 +41,7 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
               <span className="text-gray-500">Email</span>
             </div>
             <div className="w-[60%] text-right font-medium break-words select-text">
-              {email || 'Not provided'}
+              {contactEmail || 'Not provided'}
             </div>
           </div>
           
@@ -52,7 +52,7 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
               <span className="text-gray-500">Phone Number</span>
             </div>
             <div className="w-[60%] text-right font-medium break-words">
-              {phone || 'Not provided'}
+              {contactPhone || 'Not provided'}
             </div>
           </div>
           
@@ -63,7 +63,7 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
               <span className="text-gray-500">Role</span>
             </div>
             <div className="w-[60%] text-right font-medium capitalize break-words">
-              {role || 'Not provided'}
+              {contactRole || 'Not provided'}
             </div>
           </div>
         </div>

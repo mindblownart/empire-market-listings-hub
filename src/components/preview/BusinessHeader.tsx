@@ -9,7 +9,9 @@ import { formatCurrency } from '@/lib/formatters';
 interface BusinessHeaderProps {
   businessName: string;
   industry: string;
-  locationName?: string;
+  location?: string; // Changed from locationName to match PreviewListing
+  yearEstablished?: string; // Added this prop
+  employeeCount?: string; // Added this prop
   flagCode?: string;
   primaryImage?: string;
   askingPrice?: string;
@@ -19,7 +21,9 @@ interface BusinessHeaderProps {
 export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   businessName,
   industry,
-  locationName,
+  location,  // Changed from locationName to location
+  yearEstablished, // New prop
+  employeeCount, // New prop
   flagCode,
   primaryImage,
   askingPrice,
@@ -40,7 +44,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
           <div className="absolute bottom-8 left-8">
             <Badge className="mb-2 bg-blue-600">{industry || 'Uncategorized'}</Badge>
             <h1 className="text-4xl font-bold text-white mb-2">{businessName || 'Unnamed Business'}</h1>
-            {locationName && (
+            {location && (
               <div className="flex items-center text-white mt-2">
                 <MapPin className="h-4 w-4 mr-2" />
                 <span className="flex items-center">
@@ -53,7 +57,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
                       )}
                     </span>
                   )}
-                  {locationName}
+                  {location}
                 </span>
               </div>
             )}
@@ -81,7 +85,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
       <CardHeader className="relative">
         <Badge className="w-fit mb-2">{industry || 'Uncategorized'}</Badge>
         <CardTitle className="text-2xl">{businessName || 'Unnamed Business'}</CardTitle>
-        {locationName && (
+        {location && (
           <div className="flex items-center text-gray-600 mt-1">
             <MapPin className="h-4 w-4 mr-2" />
             <span className="flex items-center">
@@ -94,7 +98,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
                   )}
                 </span>
               )}
-              {locationName}
+              {location}
             </span>
           </div>
         )}
