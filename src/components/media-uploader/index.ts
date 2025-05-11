@@ -9,3 +9,8 @@ export * from './gallery';
 export * from './types';
 export * from './video-utils';
 export * from './media-processing';
+export * from './utils/constants';
+export * from './utils/file-utils';
+export * from './utils/image-processor';
+export * from './utils/video-processor';
+export * from './utils/media-processor';
