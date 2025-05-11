@@ -7,3 +7,4 @@ export { default as EmptySlot } from './EmptySlot';
 export { default as DragContext } from './DragContext';
 export * from './types';
 export * from './video-utils';
+export * from './media-processing';

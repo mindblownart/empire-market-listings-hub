@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { MediaItem as MediaItemType, DragItem } from './types';
 import { cn } from '@/lib/utils';
-import { X, Move, Play, Star } from 'lucide-react';
+import { X, Move, Play, Star, Video } from 'lucide-react';
 
 interface MediaItemProps {
   item: MediaItemType;
@@ -11,6 +11,7 @@ interface MediaItemProps {
   moveItem: (dragIndex: number, hoverIndex: number) => void;
   onDelete: () => void;
   onPreview?: () => void;
+  onVideoSlotClick?: () => void;
   isFixed?: boolean;
 }
 
@@ -23,6 +24,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
   moveItem, 
   onDelete,
   onPreview,
+  onVideoSlotClick,
   isFixed = false
 }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -80,21 +82,26 @@ const MediaItem: React.FC<MediaItemProps> = ({
     "group"
   );
   
-  // Handle click for videos
+  // Handle click for videos or empty slots
   const handleClick = () => {
     if (item.type === 'video' && onPreview && !isEmpty) {
       onPreview();
+    } else if (index === 1 && isEmpty && onVideoSlotClick) {
+      onVideoSlotClick();
     }
   };
 
   // Render empty slot
   if (isEmpty) {
     return (
-      <div className={itemClasses}>
+      <div 
+        className={itemClasses}
+        onClick={handleClick}
+      >
         <div className="w-full h-full flex items-center justify-center">
           {index === 1 ? (
             <div className="text-center p-2">
-              <Play className="h-8 w-8 mx-auto text-gray-300 mb-1" />
+              <Video className="h-8 w-8 mx-auto text-gray-300 mb-1" />
               <p className="text-xs text-gray-400">Video</p>
               <p className="text-xs text-gray-300">(Optional)</p>
             </div>
@@ -141,6 +148,13 @@ const MediaItem: React.FC<MediaItemProps> = ({
       {item.isPrimary && (
         <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full z-20 flex items-center gap-1">
           <Star className="h-3 w-3" /> Primary
+        </div>
+      )}
+      
+      {/* New badge - for newly optimized images */}
+      {item.isNew && !item.isPrimary && (
+        <div className="absolute top-2 left-2 bg-blue-500/90 text-white text-xs px-2 py-1 rounded-full z-20">
+          Optimized
         </div>
       )}
       

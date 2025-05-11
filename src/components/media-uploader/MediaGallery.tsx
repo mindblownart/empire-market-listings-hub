@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Video, Loader2 } from 'lucide-react';
 import MediaItem from './MediaItem';
 import VideoPreviewModal from './VideoPreviewModal';
 import { MediaItem as MediaItemType } from './types';
@@ -13,8 +13,10 @@ interface MediaGalleryProps {
   onReorder: (reorderedItems: MediaItemType[]) => void;
   onDelete: (id: string) => void;
   onFileSelect: () => void;
+  onAddVideo?: () => void;
   onDrop: (e: React.DragEvent) => void;
   isDragging?: boolean;
+  isProcessing?: boolean;
   maxImages?: number;
 }
 
@@ -23,8 +25,10 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   onReorder,
   onDelete,
   onFileSelect,
+  onAddVideo,
   onDrop,
   isDragging = false,
+  isProcessing = false,
   maxImages = 10,
 }) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -98,13 +102,29 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     });
   }
   
+  // Handle video slot click for empty video slot
+  const handleVideoSlotClick = useCallback(() => {
+    // Check if we have a video already
+    if (videoItem) {
+      // Preview existing video
+      handleVideoPreview(videoItem);
+    } else if (onAddVideo) {
+      // Add video via URL
+      onAddVideo();
+    } else {
+      // Default to file selection
+      onFileSelect();
+    }
+  }, [videoItem, handleVideoPreview, onAddVideo, onFileSelect]);
+  
   return (
     <TooltipProvider>
       <div className="space-y-4">
         <div 
-          className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
+          className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
           onDragOver={(e) => e.preventDefault()}
         >
+          {/* Render all media slots */}
           {completeGrid.map((item, index) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
@@ -123,6 +143,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
                     moveItem={moveItem}
                     onDelete={() => onDelete(item.id)}
                     onPreview={() => handleVideoPreview(item)}
+                    onVideoSlotClick={index === 1 ? handleVideoSlotClick : undefined}
                     isFixed={index === 1} // Video slot is fixed
                   />
                 </div>
@@ -146,13 +167,31 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
             {imageItems.length > 0 && <span> ({imageItems.length} images{videoItem ? ', 1 video' : ''})</span>}
           </div>
           
-          <Button 
-            variant="outline" 
-            onClick={onFileSelect} 
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" /> Select Files
-          </Button>
+          <div className="flex gap-2">
+            {onAddVideo && !videoItem && (
+              <Button 
+                variant="outline" 
+                onClick={onAddVideo} 
+                className="flex items-center gap-2"
+              >
+                <Video className="h-4 w-4" /> Add Video URL
+              </Button>
+            )}
+            
+            <Button 
+              variant="outline" 
+              onClick={onFileSelect} 
+              className="flex items-center gap-2"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+              {isProcessing ? 'Processing...' : 'Select Files'}
+            </Button>
+          </div>
         </div>
         
         {/* Video Preview Modal */}

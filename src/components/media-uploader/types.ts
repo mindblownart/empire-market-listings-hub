@@ -2,6 +2,7 @@
 export interface MediaFile extends File {
   id: string;
   preview?: string;
+  originalFile?: File;
 }
 
 export interface VideoInfo {

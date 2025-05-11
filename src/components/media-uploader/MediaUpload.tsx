@@ -1,10 +1,14 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Info } from 'lucide-react';
 import { MediaItem, MediaFile, VideoInfo } from './types';
 import { extractVideoInfo } from './video-utils';
 import MediaGallery from './MediaGallery';
+import { 
+  ACCEPTED_IMAGE_TYPES, 
+  ACCEPTED_VIDEO_TYPES, 
+  processFiles 
+} from './media-processing';
 
 interface MediaUploadProps {
   existingImages?: string[];
@@ -17,11 +21,6 @@ interface MediaUploadProps {
   onDeleteExistingVideo?: () => void;
   onImagesReorder?: (images: string[]) => void;
 }
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
 const MediaUpload: React.FC<MediaUploadProps> = ({
   existingImages = [],
@@ -36,7 +35,9 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
 }) => {
   const [newImages, setNewImages] = useState<MediaFile[]>([]);
   const [newVideo, setNewVideo] = useState<MediaFile | null>(null);
+  const [videoThumbnail, setVideoThumbnail] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [processingFiles, setProcessingFiles] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Convert to MediaItem format with correct typing
@@ -91,7 +92,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       id: `new-video-${newVideo.name}`,
       type: 'video',
       file: newVideo,
-      preview: URL.createObjectURL(newVideo),
+      preview: videoThumbnail || URL.createObjectURL(newVideo),
       isPrimary: false,
       videoInfo: { platform: 'file', id: null }
     };
@@ -151,78 +152,64 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   }, []);
   
   // Process files when dropped or selected
-  const processFiles = useCallback((files: FileList) => {
-    const imageFiles: MediaFile[] = [];
-    let videoFile: MediaFile | null = null;
+  const handleFilesSelected = useCallback(async (files: FileList) => {
+    if (!files || files.length === 0) return;
     
-    // Calculate available slots
-    const availableImageSlots = maxImages - (existingImages.length + newImages.length);
-    const videoSlotAvailable = !existingVideoUrl && !newVideo;
+    setProcessingFiles(true);
     
-    // Process all files
-    Array.from(files).forEach(file => {
-      // Process images
-      if (ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        if (imageFiles.length < availableImageSlots) {
-          if (file.size <= MAX_FILE_SIZE) {
-            const mediaFile = file as MediaFile;
-            mediaFile.id = `image-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-            imageFiles.push(mediaFile);
-          } else {
-            toast.error(`Image too large: ${file.name}`, {
-              description: 'Maximum file size is 5MB'
-            });
-          }
-        } else {
-          toast.warning('Maximum images reached', {
-            description: `You can only upload up to ${maxImages} images`
-          });
-          return; // Skip this file
-        }
-      } 
-      // Process video
-      else if (ACCEPTED_VIDEO_TYPES.includes(file.type)) {
-        if (videoSlotAvailable) {
-          if (file.size <= MAX_VIDEO_SIZE) {
-            const mediaFile = file as MediaFile;
-            mediaFile.id = `video-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-            videoFile = mediaFile;
-          } else {
-            toast.error(`Video too large: ${file.name}`, {
-              description: 'Maximum video size is 50MB'
-            });
-          }
-        } else {
-          toast.warning('Video slot already used', {
-            description: 'Please remove the existing video first'
-          });
-        }
-      } else {
-        toast.error(`Unsupported file type: ${file.name}`, {
-          description: 'Please upload JPG, PNG, WebP images or MP4 videos'
+    try {
+      const result = await processFiles(
+        files, 
+        existingImages.length + newImages.length,
+        !!existingVideoUrl || !!newVideo
+      );
+      
+      // Update images state
+      if (result.acceptedImages.length > 0) {
+        const updatedImages = [...newImages, ...result.acceptedImages];
+        setNewImages(updatedImages);
+        onImagesChange(updatedImages);
+        
+        toast.success(`${result.acceptedImages.length} image(s) processed`, {
+          description: 'Images have been optimized for better performance.'
         });
       }
-    });
-    
-    // Update state with new files
-    if (imageFiles.length > 0) {
-      const updatedImages = [...newImages, ...imageFiles];
-      setNewImages(updatedImages);
-      onImagesChange(updatedImages);
-    }
-    
-    if (videoFile) {
-      setNewVideo(videoFile);
-      onVideoChange(videoFile);
       
-      // Clear any existing video URL
-      if (existingVideoUrl) {
-        onVideoUrlChange(null);
+      // Update video state
+      if (result.videoFile) {
+        setNewVideo(result.videoFile);
+        setVideoThumbnail(result.videoThumbnail);
+        onVideoChange(result.videoFile);
+        
+        // Clear any existing video URL
+        if (existingVideoUrl) {
+          onVideoUrlChange(null);
+        }
+        
+        toast.success('Video processed', {
+          description: 'Video preview is now available.'
+        });
+      } else if (result.videoRejected) {
+        toast.error('Video processing failed', {
+          description: 'Please check file requirements and try again.'
+        });
       }
+      
+      if (result.rejectedImages.length > 0) {
+        toast.warning(`${result.rejectedImages.length} image(s) couldn't be processed`, {
+          description: 'Please try with smaller or different images.'
+        });
+      }
+    } catch (error) {
+      console.error('Error processing files:', error);
+      toast.error('Error processing files', {
+        description: 'An unexpected error occurred. Please try again.'
+      });
+    } finally {
+      setProcessingFiles(false);
+      setDragActive(false);
     }
-    
-    setDragActive(false);
-  }, [existingImages.length, maxImages, newImages, existingVideoUrl, newVideo, onImagesChange, onVideoChange, onVideoUrlChange]);
+  }, [existingImages.length, existingVideoUrl, newImages, newVideo, onImagesChange, onVideoChange, onVideoUrlChange]);
   
   // Handle drop event
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -230,11 +217,9 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     e.stopPropagation();
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processFiles(e.dataTransfer.files);
+      handleFilesSelected(e.dataTransfer.files);
     }
-    
-    setDragActive(false);
-  }, [processFiles]);
+  }, [handleFilesSelected]);
   
   // Handle file input change
   const handleFileSelect = useCallback(() => {
@@ -245,10 +230,38 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      processFiles(e.target.files);
+      handleFilesSelected(e.target.files);
       e.target.value = ''; // Reset file input
     }
-  }, [processFiles]);
+  }, [handleFilesSelected]);
+  
+  // Handle video URL input
+  const handleVideoUrlInput = useCallback(() => {
+    // Only allow if no video exists
+    if (newVideo || existingVideoUrl) {
+      toast.info('Please remove the existing video first');
+      return;
+    }
+    
+    // Prompt for URL
+    const url = prompt('Enter YouTube or Vimeo video URL:');
+    if (!url) return;
+    
+    // Validate URL (basic check)
+    const isValidUrl = url.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be|vimeo\.com)\/.+/);
+    if (!isValidUrl) {
+      toast.error('Invalid video URL', {
+        description: 'Please enter a valid YouTube or Vimeo URL.'
+      });
+      return;
+    }
+    
+    // Update state
+    onVideoUrlChange(url);
+    toast.success('Video URL added', {
+      description: 'Your video has been linked to this listing.'
+    });
+  }, [newVideo, existingVideoUrl, onVideoUrlChange]);
   
   // Handle image reordering
   const handleReorder = useCallback((updatedItems: MediaItem[]) => {
@@ -258,14 +271,16 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     
     // Process each item - respecting the primary image as first position
     updatedItems.forEach(item => {
-      if (item.id.startsWith('existing-image-')) {
-        // Existing image - get URL
-        if (item.url) {
-          updatedExistingImages.push(item.url);
+      if (item.type !== 'video' && item.type !== 'empty') {
+        if (item.id.startsWith('existing-image-')) {
+          // Existing image - get URL
+          if (item.url) {
+            updatedExistingImages.push(item.url);
+          }
+        } else if (item.isNew && item.file) {
+          // New image - get file
+          updatedNewImages.push(item.file);
         }
-      } else if (item.isNew && item.file) {
-        // New image - get file
-        updatedNewImages.push(item.file);
       }
     });
     
@@ -295,6 +310,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     } else if (id.startsWith('new-video-')) {
       // Handle new video deletion
       setNewVideo(null);
+      setVideoThumbnail(null);
       onVideoChange(null);
     } else {
       // Handle new image deletion
@@ -316,8 +332,10 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         onReorder={handleReorder}
         onDelete={handleDelete}
         onFileSelect={handleFileSelect}
+        onAddVideo={handleVideoUrlInput}
         onDrop={handleDrop}
         isDragging={dragActive}
+        isProcessing={processingFiles}
         maxImages={maxImages}
       />
       
@@ -335,10 +353,10 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       <div className="bg-blue-50 border border-blue-200 rounded-md p-4 flex gap-3">
         <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-gray-700 space-y-1">
-          <p>• Images: Up to 10 images, 1200px+ width recommended for best quality (5MB max)</p>
-          <p>• Video: One video file (MP4, 50MB max) or YouTube/Vimeo URL</p>
-          <p>• First image is always the Primary Image</p>
-          <p>• You can drag and drop to reorder images (video always stays in fixed position)</p>
+          <p>• Images: JPG, PNG, WebP format (max 10 images, automatically optimized to ≤1MB)</p>
+          <p>• Video: One MP4 video file (≤20MB, 720p) or YouTube/Vimeo link</p>
+          <p>• First image is always the Primary Image shown in search results</p>
+          <p>• You can drag and drop to reorder images (video stays in slot 2)</p>
         </div>
       </div>
     </div>
