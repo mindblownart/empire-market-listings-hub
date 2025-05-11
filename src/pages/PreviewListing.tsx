@@ -1,195 +1,239 @@
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { 
+  BusinessHeader, 
+  BusinessOverview, 
+  BusinessDetails, 
+  MediaGallery,
+  ContactInformation 
+} from '@/components/preview';
 import { useFormData } from '@/contexts/FormDataContext';
-import { BusinessHeader } from '@/components/preview/BusinessHeader';
-import { MediaGallery } from '@/components/preview/MediaGallery';
-import { BusinessOverview } from '@/components/preview/BusinessOverview';
-import { ContactInformation } from '@/components/preview/ContactInformation';
-import { BusinessDetails } from '@/components/preview/BusinessDetails';
-import { Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 const PreviewListing = () => {
-  const { formData } = useFormData();
   const navigate = useNavigate();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editListingId, setEditListingId] = useState<string | null>(null);
+  const { formData } = useFormData();
+  const [isLoading, setIsLoading] = useState(true);
+  const [previewData, setPreviewData] = useState(formData);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
-  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [videoURL, setVideoURL] = useState<string | null>(null);
   
-  // Check if we're editing an existing listing or creating a new one
+  // Load data from session storage or from context/database
   useEffect(() => {
-    const storedListingId = localStorage.getItem('editingListingId');
-    if (storedListingId) {
-      setIsEditing(true);
-      setEditListingId(storedListingId);
+    async function loadPreviewData() {
+      setIsLoading(true);
       
-      // Get stored image URLs and primary image index if any
-      const storedImagesStr = localStorage.getItem('editingListingImages');
-      if (storedImagesStr) {
-        try {
-          const storedImagesData = JSON.parse(storedImagesStr);
-          if (Array.isArray(storedImagesData)) {
-            // Legacy format - just array of URLs
-            setGalleryImages(storedImagesData);
-          } else if (storedImagesData.urls) {
-            // New format with primaryIndex
-            setGalleryImages(storedImagesData.urls);
-            if (typeof storedImagesData.primaryIndex === 'number') {
-              setPrimaryImageIndex(storedImagesData.primaryIndex);
+      // First, try to load from sessionStorage (this takes precedence)
+      const sessionData = sessionStorage.getItem('previewFormData');
+      const sessionImages = sessionStorage.getItem('previewImageUrls');
+      const sessionVideo = sessionStorage.getItem('previewVideoUrl');
+      
+      if (sessionData) {
+        // We have data in session storage, use it
+        const parsedData = JSON.parse(sessionData);
+        setPreviewData(parsedData);
+        
+        if (sessionImages) {
+          setGalleryImages(JSON.parse(sessionImages));
+        }
+        
+        if (sessionVideo) {
+          setVideoURL(sessionVideo);
+        }
+        
+        setIsLoading(false);
+        return;
+      }
+      
+      // If there's no session data, try to load from database if we have an ID
+      const editingListingId = localStorage.getItem('editingListingId');
+      
+      if (editingListingId) {
+        // Fetch the listing data from the database
+        const { data: listing, error } = await supabase
+          .from('business_listings')
+          .select('*')
+          .eq('id', editingListingId)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching listing for preview:', error);
+          // Fall back to the form data
+          setPreviewData(formData);
+        } else if (listing) {
+          // Convert database listing to form data format
+          setPreviewData({
+            businessName: listing.business_name,
+            industry: listing.category,
+            location: listing.location,
+            yearEstablished: listing.year_established?.toString() || '',
+            employees: listing.employees || '',
+            askingPrice: listing.asking_price,
+            annualRevenue: listing.annual_revenue,
+            annualProfit: listing.annual_profit,
+            currencyCode: listing.currency_code,
+            description: listing.description || '',
+            highlights: listing.highlights || [],
+            businessImages: [],
+            businessVideo: null,
+            businessVideoUrl: listing.video_url || '',
+            fullName: listing.contact_name || '',
+            email: listing.contact_email || '',
+            phone: listing.contact_phone || '',
+            role: listing.contact_role || '',
+            originalValues: {
+              askingPrice: listing.asking_price,
+              annualRevenue: listing.annual_revenue,
+              annualProfit: listing.annual_profit,
+              currencyCode: listing.currency_code,
             }
+          });
+          
+          // Set gallery images and video URL
+          if (listing.gallery_images && Array.isArray(listing.gallery_images)) {
+            setGalleryImages(listing.gallery_images);
           }
-        } catch (error) {
-          console.error('Error parsing stored images:', error);
+          
+          if (listing.video_url) {
+            setVideoURL(listing.video_url);
+          }
+        }
+      } else {
+        // Use the current form data
+        setPreviewData(formData);
+        
+        // If we have businessImages in formData, we need to convert them to URLs
+        if (formData.businessImages && formData.businessImages.length > 0) {
+          const urls = formData.businessImages.map(file => {
+            if (file instanceof File) {
+              return URL.createObjectURL(file);
+            }
+            return null;
+          }).filter(Boolean) as string[];
+          
+          setGalleryImages(urls);
+        }
+        
+        if (formData.businessVideoUrl) {
+          setVideoURL(formData.businessVideoUrl);
         }
       }
+      
+      setIsLoading(false);
     }
-    setIsInitialized(true);
-  }, []);
+    
+    loadPreviewData();
+    
+    // Clean up any created object URLs when component unmounts
+    return () => {
+      galleryImages.forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [formData]);
   
-  // Handle back button
-  const handleBack = () => {
-    if (isEditing && editListingId) {
-      navigate(`/edit-listing/${editListingId}`);
+  const handleBackToForm = () => {
+    const editingListingId = localStorage.getItem('editingListingId');
+    if (editingListingId) {
+      navigate(`/edit-listing/${editingListingId}`);
     } else {
       navigate('/submit');
     }
   };
   
-  // Convert File objects to URLs for preview (only for new listings)
-  const imageURLs = React.useMemo(() => {
-    if (isEditing) {
-      // Use the stored gallery images when editing
-      return galleryImages;
-    } else {
-      // For new listings, convert Files to URLs
-      return formData.businessImages.map(file => URL.createObjectURL(file));
-    }
-  }, [formData.businessImages, isEditing, galleryImages]);
-  
-  // Create video URL if video exists
-  const videoURL = React.useMemo(() => {
-    if (formData.businessVideo) {
-      return URL.createObjectURL(formData.businessVideo);
-    }
-    return formData.businessVideoUrl || '';
-  }, [formData.businessVideo, formData.businessVideoUrl]);
-  
-  // Clean up URLs when component unmounts
-  useEffect(() => {
-    return () => {
-      // Only revoke object URLs that we created for File objects
-      if (!isEditing) {
-        imageURLs.forEach(url => {
-          if (url.startsWith('blob:')) {
-            URL.revokeObjectURL(url);
-          }
-        });
-      }
-      
-      if (videoURL && formData.businessVideo && videoURL.startsWith('blob:')) {
-        URL.revokeObjectURL(videoURL);
-      }
-      
-      // Clear stored editing data
-      localStorage.removeItem('editingListingId');
-      localStorage.removeItem('editingListingImages');
-    };
-  }, [imageURLs, videoURL, formData.businessVideo, isEditing]);
-
-  // Use the highlights directly from form data
-  const highlights = formData.highlights || [];
-  
-  // Get primary image based on the primaryImageIndex
-  const primaryImage = isEditing && primaryImageIndex < imageURLs.length 
-    ? imageURLs[primaryImageIndex] 
-    : (imageURLs.length > 0 ? imageURLs[0] : '');
-
-  // Show loading state until we determine if we're editing or creating
-  if (!isInitialized) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <div className="flex-grow flex items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin" />
-        </div>
-      </div>
-    );
-  }
-  
-  // Process images for the gallery with primary image first
-  const orderedImages = imageURLs;
-  
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Logo header */}
-      <header className="py-4 px-6 border-b">
-        <div className="container mx-auto">
-          <Link to="/" className="inline-block">
-            <span className="text-2xl font-bold text-[#5B3DF5]">
-              EmpireMarket
-            </span>
-          </Link>
-        </div>
-      </header>
+      <Navbar />
       
-      <div className="py-8 px-4 flex-grow bg-gray-50">
-        <div className="container mx-auto max-w-6xl">
-          {/* Large hero banner with primary image */}
-          <BusinessHeader 
-            businessName={formData.businessName} 
-            industry={formData.industry} 
-            locationName={formData.locationName}
-            flagCode={formData.flagCode}
-            primaryImage={primaryImage}
-            askingPrice={formData.askingPrice}
-            currencyCode={formData.currencyCode || 'USD'}
-          />
-          
-          {/* Revised layout with 2 columns starting right below the hero */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            {/* Left Column - Media Gallery and Business Overview */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Media Gallery exactly aligned with Business Overview */}
-              <MediaGallery 
-                galleryImages={orderedImages} 
-                videoURL={videoURL} 
-                autoplayVideo={true}
-              />
-              
-              {/* Business Overview & Highlights */}
-              <BusinessOverview description={formData.description} highlights={highlights} />
+      <div className="bg-gray-50 py-10 px-4">
+        <div className="container mx-auto">
+          {/* Preview banner */}
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-blue-100 rounded-full p-2">
+                <Eye className="text-blue-700 h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-800">Preview Mode</h3>
+                <p className="text-sm text-blue-700">This is how your listing will appear to potential buyers.</p>
+              </div>
             </div>
-            
-            {/* Right Column - Business Details & Contact Information */}
-            <div className="space-y-6">
-              <BusinessDetails 
-                annualRevenue={formData.annualRevenue}
-                annualProfit={formData.annualProfit}
-                currencyCode={formData.currencyCode || 'USD'}
-                locationName={formData.locationName}
-                industry={formData.industry}
-                yearEstablished={formData.yearEstablished}
-                employees={formData.employees}
-                originalValues={formData.originalValues}
-              />
-              
-              <ContactInformation 
-                fullName={formData.fullName}
-                email={formData.email}
-                phone={formData.phone}
-                role={formData.role}
-              />
-            </div>
-          </div>
-            
-          {/* Submit Buttons */}
-          <div className="flex justify-end space-x-4 pt-6 mt-6">
-            <Button variant="outline" onClick={handleBack}>
-              {isEditing ? "Back to Edit" : "Back to Form"}
+            <Button
+              variant="outline"
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+              onClick={handleBackToForm}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Form
             </Button>
+          </div>
+          
+          {/* Business content */}
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            {/* Media gallery on large screens, appears at the top on mobile */}
+            <div className="lg:hidden">
+              <MediaGallery 
+                galleryImages={galleryImages} 
+                videoURL={videoURL}
+                autoplayVideo={false}
+              />
+            </div>
+            
+            <div className="p-6 md:p-8 lg:p-10">
+              {/* Business name and key details */}
+              <BusinessHeader 
+                businessName={previewData.businessName}
+                industry={previewData.industry}
+                location={previewData.location}
+                yearEstablished={previewData.yearEstablished}
+                employeeCount={previewData.employees}
+              />
+              
+              <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left column with financial overview */}
+                <div className="lg:col-span-1 space-y-8">
+                  <BusinessOverview
+                    askingPrice={previewData.askingPrice}
+                    annualRevenue={previewData.annualRevenue}
+                    annualProfit={previewData.annualProfit}
+                    currencyCode={previewData.currencyCode}
+                  />
+                  
+                  {/* Contact info */}
+                  <ContactInformation
+                    contactName={previewData.fullName}
+                    contactEmail={previewData.email}
+                    contactPhone={previewData.phone}
+                    contactRole={previewData.role}
+                  />
+                </div>
+                
+                {/* Right column with description, gallery, and details */}
+                <div className="lg:col-span-2 space-y-8">
+                  {/* Media gallery (hidden on mobile since it's shown at the top) */}
+                  <div className="hidden lg:block">
+                    <MediaGallery 
+                      galleryImages={galleryImages} 
+                      videoURL={videoURL}
+                      autoplayVideo={false}
+                    />
+                  </div>
+                  
+                  {/* Business description */}
+                  <BusinessDetails
+                    description={previewData.description}
+                    highlights={previewData.highlights}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

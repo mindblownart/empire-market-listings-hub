@@ -30,16 +30,28 @@ const FormContainer: React.FC<FormContainerProps> = ({
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (onSubmit) {
-      await onSubmit();
-    } else {
-      await handleSubmit(formData);
+    try {
+      if (onSubmit) {
+        await onSubmit();
+        toast.success("Changes saved successfully!");
+      } else {
+        const result = await handleSubmit(formData);
+        if (result) {
+          toast.success("Business listing submitted successfully!");
+        }
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      toast.error("Failed to save changes. Please try again.");
     }
   };
 
-  // Handle preview click
+  // Handle preview click - ensure all form data is captured before navigating
   const handlePreview = (e: React.MouseEvent) => {
     e.preventDefault();
+    
+    // Store current form data in sessionStorage to preserve across navigation
+    sessionStorage.setItem('previewFormData', JSON.stringify(formData));
     
     // We'll allow preview without validation
     // but let's show a toast if there are major issues

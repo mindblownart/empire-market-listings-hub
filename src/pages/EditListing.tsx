@@ -19,6 +19,7 @@ import { useFormValidation } from '@/hooks/useFormValidation';
 import { MediaUpload } from '@/components/media-uploader';
 import DragContext from '@/components/media-uploader/DragContext';
 import { MediaFile } from '@/components/media-uploader/types';
+import { uploadBusinessMedia } from '@/utils/businessMediaUpload';
 
 // Define interface for the listing data to handle primary_image_index
 interface ListingData {
@@ -191,6 +192,36 @@ const EditListing = () => {
     try {
       setIsSaving(true);
       
+      // Validate form data
+      const hasValidData = validateForm();
+      if (!hasValidData) {
+        setIsSaving(false);
+        return;
+      }
+
+      // Handle new image uploads if there are any
+      let updatedImageUrls = [...imageUrls];
+      
+      if (formData.businessImages && formData.businessImages.length > 0) {
+        try {
+          const mediaUrls = await uploadBusinessMedia(formData.businessImages);
+          
+          // Add new uploaded image URLs to the existing ones
+          if (mediaUrls.galleryImages && mediaUrls.galleryImages.length > 0) {
+            updatedImageUrls = [...updatedImageUrls, ...mediaUrls.galleryImages];
+          }
+          
+          console.log("Updated image URLs:", updatedImageUrls);
+        } catch (error) {
+          console.error('Error uploading images:', error);
+          toast.error("Error uploading images", {
+            description: "There was a problem uploading your images. Please try again."
+          });
+          setIsSaving(false);
+          return;
+        }
+      }
+      
       // Prepare the update data
       const updateData = {
         business_name: formData.businessName,
@@ -209,8 +240,8 @@ const EditListing = () => {
         contact_phone: formData.phone || null,
         contact_role: formData.role || null,
         updated_at: new Date().toISOString(),
-        // Keep the existing image URLs
-        gallery_images: imageUrls,
+        // Use the updated image URLs
+        gallery_images: updatedImageUrls,
         video_url: formData.businessVideoUrl || null,
         // Primary image is always first
         primary_image_index: 0
@@ -242,6 +273,37 @@ const EditListing = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // Validate the form
+  const validateForm = () => {
+    // Check required fields
+    if (!formData.businessName) {
+      toast.error("Business name is required");
+      return false;
+    }
+    if (!formData.industry) {
+      toast.error("Industry is required");
+      return false;
+    }
+    if (!formData.location) {
+      toast.error("Location is required");
+      return false;
+    }
+    if (!formData.askingPrice) {
+      toast.error("Asking price is required");
+      return false;
+    }
+    if (!formData.annualRevenue) {
+      toast.error("Annual revenue is required");
+      return false;
+    }
+    if (!formData.annualProfit) {
+      toast.error("Annual profit is required");
+      return false;
+    }
+    
+    return true;
   };
 
   // Handle deletion of existing images
@@ -279,23 +341,20 @@ const EditListing = () => {
     fetchListing();
   };
 
-  // Handle preview click
+  // Handle preview click - updated to ensure data persistence
   const handlePreview = () => {
+    // Store the current form data in sessionStorage
+    sessionStorage.setItem('previewFormData', JSON.stringify(formData));
+    
+    // Store image URLs and video URL in sessionStorage
+    sessionStorage.setItem('previewImageUrls', JSON.stringify(imageUrls));
+    if (formData.businessVideoUrl) {
+      sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
+    }
+    
     // Store the current listing ID in localStorage so the preview page knows which listing we're editing
     if (id) {
       localStorage.setItem('editingListingId', id);
-      
-      // Store image URLs since they're not in formData
-      const imageData = {
-        urls: imageUrls,
-        primaryIndex: 0 // First image is always primary
-      };
-      localStorage.setItem('editingListingImages', JSON.stringify(imageData));
-      
-      // Store video URL if available
-      if (formData.businessVideoUrl) {
-        localStorage.setItem('editingListingVideoUrl', formData.businessVideoUrl);
-      }
     }
     
     // Navigate to preview
