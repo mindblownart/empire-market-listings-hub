@@ -54,15 +54,10 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const mediaItems = React.useMemo(() => {
     const items = [];
     
-    // Always start with primary image if available and not skipped
-    if (hasImages && !skipPrimaryImage && galleryImages.length > 0) {
-      items.push({
-        type: 'image',
-        url: galleryImages[0],
-        isPrimary: true
-      });
-    }
-    
+    // Primary image should NOT be in the carousel if skipPrimaryImage is true
+    // It should be displayed elsewhere (as hero image)
+    const startIdx = !skipPrimaryImage ? 0 : 1;
+
     // Add video as next item if it exists
     if (hasVideo) {
       items.push({
@@ -72,10 +67,9 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       });
     }
     
-    // Add all images except primary (if primary should be shown)
+    // Add all images except primary (if primary should be shown elsewhere)
     if (hasImages) {
-      // Start from index 1 if we're showing primary, otherwise start from 0
-      const startIdx = !skipPrimaryImage ? 1 : 0;
+      // Skip the primary image if skipPrimaryImage is true
       galleryImages.slice(startIdx).forEach((url) => {
         items.push({
           type: 'image',
@@ -126,7 +120,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                 <AspectRatio ratio={16 / 9} className="bg-gray-100 overflow-hidden">
                   <img 
                     src={item.url} 
-                    alt={`Business media ${item.isPrimary ? 'primary' : index + 1}`} 
+                    alt={`Business media ${index + 1}`} 
                     className="w-full h-full object-cover" 
                     loading={index === 0 ? "eager" : "lazy"}
                   />
@@ -194,21 +188,24 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
         )}
       </Carousel>
       
-      {/* Progress indicators for mobile */}
+      {/* Thumbnail navigation indicators */}
       {mediaItems.length > 1 && (
-        <div className="flex justify-center mt-2 pb-2">
+        <div className="flex items-center justify-center gap-1 mt-2 pb-2 px-4 overflow-x-auto">
           {mediaItems.map((_, index) => (
-            <div 
+            <button
               key={`indicator-${index}`}
-              className={`
-                h-1.5 mx-1 rounded-full transition-all cursor-pointer
-                ${activeIndex === index ? 'w-4 bg-primary' : 'w-1.5 bg-gray-300'}
-              `}
               onClick={() => {
                 if (carouselRef.current) {
                   carouselRef.current.scrollTo(index);
                 }
               }}
+              className={`
+                min-w-8 h-2 rounded-full transition-all cursor-pointer
+                ${activeIndex === index 
+                  ? 'bg-primary w-10' 
+                  : 'bg-gray-300 w-8 opacity-50 hover:opacity-75'}
+              `}
+              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>

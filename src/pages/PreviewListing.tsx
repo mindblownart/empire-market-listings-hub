@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -41,11 +42,9 @@ const PreviewListing = () => {
         if (sessionImages) {
           const parsedImages = JSON.parse(sessionImages);
           
-          // Set primary image to first image and remove it from the gallery list
+          // Set primary image to first image
           if (parsedImages.length > 0) {
             setPrimaryImage(parsedImages[0]);
-            // Gallery images are all images including the primary one
-            // The MediaGallery component will now handle skipping the primary in the carousel
             setGalleryImages(parsedImages);
           } else {
             setGalleryImages([]);
@@ -212,7 +211,7 @@ const PreviewListing = () => {
             </Button>
           </div>
           
-          {/* Hero banner section */}
+          {/* Hero banner section - Always show primary image */}
           <div className="mb-6">
             <BusinessHeader 
               businessName={previewData.businessName}
@@ -229,7 +228,7 @@ const PreviewListing = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column (70% width on desktop) */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Media Gallery - updated to use full-width, scrollable carousel */}
+              {/* Media Gallery - Showing all media EXCEPT primary image */}
               <MediaGallery 
                 galleryImages={galleryImages} 
                 videoURL={videoURL}
