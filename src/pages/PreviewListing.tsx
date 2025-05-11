@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -21,6 +22,7 @@ const PreviewListing = () => {
   const [previewData, setPreviewData] = useState(formData);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [videoURL, setVideoURL] = useState<string | null>(null);
+  const [primaryImage, setPrimaryImage] = useState<string | undefined>(undefined);
   
   // Load data from session storage or from context/database
   useEffect(() => {
@@ -38,7 +40,16 @@ const PreviewListing = () => {
         setPreviewData(parsedData);
         
         if (sessionImages) {
-          setGalleryImages(JSON.parse(sessionImages));
+          const parsedImages = JSON.parse(sessionImages);
+          
+          // Set primary image to first image and remove it from the gallery list
+          if (parsedImages.length > 0) {
+            setPrimaryImage(parsedImages[0]);
+            // Gallery images are all images except the first (primary) one
+            setGalleryImages(parsedImages.slice(1));
+          } else {
+            setGalleryImages([]);
+          }
         }
         
         if (sessionVideo) {
@@ -95,7 +106,10 @@ const PreviewListing = () => {
           
           // Set gallery images and video URL
           if (listing.gallery_images && Array.isArray(listing.gallery_images)) {
-            setGalleryImages(listing.gallery_images);
+            if (listing.gallery_images.length > 0) {
+              setPrimaryImage(listing.gallery_images[0]);
+              setGalleryImages(listing.gallery_images.slice(1));
+            }
           }
           
           if (listing.video_url) {
@@ -115,7 +129,10 @@ const PreviewListing = () => {
             return null;
           }).filter(Boolean) as string[];
           
-          setGalleryImages(urls);
+          if (urls.length > 0) {
+            setPrimaryImage(urls[0]);
+            setGalleryImages(urls.slice(1));
+          }
         }
         
         if (formData.businessVideoUrl) {
@@ -130,6 +147,10 @@ const PreviewListing = () => {
     
     // Clean up any created object URLs when component unmounts
     return () => {
+      if (primaryImage && primaryImage.startsWith('blob:')) {
+        URL.revokeObjectURL(primaryImage);
+      }
+      
       galleryImages.forEach(url => {
         if (url.startsWith('blob:')) {
           URL.revokeObjectURL(url);
@@ -147,14 +168,6 @@ const PreviewListing = () => {
     }
   };
 
-  // Media priority logic:
-  // 1. Use video as hero if available
-  // 2. Otherwise use explicit primaryImage if set
-  // 3. Otherwise use first gallery image
-  // 4. If no media at all, undefined will trigger fallback
-  const hasVideo = !!videoURL;
-  const heroImage = galleryImages.length > 0 ? galleryImages[0] : undefined;
-  
   // If loading, show a loading state
   if (isLoading) {
     return (
@@ -206,7 +219,7 @@ const PreviewListing = () => {
               industry={previewData.industry}
               location={previewData.location}
               flagCode={previewData.location === "sg" ? "SG" : (previewData.location || "us").toUpperCase().substring(0, 2)}
-              primaryImage={heroImage}
+              primaryImage={primaryImage}
               askingPrice={previewData.askingPrice}
               currencyCode={previewData.currencyCode}
             />
@@ -221,6 +234,7 @@ const PreviewListing = () => {
                 galleryImages={galleryImages} 
                 videoURL={videoURL}
                 autoplayVideo={true}
+                skipPrimaryImage={true} // Skip primary image as it's already shown in hero banner
               />
               
               {/* Business Overview */}

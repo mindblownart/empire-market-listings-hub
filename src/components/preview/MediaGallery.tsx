@@ -10,16 +10,19 @@ interface MediaGalleryProps {
   galleryImages: string[];
   videoURL?: string | null;
   autoplayVideo?: boolean;
+  skipPrimaryImage?: boolean; // If true, primary image is shown elsewhere and shouldn't be included in gallery
 }
 
 export const MediaGallery: React.FC<MediaGalleryProps> = ({
   galleryImages = [],
   videoURL,
   autoplayVideo = false,
+  skipPrimaryImage = false,
 }) => {
   const [isMuted, setIsMuted] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const carouselRef = useRef<any>(null);
   
   // Check if any media is available
   const hasVideo = !!videoURL;
@@ -47,11 +50,11 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, [autoplayVideo, isMuted]);
   
-  // Organize media items to ensure primary is first and video is second
+  // Organize media items to ensure video is first if it exists
   const mediaItems = React.useMemo(() => {
     const items = [];
     
-    // Primary image (first image) is always first, unless there's a video which takes precedence
+    // Add video as first item if it exists
     if (hasVideo) {
       items.push({
         type: 'video',
@@ -74,6 +77,14 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     return items;
   }, [galleryImages, hasImages, hasVideo, videoURL]);
 
+  // Handle thumbnail click
+  const handleThumbnailClick = (index: number) => {
+    setActiveIndex(index);
+    if (carouselRef.current) {
+      carouselRef.current.scrollTo(index);
+    }
+  };
+
   if (!hasMedia) {
     // Fallback placeholder when no media is available
     return (
@@ -93,10 +104,20 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
 
   return (
     <div className="w-full rounded-lg overflow-hidden shadow-md">
-      <Carousel className="w-full" setApi={(api) => {
-        // Start at index 0, but this can be modified if needed
-        api?.scrollTo(0); 
-      }}>
+      <Carousel 
+        className="w-full" 
+        setApi={(api) => {
+          // Store carousel API reference
+          carouselRef.current = api;
+          // Start at index 0, but this can be modified if needed
+          api?.scrollTo(0);
+          // Set up event listener for slide changes
+          api?.on('select', () => {
+            const selectedIndex = api.selectedScrollSnap();
+            setActiveIndex(selectedIndex);
+          });
+        }}
+      >
         <CarouselContent>
           {mediaItems.map((item, index) => (
             <CarouselItem key={index}>
@@ -172,18 +193,19 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       
       {/* Thumbnail navigation for multiple items */}
       {mediaItems.length > 1 && (
-        <div className="px-4 py-2 bg-gray-50">
+        <div className="px-4 py-3 bg-gray-50">
           <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-thin">
             {mediaItems.map((item, index) => (
               <div 
                 key={`thumb-${index}`}
                 className={`
-                  w-16 h-12 flex-shrink-0 rounded overflow-hidden cursor-pointer 
-                  ${activeIndex === index ? 'ring-2 ring-primary' : 'ring-1 ring-gray-200'}
+                  w-16 h-12 flex-shrink-0 rounded overflow-hidden cursor-pointer transition-all
+                  ${activeIndex === index ? 
+                    'ring-2 ring-primary scale-105 shadow-md' : 
+                    'ring-1 ring-gray-200 hover:ring-gray-300'
+                  }
                 `}
-                onClick={() => {
-                  setActiveIndex(index);
-                }}
+                onClick={() => handleThumbnailClick(index)}
               >
                 {item.type === 'image' ? (
                   <img 
