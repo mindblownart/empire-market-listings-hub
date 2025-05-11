@@ -18,6 +18,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   autoplayVideo = false,
 }) => {
   const [isMuted, setIsMuted] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   
   // Check if any media is available
@@ -50,32 +51,24 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const mediaItems = React.useMemo(() => {
     const items = [];
     
-    // Primary image (first image) is always first
-    if (hasImages && galleryImages.length > 0) {
+    // Primary image (first image) is always first, unless there's a video which takes precedence
+    if (hasVideo) {
       items.push({
-        type: 'image',
-        url: galleryImages[0],
+        type: 'video',
+        url: videoURL || '',
         isPrimary: true
       });
     }
     
-    // Video is always second (if present)
-    if (hasVideo) {
-      items.push({
-        type: 'video',
-        url: videoURL || ''
-      });
-    }
-    
-    // Add remaining images
-    if (hasImages && galleryImages.length > 1) {
-      for (let i = 1; i < galleryImages.length; i++) {
+    // Add all images
+    if (hasImages) {
+      galleryImages.forEach((url, index) => {
         items.push({
           type: 'image',
-          url: galleryImages[i],
-          isPrimary: false
+          url,
+          isPrimary: !hasVideo && index === 0
         });
-      }
+      });
     }
     
     return items;
@@ -100,7 +93,10 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
 
   return (
     <div className="w-full rounded-lg overflow-hidden shadow-md">
-      <Carousel className="w-full">
+      <Carousel className="w-full" setApi={(api) => {
+        // Start at index 0, but this can be modified if needed
+        api?.scrollTo(0); 
+      }}>
         <CarouselContent>
           {mediaItems.map((item, index) => (
             <CarouselItem key={index}>
@@ -173,6 +169,49 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
           </>
         )}
       </Carousel>
+      
+      {/* Thumbnail navigation for multiple items */}
+      {mediaItems.length > 1 && (
+        <div className="px-4 py-2 bg-gray-50">
+          <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-thin">
+            {mediaItems.map((item, index) => (
+              <div 
+                key={`thumb-${index}`}
+                className={`
+                  w-16 h-12 flex-shrink-0 rounded overflow-hidden cursor-pointer 
+                  ${activeIndex === index ? 'ring-2 ring-primary' : 'ring-1 ring-gray-200'}
+                `}
+                onClick={() => {
+                  setActiveIndex(index);
+                }}
+              >
+                {item.type === 'image' ? (
+                  <img 
+                    src={item.url} 
+                    alt={`Thumbnail ${index + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-black flex items-center justify-center">
+                    <svg 
+                      className="w-6 h-6 text-white" 
+                      fill="currentColor" 
+                      viewBox="0 0 20 20" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path 
+                        fillRule="evenodd" 
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" 
+                        clipRule="evenodd" 
+                      />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

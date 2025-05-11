@@ -1,13 +1,13 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Mail, Phone, AtSign } from 'lucide-react';
+import { User, Mail, Phone, AtSign, Contact } from 'lucide-react';
 
 interface ContactInformationProps {
-  contactName?: string; // Changed from fullName to contactName
-  contactEmail?: string; // Changed from email to contactEmail
-  contactPhone?: string; // Changed from phone to contactPhone  
-  contactRole?: string; // Changed from role to contactRole
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  contactRole?: string;
 }
 
 export const ContactInformation: React.FC<ContactInformationProps> = ({
@@ -19,7 +19,10 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
   return (
     <Card className="shadow-md">
       <CardHeader className="border-b py-4">
-        <CardTitle>Contact Information</CardTitle>
+        <CardTitle className="flex items-center">
+          <Contact className="h-5 w-5 mr-2 text-primary" />
+          Contact Information
+        </CardTitle>
       </CardHeader>
       <CardContent className="pt-4 pb-4">
         <div className="space-y-4">

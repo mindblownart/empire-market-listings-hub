@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Eye } from 'lucide-react'; // Added Eye import here
+import { ArrowLeft, Eye } from 'lucide-react';
 import { 
   BusinessHeader, 
   BusinessOverview, 
@@ -147,16 +147,41 @@ const PreviewListing = () => {
       navigate('/submit');
     }
   };
+
+  // Media priority logic:
+  // 1. Use video as hero if available
+  // 2. Otherwise use explicit primaryImage if set
+  // 3. Otherwise use first gallery image
+  // 4. If no media at all, undefined will trigger fallback
+  const hasVideo = !!videoURL;
+  const heroImage = galleryImages.length > 0 ? galleryImages[0] : undefined;
+  
+  // If loading, show a loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+            <h2 className="text-2xl font-bold">Loading Preview</h2>
+            <p className="text-gray-500">Please wait while we prepare your business listing preview...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <div className="bg-gray-50 py-10 px-4">
-        <div className="container mx-auto">
+      <main className="flex-grow pt-20 px-4 pb-12">
+        <div className="container mx-auto max-w-7xl">
           {/* Preview banner */}
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between">
+            <div className="flex items-center gap-3 mb-3 md:mb-0">
               <div className="bg-blue-100 rounded-full p-2">
                 <Eye className="text-blue-700 h-5 w-5" />
               </div>
@@ -167,7 +192,7 @@ const PreviewListing = () => {
             </div>
             <Button
               variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+              className="border-blue-300 text-blue-700 hover:bg-blue-100 w-full md:w-auto"
               onClick={handleBackToForm}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -175,70 +200,74 @@ const PreviewListing = () => {
             </Button>
           </div>
           
-          {/* Business content */}
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            {/* Media gallery on large screens, appears at the top on mobile */}
-            <div className="lg:hidden">
+          {/* Hero banner section */}
+          <div className="mb-6">
+            <BusinessHeader 
+              businessName={previewData.businessName}
+              industry={previewData.industry}
+              location={previewData.location}
+              flagCode={previewData.location === "sg" ? "SG" : (previewData.location || "us").toUpperCase().substring(0, 2)}
+              primaryImage={heroImage}
+              askingPrice={previewData.askingPrice}
+              currencyCode={previewData.currencyCode}
+            />
+          </div>
+
+          {/* Main content with responsive grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column (70% width on desktop) */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Media Gallery */}
               <MediaGallery 
                 galleryImages={galleryImages} 
                 videoURL={videoURL}
-                autoplayVideo={false}
+                autoplayVideo={true}
+              />
+              
+              {/* Business Overview */}
+              <BusinessOverview 
+                description={previewData.description}
+                highlights={previewData.highlights}
+                askingPrice={previewData.askingPrice}
+                annualRevenue={previewData.annualRevenue}
+                annualProfit={previewData.annualProfit}
+                currencyCode={previewData.currencyCode}
               />
             </div>
             
-            <div className="p-6 md:p-8 lg:p-10">
-              {/* Business name and key details */}
-              <BusinessHeader 
-                businessName={previewData.businessName}
-                industry={previewData.industry}
+            {/* Right Column (30% width on desktop) */}
+            <div className="space-y-6">
+              {/* Business Details */}
+              <BusinessDetails
+                annualRevenue={previewData.annualRevenue}
+                annualProfit={previewData.annualProfit}
+                currencyCode={previewData.currencyCode}
                 location={previewData.location}
+                industry={previewData.industry}
                 yearEstablished={previewData.yearEstablished}
-                employeeCount={previewData.employees}
+                employees={previewData.employees}
               />
               
-              <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left column with financial overview */}
-                <div className="lg:col-span-1 space-y-8">
-                  <BusinessOverview
-                    askingPrice={previewData.askingPrice}
-                    annualRevenue={previewData.annualRevenue}
-                    annualProfit={previewData.annualProfit}
-                    currencyCode={previewData.currencyCode}
-                  />
-                  
-                  {/* Contact info */}
-                  <ContactInformation
-                    contactName={previewData.fullName}
-                    contactEmail={previewData.email}
-                    contactPhone={previewData.phone}
-                    contactRole={previewData.role}
-                  />
-                </div>
-                
-                {/* Right column with description, gallery, and details */}
-                <div className="lg:col-span-2 space-y-8">
-                  {/* Media gallery (hidden on mobile since it's shown at the top) */}
-                  <div className="hidden lg:block">
-                    <MediaGallery 
-                      galleryImages={galleryImages} 
-                      videoURL={videoURL}
-                      autoplayVideo={false}
-                    />
-                  </div>
-                  
-                  {/* Business description */}
-                  <BusinessDetails
-                    description={previewData.description}
-                    highlights={previewData.highlights}
-                  />
-                </div>
+              {/* Contact Information */}
+              <ContactInformation
+                contactName={previewData.fullName}
+                contactEmail={previewData.email}
+                contactPhone={previewData.phone}
+                contactRole={previewData.role}
+              />
+              
+              {/* Contact Seller Button - fixed at bottom on mobile */}
+              <div className="md:static fixed bottom-0 left-0 right-0 p-4 bg-white md:bg-transparent md:p-0 md:mt-6 z-10 shadow-lg md:shadow-none">
+                <Button className="w-full bg-[#9b87f5] hover:bg-[#8673e0] py-6 h-auto text-white text-lg font-medium">
+                  Contact Seller
+                </Button>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
       
-      <Footer />
+      <Footer className="mt-20 md:mt-0" /> {/* Add extra margin on mobile to account for fixed button */}
     </div>
   );
 };
