@@ -190,9 +190,9 @@ const PreviewListing = () => {
       
       <main className="flex-grow pt-20 px-4 pb-12">
         <div className="container mx-auto max-w-7xl">
-          {/* Preview banner */}
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between">
-            <div className="flex items-center gap-3 mb-3 md:mb-0">
+          {/* Preview banner - Removed the Back to Form button from here */}
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+            <div className="flex items-center gap-3">
               <div className="bg-blue-100 rounded-full p-2">
                 <Eye className="text-blue-700 h-5 w-5" />
               </div>
@@ -201,14 +201,6 @@ const PreviewListing = () => {
                 <p className="text-sm text-blue-700">This is how your listing will appear to potential buyers.</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-100 w-full md:w-auto"
-              onClick={handleBackToForm}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Form
-            </Button>
           </div>
           
           {/* Hero banner section - Always show primary image */}
@@ -268,10 +260,14 @@ const PreviewListing = () => {
                 contactRole={previewData.role}
               />
               
-              {/* Contact Seller Button - fixed at bottom on mobile */}
+              {/* Back to Form Button - replacing Contact Seller button */}
               <div className="md:static fixed bottom-0 left-0 right-0 p-4 bg-white md:bg-transparent md:p-0 md:mt-6 z-10 shadow-lg md:shadow-none">
-                <Button className="w-full bg-[#9b87f5] hover:bg-[#8673e0] py-6 h-auto text-white text-lg font-medium">
-                  Contact Seller
+                <Button 
+                  className="w-full bg-[#9b87f5] hover:bg-[#8673e0] py-6 h-auto text-white text-lg font-medium"
+                  onClick={handleBackToForm}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Form
                 </Button>
               </div>
             </div>
