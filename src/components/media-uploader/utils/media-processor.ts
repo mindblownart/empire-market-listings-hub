@@ -3,6 +3,7 @@ import { isImageFile, isVideoFile } from './file-utils';
 import { processImage } from './image-processor';
 import { processVideo } from './video-processor';
 import { MediaFile } from '../types';
+import { MAX_IMAGES, VIDEO_SLOT_INDEX } from './constants';
 
 // Main function to process multiple files
 export const processFiles = async (
@@ -35,7 +36,7 @@ export const processFiles = async (
   }
   
   // Process images (limit to max allowed)
-  const maxAdditionalImages = 10 - existingImagesCount;
+  const maxAdditionalImages = MAX_IMAGES - existingImagesCount;
   const imagesToProcess = imageFiles.slice(0, maxAdditionalImages);
   const rejectedImages = imageFiles.slice(maxAdditionalImages);
   
@@ -64,4 +65,22 @@ export const processFiles = async (
     videoRejected,
     videoThumbnail
   };
+};
+
+// Helper function to reorder media items ensuring the constraints
+export const reorderMediaItems = <T>(
+  items: T[],
+  sourceIndex: number,
+  destinationIndex: number
+): T[] => {
+  // Don't allow moving to/from video slot (index 1)
+  if (sourceIndex === VIDEO_SLOT_INDEX || destinationIndex === VIDEO_SLOT_INDEX) {
+    return [...items];
+  }
+  
+  const result = Array.from(items);
+  const [removed] = result.splice(sourceIndex, 1);
+  result.splice(destinationIndex, 0, removed);
+  
+  return result;
 };

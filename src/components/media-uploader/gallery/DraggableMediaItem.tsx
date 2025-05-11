@@ -3,7 +3,8 @@ import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { MediaItem, DragItem } from '../types';
 import { cn } from '@/lib/utils';
-import { X, Move, Play, Star, Video } from 'lucide-react';
+import { X, Move, Play, Star } from 'lucide-react';
+import { VIDEO_SLOT_INDEX } from '../utils/constants';
 
 interface DraggableMediaItemProps {
   item: MediaItem;
@@ -11,8 +12,7 @@ interface DraggableMediaItemProps {
   moveItem: (dragIndex: number, hoverIndex: number) => void;
   onDelete: () => void;
   onPreview?: () => void;
-  isFixed?: boolean;
-  handleClick: () => void;
+  handleClick?: () => void;
 }
 
 // Item type for drag and drop
@@ -24,10 +24,12 @@ const DraggableMediaItem: React.FC<DraggableMediaItemProps> = ({
   moveItem, 
   onDelete,
   onPreview,
-  isFixed = false,
   handleClick
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+  
+  // Determine if this is a fixed position (video is fixed at index 1)
+  const isFixed = index === VIDEO_SLOT_INDEX;
 
   // Set up drag functionality - not allowed for fixed items or empty slots
   const [{ isDragging }, drag] = useDrag({
@@ -48,7 +50,7 @@ const DraggableMediaItem: React.FC<DraggableMediaItemProps> = ({
       // Don't replace items with themselves
       if (draggedItem.index === index) return;
       
-      // Don't allow dropping into fixed position
+      // Don't allow dropping into fixed position (video slot)
       if (isFixed) return;
       
       // Time to actually perform the action

@@ -45,7 +45,6 @@ const MediaGrid: React.FC<MediaGridProps> = ({
             onDelete={() => onDelete(item.id)}
             onPreview={() => onPreview(item)}
             onVideoSlotClick={index === 1 ? onVideoSlotClick : undefined}
-            isFixed={index === 1} // Video slot is fixed
           />
         </div>
       ))}

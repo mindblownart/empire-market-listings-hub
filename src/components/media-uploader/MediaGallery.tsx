@@ -8,6 +8,7 @@ import {
   GalleryControls, 
   FileUploadInfo 
 } from './gallery';
+import { MAX_IMAGES, VIDEO_SLOT_INDEX } from './utils/constants';
 
 interface MediaGalleryProps {
   items: MediaItemType[];
@@ -30,7 +31,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   onDrop,
   isDragging = false,
   isProcessing = false,
-  maxImages = 10,
+  maxImages = MAX_IMAGES,
 }) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string>('');
@@ -60,8 +61,8 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   
   // Handle reordering of items with proper swapping
   const moveItem = useCallback((dragIndex: number, hoverIndex: number) => {
-    // Don't allow moving to/from video slot (index 1)
-    if (dragIndex === 1 || hoverIndex === 1) return;
+    // Don't allow moving to/from video slot (index VIDEO_SLOT_INDEX)
+    if (dragIndex === VIDEO_SLOT_INDEX || hoverIndex === VIDEO_SLOT_INDEX) return;
     
     // Create a new array to avoid direct mutation
     const newItems = [...items];
@@ -71,9 +72,6 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     
     // Don't proceed if it's an empty slot
     if (draggedItem.isEmpty) return;
-    
-    // Get the hover item (could be an empty slot)
-    const hoverItem = newItems[hoverIndex];
     
     // Perform a proper swap (not duplication)
     newItems.splice(dragIndex, 1); // Remove dragged item
@@ -92,8 +90,8 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   // Create a complete grid with empty slots where needed
   const completeGrid = [...items];
   
-  // Ensure we always have at least the required number of slots (2 rows of 6 - total 11 media slots)
-  while (completeGrid.length < 11) {
+  // Ensure we always have at least the required number of slots (up to MAX_IMAGES + 1 for video slot)
+  while (completeGrid.length < MAX_IMAGES + 1) {
     completeGrid.push({
       id: `empty-slot-${completeGrid.length}`,
       type: 'empty',

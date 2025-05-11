@@ -4,6 +4,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { MediaItem } from '../types';
 import DraggableMediaItem from './DraggableMediaItem';
 import EmptySlotContent from './EmptySlotContent';
+import { VIDEO_SLOT_INDEX } from '../utils/constants';
 
 interface MediaSlotProps {
   item: MediaItem;
@@ -12,7 +13,6 @@ interface MediaSlotProps {
   onDelete: () => void;
   onPreview?: () => void;
   onVideoSlotClick?: () => void;
-  isFixed?: boolean;
 }
 
 const MediaSlot: React.FC<MediaSlotProps> = ({
@@ -21,14 +21,16 @@ const MediaSlot: React.FC<MediaSlotProps> = ({
   moveItem,
   onDelete,
   onPreview,
-  onVideoSlotClick,
-  isFixed = false
+  onVideoSlotClick
 }) => {
+  // Determine if this is a fixed position
+  const isFixed = index === VIDEO_SLOT_INDEX;
+  
   // Handle click for videos or empty slots
   const handleClick = () => {
     if (item.type === 'video' && onPreview && !item.isEmpty) {
       onPreview();
-    } else if (index === 1 && item.isEmpty && onVideoSlotClick) {
+    } else if (index === VIDEO_SLOT_INDEX && item.isEmpty && onVideoSlotClick) {
       onVideoSlotClick();
     }
   };
@@ -40,16 +42,13 @@ const MediaSlot: React.FC<MediaSlotProps> = ({
     <Tooltip>
       <TooltipTrigger asChild>
         <div 
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
           className="h-full"
           onClick={isEmpty ? handleClick : undefined}
         >
           {isEmpty ? (
-            <EmptySlotContent index={index} />
+            <div className="border-2 border-dashed rounded-md aspect-square flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors border-gray-300">
+              <EmptySlotContent index={index} isPrimary={index === 0} />
+            </div>
           ) : (
             <DraggableMediaItem
               item={item}
@@ -57,7 +56,6 @@ const MediaSlot: React.FC<MediaSlotProps> = ({
               moveItem={moveItem}
               onDelete={onDelete}
               onPreview={onPreview}
-              isFixed={isFixed}
               handleClick={handleClick}
             />
           )}
@@ -65,10 +63,10 @@ const MediaSlot: React.FC<MediaSlotProps> = ({
       </TooltipTrigger>
       <TooltipContent side="top">
         {item.isEmpty ? (
-          index === 1 ? 'Video slot (optional)' : 'Drop files here'
+          index === VIDEO_SLOT_INDEX ? 'Video slot (optional)' : 'Drop files here'
         ) : (
           index === 0 ? 'Primary image (drag to reorder)' : 
-          index === 1 ? 'Video (fixed position)' : 
+          index === VIDEO_SLOT_INDEX ? 'Video (fixed position)' : 
           `Image ${index} (can be reordered)`
         )}
       </TooltipContent>

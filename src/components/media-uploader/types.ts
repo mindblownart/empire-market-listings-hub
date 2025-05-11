@@ -22,6 +22,12 @@ export interface MediaItem {
   videoInfo?: VideoInfo;
 }
 
+export interface DragItem {
+  id: string;
+  index: number;
+  type: string;
+}
+
 export interface MediaUploadProps {
   existingImages?: string[];
   existingVideoUrl?: string | null;
@@ -45,10 +51,4 @@ export interface BusinessMediaUploaderProps {
   onVideoChange?: (video: File | null) => void;
   onVideoUrlChange?: (url: string) => void;
   onSetPrimaryImage?: (index: number) => void;
-}
-
-export interface DragItem {
-  id: string;
-  index: number;
-  type: string;
 }

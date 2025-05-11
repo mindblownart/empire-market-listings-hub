@@ -1,16 +1,14 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { Info } from 'lucide-react';
 import { MediaItem, MediaFile, VideoInfo } from './types';
 import { extractVideoInfo } from './video-utils';
 import MediaGallery from './MediaGallery';
 import { 
   ACCEPTED_IMAGE_TYPES, 
   ACCEPTED_VIDEO_TYPES, 
-  processFiles,
-  fileToMediaFile,
-  filesToMediaFiles
+  MAX_IMAGES,
+  VIDEO_SLOT_INDEX,
+  processFiles
 } from './media-processing';
 
 interface MediaUploadProps {
@@ -31,7 +29,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   onImagesChange,
   onVideoChange,
   onVideoUrlChange,
-  maxImages = 10,
+  maxImages = MAX_IMAGES,
   onDeleteExistingImage,
   onDeleteExistingVideo,
   onImagesReorder,
@@ -100,9 +98,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     };
   }
   
-  // Insert video at position 1 if it exists
+  // Ensure video is always in slot VIDEO_SLOT_INDEX
   if (videoItem) {
-    // Ensure video is always in slot 2 (index 1)
     // If there are 0 items, add an empty slot first, then the video
     if (allItems.length === 0) {
       allItems.push({
@@ -120,19 +117,19 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     }
     // If there are 2+ items
     else {
-      // If position 1 already has a video, replace it
-      if (allItems[1]?.type === 'video') {
-        allItems[1] = videoItem;
+      // If position VIDEO_SLOT_INDEX already has a video, replace it
+      if (allItems[VIDEO_SLOT_INDEX]?.type === 'video') {
+        allItems[VIDEO_SLOT_INDEX] = videoItem;
       }
-      // Otherwise, insert video at position 1, shifting everything else
+      // Otherwise, insert video at position VIDEO_SLOT_INDEX, shifting everything else
       else {
-        allItems.splice(1, 0, videoItem);
+        allItems.splice(VIDEO_SLOT_INDEX, 0, videoItem);
       }
     }
   }
-  // If no video, ensure an empty video slot at position 1
-  else if (allItems.length >= 1 && allItems[1]?.type !== 'empty') {
-    allItems.splice(1, 0, {
+  // If no video, ensure an empty video slot at position VIDEO_SLOT_INDEX
+  else if (allItems.length >= 1 && allItems[VIDEO_SLOT_INDEX]?.type !== 'empty') {
+    allItems.splice(VIDEO_SLOT_INDEX, 0, {
       id: `empty-video-${Date.now()}`,
       type: 'empty',
       preview: '',
@@ -348,17 +345,6 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         accept={[...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES].join(',')}
         multiple
       />
-      
-      {/* File Upload Tips */}
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-4 flex gap-3">
-        <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-gray-700 space-y-1">
-          <p>• Images: JPG, PNG, WebP format (max 10 images, automatically optimized to ≤1MB)</p>
-          <p>• Video: One MP4 video file (≤20MB, 720p) or YouTube/Vimeo link</p>
-          <p>• First image is always the Primary Image shown in search results</p>
-          <p>• You can drag and drop to reorder images (video stays in slot 2)</p>
-        </div>
-      </div>
     </div>
   );
 };
