@@ -1,274 +1,292 @@
 
-/**
- * Media processing utilities for optimizing images and videos
- */
-import { toast } from "sonner";
+import { v4 as uuidv4 } from 'uuid';
+import { MediaFile, VideoInfo } from './types';
 
-// Constants for optimization
-const IMAGE_MAX_SIZE_MB = 1; // 1MB
-const IMAGE_MAX_DIMENSION = 2000; // 2000px
-const IMAGE_TARGET_DIMENSION = 1600; // 1600px
-const VIDEO_MAX_SIZE_MB = 20; // 20MB
-const IMAGE_QUALITY = 0.8; // 80% quality for WebP compression
+// Define accepted mime types and file extensions
+export const ACCEPTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp'
+];
 
-// Accepted file types
-export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-export const ACCEPTED_VIDEO_TYPES = ['video/mp4'];
+export const ACCEPTED_VIDEO_TYPES = [
+  'video/mp4'
+];
 
-/**
- * Checks if the file is an accepted image type
- */
-export const isAcceptedImageType = (file: File): boolean => {
+// Image processing configuration
+const MAX_IMAGE_WIDTH = 1600;
+const MAX_IMAGE_HEIGHT = 2000;
+const TARGET_IMAGE_SIZE_MB = 1;
+const IMAGE_QUALITY_START = 0.85;
+const IMAGE_QUALITY_MIN = 0.65;
+
+// Video processing configuration
+const MAX_VIDEO_SIZE_MB = 20;
+const TARGET_VIDEO_HEIGHT = 720;
+
+// Helper function to convert File to MediaFile with ID
+export const fileToMediaFile = (file: File): MediaFile => {
+  return Object.assign(file, { 
+    id: uuidv4(),
+    originalFile: file
+  });
+};
+
+// Convert array of Files to MediaFiles
+export const filesToMediaFiles = (files: File[]): MediaFile[] => {
+  return Array.from(files).map(fileToMediaFile);
+};
+
+// Helper function to check if a file is an image
+export const isImageFile = (file: File): boolean => {
   return ACCEPTED_IMAGE_TYPES.includes(file.type);
 };
 
-/**
- * Checks if the file is an accepted video type
- */
-export const isAcceptedVideoType = (file: File): boolean => {
+// Helper function to check if a file is a video
+export const isVideoFile = (file: File): boolean => {
   return ACCEPTED_VIDEO_TYPES.includes(file.type);
 };
 
-/**
- * Get file size in MB
- */
-export const getFileSizeMB = (file: File): number => {
+// Helper function to get file size in MB
+const getFileSizeMB = (file: File): number => {
   return file.size / (1024 * 1024);
 };
 
-/**
- * Optimizes an image by:
- * 1. Checking dimensions and resizing if needed
- * 2. Converting to WebP format
- * 3. Compressing to target size
- * Returns the optimized file or null if optimization fails
- */
-export const optimizeImage = async (file: File): Promise<File | null> => {
-  try {
-    // Create a bitmap from the file
-    const bitmap = await createImageBitmap(file);
+// Process image: resize and compress
+export const processImage = async (file: File): Promise<MediaFile> => {
+  // If file is already small enough, just return it as MediaFile
+  if (getFileSizeMB(file) <= TARGET_IMAGE_SIZE_MB) {
+    return fileToMediaFile(file);
+  }
+
+  // Create an image element to load the file
+  const img = new Image();
+  const imgLoaded = new Promise<void>((resolve) => {
+    img.onload = () => resolve();
+  });
+  img.src = URL.createObjectURL(file);
+  await imgLoaded;
+  
+  // Calculate new dimensions (maintaining aspect ratio)
+  let width = img.width;
+  let height = img.height;
+  
+  if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+    if (width > height) {
+      // Landscape
+      height = (height / width) * MAX_IMAGE_WIDTH;
+      width = MAX_IMAGE_WIDTH;
+    } else {
+      // Portrait
+      width = (width / height) * MAX_IMAGE_HEIGHT;
+      height = MAX_IMAGE_HEIGHT;
+    }
+  }
+  
+  // Create canvas and draw image
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Could not get canvas context');
+  }
+  ctx.drawImage(img, 0, 0, width, height);
+  
+  // Attempt compression with decreasing quality until target size is reached
+  let quality = IMAGE_QUALITY_START;
+  let blob: Blob | null = null;
+  let mediaFile: MediaFile;
+  
+  // Try to compress as WebP first (better compression)
+  while (quality >= IMAGE_QUALITY_MIN) {
+    blob = await new Promise<Blob | null>(resolve => {
+      canvas.toBlob(resolve, 'image/webp', quality);
+    });
     
-    // Check if we need to resize
-    const needsResize = bitmap.width > IMAGE_MAX_DIMENSION || bitmap.height > IMAGE_MAX_DIMENSION;
+    if (blob && blob.size / (1024 * 1024) <= TARGET_IMAGE_SIZE_MB) {
+      break;
+    }
     
-    // Calculate new dimensions (if resize needed)
-    let newWidth = bitmap.width;
-    let newHeight = bitmap.height;
-    
-    if (needsResize) {
-      const aspectRatio = bitmap.width / bitmap.height;
+    // Reduce quality and try again
+    quality -= 0.05;
+  }
+  
+  // If WebP compression failed or not supported, try JPEG
+  if (!blob || blob.size / (1024 * 1024) > TARGET_IMAGE_SIZE_MB) {
+    quality = IMAGE_QUALITY_START;
+    while (quality >= IMAGE_QUALITY_MIN) {
+      blob = await new Promise<Blob | null>(resolve => {
+        canvas.toBlob(resolve, 'image/jpeg', quality);
+      });
       
-      if (bitmap.width > bitmap.height) {
-        // Landscape orientation
-        newWidth = IMAGE_TARGET_DIMENSION;
-        newHeight = Math.round(IMAGE_TARGET_DIMENSION / aspectRatio);
-      } else {
-        // Portrait orientation
-        newHeight = IMAGE_TARGET_DIMENSION;
-        newWidth = Math.round(IMAGE_TARGET_DIMENSION * aspectRatio);
-      }
-    }
-    
-    // Create a canvas and draw the image (possibly resized)
-    const canvas = document.createElement('canvas');
-    canvas.width = newWidth;
-    canvas.height = newHeight;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Could not get canvas context');
-    
-    // Draw the bitmap to the canvas (resized if needed)
-    ctx.drawImage(bitmap, 0, 0, newWidth, newHeight);
-    
-    // Convert to WebP format with target quality
-    const webpBlob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob((blob) => resolve(blob), 'image/webp', IMAGE_QUALITY);
-    });
-    
-    if (!webpBlob) throw new Error('Failed to convert image to WebP');
-    
-    // Check if the file size is acceptable
-    const optimizedSize = webpBlob.size / (1024 * 1024);
-    if (optimizedSize > IMAGE_MAX_SIZE_MB) {
-      console.warn(`Image still too large after optimization: ${optimizedSize.toFixed(2)}MB`);
-      return null;
-    }
-    
-    // Create a new File object
-    const optimizedFile = new File([webpBlob], `${file.name.split('.')[0]}.webp`, {
-      type: 'image/webp',
-      lastModified: Date.now()
-    });
-    
-    // Add ID for tracking in the UI
-    const mediaFile = optimizedFile as any;
-    mediaFile.id = `image-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-    
-    console.log(`Optimized image from ${getFileSizeMB(file).toFixed(2)}MB to ${getFileSizeMB(optimizedFile).toFixed(2)}MB`);
-    
-    return mediaFile;
-  } catch (error) {
-    console.error('Image optimization failed:', error);
-    return null;
-  }
-};
-
-/**
- * Creates a preview of the video and returns video information
- * Note: Full video compression requires additional libraries or server-side processing
- */
-export const processVideo = async (file: File): Promise<{
-  isAcceptable: boolean,
-  file: File,
-  thumbnail: string | null
-}> => {
-  try {
-    // Check file size
-    const fileSizeMB = getFileSizeMB(file);
-    
-    if (fileSizeMB > VIDEO_MAX_SIZE_MB) {
-      return {
-        isAcceptable: false,
-        file,
-        thumbnail: null
-      };
-    }
-    
-    // Generate video thumbnail
-    const videoElement = document.createElement('video');
-    videoElement.preload = 'metadata';
-    
-    const videoSrc = URL.createObjectURL(file);
-    videoElement.src = videoSrc;
-    
-    // Wait for video metadata to load
-    await new Promise((resolve) => {
-      videoElement.onloadedmetadata = () => resolve(null);
-    });
-    
-    // Generate thumbnail
-    const canvas = document.createElement('canvas');
-    canvas.width = videoElement.videoWidth;
-    canvas.height = videoElement.videoHeight;
-    
-    videoElement.currentTime = 1; // Seek to 1 second
-    
-    // Wait for video to seek
-    await new Promise((resolve) => {
-      videoElement.onseeked = () => resolve(null);
-    });
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Could not get canvas context');
-    
-    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-    const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-    
-    // Check video resolution
-    if (videoElement.videoWidth > 1920 || videoElement.videoHeight > 1080) {
-      return {
-        isAcceptable: false,
-        file,
-        thumbnail: thumbnailDataUrl
-      };
-    }
-    
-    // Add ID for tracking in the UI
-    const mediaFile = file as any;
-    mediaFile.id = `video-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-    
-    // Cleanup
-    URL.revokeObjectURL(videoSrc);
-    
-    return {
-      isAcceptable: true,
-      file: mediaFile,
-      thumbnail: thumbnailDataUrl
-    };
-  } catch (error) {
-    console.error('Video processing failed:', error);
-    return {
-      isAcceptable: false,
-      file,
-      thumbnail: null
-    };
-  }
-};
-
-/**
- * Process multiple files with optimizations
- */
-export const processFiles = async (
-  files: FileList, 
-  existingImageCount: number, 
-  hasExistingVideo: boolean
-): Promise<{
-  acceptedImages: File[],
-  rejectedImages: File[],
-  videoFile: File | null,
-  videoRejected: boolean,
-  videoThumbnail: string | null
-}> => {
-  const result = {
-    acceptedImages: [] as File[],
-    rejectedImages: [] as File[],
-    videoFile: null as File | null,
-    videoRejected: false,
-    videoThumbnail: null as string | null
-  };
-  
-  const availableImageSlots = 10 - existingImageCount;
-  
-  // Process all files
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    
-    // Handle images
-    if (isAcceptedImageType(file)) {
-      if (result.acceptedImages.length >= availableImageSlots) {
-        toast.warning('Maximum images reached', {
-          description: `You can only upload up to 10 images total.`
-        });
+      if (blob && blob.size / (1024 * 1024) <= TARGET_IMAGE_SIZE_MB) {
         break;
       }
       
-      const optimizedImage = await optimizeImage(file);
-      
-      if (optimizedImage) {
-        result.acceptedImages.push(optimizedImage);
-      } else {
-        result.rejectedImages.push(file);
-        toast.error(`Image optimization failed: ${file.name}`, {
-          description: 'File too large after optimization. Please upload a smaller or lower-resolution image.'
-        });
-      }
-    } 
-    // Handle video
-    else if (isAcceptedVideoType(file)) {
-      if (hasExistingVideo || result.videoFile) {
-        toast.warning('Video slot already used', {
-          description: 'Please remove the existing video first.'
-        });
-        continue;
-      }
-      
-      const videoResult = await processVideo(file);
-      
-      if (videoResult.isAcceptable) {
-        result.videoFile = videoResult.file;
-        result.videoThumbnail = videoResult.thumbnail;
-      } else {
-        result.videoRejected = true;
-        toast.error(`Video requirements not met: ${file.name}`, {
-          description: 'Videos must be MP4 format, max 720p resolution, and under 20MB.'
-        });
-      }
-    } else {
-      toast.error(`Unsupported file type: ${file.name}`, {
-        description: 'Please upload JPG, PNG, WebP images or MP4 videos.'
-      });
+      // Reduce quality and try again
+      quality -= 0.05;
     }
   }
   
-  return result;
+  // If compression still failed, use the best we got
+  if (!blob) {
+    blob = await new Promise<Blob | null>(resolve => {
+      canvas.toBlob(resolve, 'image/jpeg', IMAGE_QUALITY_MIN);
+    });
+    
+    if (!blob) {
+      // If all else fails, return original file as MediaFile
+      return fileToMediaFile(file);
+    }
+  }
+  
+  // Create a new file from the blob
+  const optimizedFile = new File(
+    [blob],
+    `${file.name.split('.')[0]}.${blob.type.includes('webp') ? 'webp' : 'jpg'}`,
+    { type: blob.type }
+  );
+  
+  // Create a preview URL
+  const preview = URL.createObjectURL(blob);
+  
+  // Create and return MediaFile
+  mediaFile = fileToMediaFile(optimizedFile);
+  mediaFile.preview = preview;
+  
+  return mediaFile;
+};
+
+// Generate video thumbnail
+export const generateVideoThumbnail = async (videoFile: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.playsInline = true;
+    video.muted = true;
+    
+    const objectUrl = URL.createObjectURL(videoFile);
+    
+    video.onloadedmetadata = () => {
+      // Seek to 25% of the video
+      video.currentTime = video.duration * 0.25;
+    };
+    
+    video.onseeked = () => {
+      // Create canvas and draw video frame
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to data URL and resolve
+        const dataUrl = canvas.toDataURL('image/jpeg');
+        URL.revokeObjectURL(objectUrl);
+        resolve(dataUrl);
+      } else {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('Could not get canvas context'));
+      }
+    };
+    
+    video.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Error loading video'));
+    };
+    
+    video.src = objectUrl;
+  });
+};
+
+// Process video (currently just creates thumbnail and returns file with ID)
+// In a real-world implementation, this would also compress the video
+export const processVideo = async (file: File): Promise<{ 
+  videoFile: MediaFile; 
+  thumbnail: string | null;
+}> => {
+  // For simplicity, we'll just check the size but not actually compress
+  if (getFileSizeMB(file) > MAX_VIDEO_SIZE_MB) {
+    throw new Error(`Video exceeds maximum size of ${MAX_VIDEO_SIZE_MB}MB`);
+  }
+  
+  let thumbnail: string | null = null;
+  
+  try {
+    thumbnail = await generateVideoThumbnail(file);
+  } catch (error) {
+    console.error("Error generating video thumbnail:", error);
+    // Continue without thumbnail
+  }
+  
+  // Create MediaFile with ID
+  const videoFile = fileToMediaFile(file);
+  
+  return { videoFile, thumbnail };
+};
+
+// Main function to process multiple files
+export const processFiles = async (
+  fileList: FileList,
+  existingImagesCount: number = 0,
+  hasVideo: boolean = false
+): Promise<{
+  acceptedImages: MediaFile[];
+  rejectedImages: File[];
+  videoFile: MediaFile | null;
+  videoRejected: boolean;
+  videoThumbnail: string | null;
+}> => {
+  // Split files into images and videos
+  const files = Array.from(fileList);
+  const imageFiles: File[] = [];
+  let videoFile: File | null = null;
+  let videoRejected = false;
+  
+  // Sort files by type
+  for (const file of files) {
+    if (isImageFile(file)) {
+      imageFiles.push(file);
+    } else if (!hasVideo && isVideoFile(file)) {
+      // Only use the first video file encountered
+      if (!videoFile) {
+        videoFile = file;
+      }
+    }
+  }
+  
+  // Process images (limit to max allowed)
+  const maxAdditionalImages = 10 - existingImagesCount;
+  const imagesToProcess = imageFiles.slice(0, maxAdditionalImages);
+  const rejectedImages = imageFiles.slice(maxAdditionalImages);
+  
+  const processedImagesPromises = imagesToProcess.map(processImage);
+  const acceptedImages = await Promise.all(processedImagesPromises);
+  
+  // Process video if present
+  let processedVideo: MediaFile | null = null;
+  let videoThumbnail: string | null = null;
+  
+  if (videoFile && !hasVideo) {
+    try {
+      const result = await processVideo(videoFile);
+      processedVideo = result.videoFile;
+      videoThumbnail = result.thumbnail;
+    } catch (error) {
+      console.error("Error processing video:", error);
+      videoRejected = true;
+    }
+  }
+  
+  return {
+    acceptedImages,
+    rejectedImages,
+    videoFile: processedVideo,
+    videoRejected,
+    videoThumbnail
+  };
 };

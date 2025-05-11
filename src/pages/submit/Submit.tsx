@@ -13,6 +13,7 @@ import ContactInformation from './ContactInformation';
 import { useBusinessSubmission } from '@/hooks/useBusinessSubmission';
 import { MediaUpload } from '@/components/media-uploader';
 import DragContext from '@/components/media-uploader/DragContext';
+import { MediaFile } from '@/components/media-uploader/types';
 
 const Submit = () => {
   const { formData, updateFormData } = useFormData();
@@ -66,9 +67,9 @@ const Submit = () => {
                   </p>
                   <DragContext>
                     <MediaUpload 
-                      onImagesChange={(images) => updateFormData({ businessImages: images })}
-                      onVideoChange={(video) => updateFormData({ businessVideo: video })}
-                      onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url || '' })}
+                      onImagesChange={(images: MediaFile[]) => updateFormData({ businessImages: images })}
+                      onVideoChange={(video: MediaFile | null) => updateFormData({ businessVideo: video })}
+                      onVideoUrlChange={(url: string | null) => updateFormData({ businessVideoUrl: url || '' })}
                       maxImages={10}
                     />
                   </DragContext>

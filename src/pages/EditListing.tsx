@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -17,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { MediaUpload } from '@/components/media-uploader';
 import DragContext from '@/components/media-uploader/DragContext';
+import { MediaFile } from '@/components/media-uploader/types';
 
 // Define interface for the listing data to handle primary_image_index
 interface ListingData {
@@ -411,9 +413,9 @@ const EditListing = () => {
                       <MediaUpload 
                         existingImages={imageUrls}
                         existingVideoUrl={formData.businessVideoUrl}
-                        onImagesChange={(images) => updateFormData({ businessImages: images })}
-                        onVideoChange={(video) => updateFormData({ businessVideo: video })}
-                        onVideoUrlChange={(url) => updateFormData({ businessVideoUrl: url || '' })}
+                        onImagesChange={(images: MediaFile[]) => updateFormData({ businessImages: images })}
+                        onVideoChange={(video: MediaFile | null) => updateFormData({ businessVideo: video })}
+                        onVideoUrlChange={(url: string | null) => updateFormData({ businessVideoUrl: url || '' })}
                         maxImages={10}
                         onDeleteExistingImage={handleDeleteExistingImage}
                         onDeleteExistingVideo={handleDeleteExistingVideo}

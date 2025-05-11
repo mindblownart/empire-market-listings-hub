@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Info } from 'lucide-react';
@@ -7,7 +8,9 @@ import MediaGallery from './MediaGallery';
 import { 
   ACCEPTED_IMAGE_TYPES, 
   ACCEPTED_VIDEO_TYPES, 
-  processFiles 
+  processFiles,
+  fileToMediaFile,
+  filesToMediaFiles
 } from './media-processing';
 
 interface MediaUploadProps {
@@ -56,12 +59,11 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   
   // Add newly uploaded images
   newImages.forEach((file, index) => {
-    const mediaFile = file as MediaFile;
     items.push({
-      id: mediaFile.id || `new-image-${index}`,
+      id: file.id,
       type: 'image',
-      file: mediaFile,
-      preview: URL.createObjectURL(mediaFile),
+      file: file,
+      preview: file.preview || URL.createObjectURL(file),
       isPrimary: existingImages.length === 0 && index === 0,
       isNew: true
     });
@@ -89,7 +91,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     };
   } else if (newVideo) {
     videoItem = {
-      id: `new-video-${newVideo.name}`,
+      id: newVideo.id,
       type: 'video',
       file: newVideo,
       preview: videoThumbnail || URL.createObjectURL(newVideo),
@@ -314,9 +316,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       onVideoChange(null);
     } else {
       // Handle new image deletion
-      const updatedNewImages = newImages.filter(img => 
-        img.id !== id && id !== `new-image-${img.name}`
-      );
+      const updatedNewImages = newImages.filter(img => img.id !== id);
       setNewImages(updatedNewImages);
       onImagesChange(updatedNewImages);
     }
