@@ -45,8 +45,9 @@ const PreviewListing = () => {
           // Set primary image to first image and remove it from the gallery list
           if (parsedImages.length > 0) {
             setPrimaryImage(parsedImages[0]);
-            // Gallery images are all images except the first (primary) one
-            setGalleryImages(parsedImages.slice(1));
+            // Gallery images are all images including the primary one
+            // The MediaGallery component will now handle skipping the primary in the carousel
+            setGalleryImages(parsedImages);
           } else {
             setGalleryImages([]);
           }
@@ -108,7 +109,7 @@ const PreviewListing = () => {
           if (listing.gallery_images && Array.isArray(listing.gallery_images)) {
             if (listing.gallery_images.length > 0) {
               setPrimaryImage(listing.gallery_images[0]);
-              setGalleryImages(listing.gallery_images.slice(1));
+              setGalleryImages(listing.gallery_images);
             }
           }
           
@@ -131,7 +132,7 @@ const PreviewListing = () => {
           
           if (urls.length > 0) {
             setPrimaryImage(urls[0]);
-            setGalleryImages(urls.slice(1));
+            setGalleryImages(urls);
           }
         }
         
@@ -229,12 +230,12 @@ const PreviewListing = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column (70% width on desktop) */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Media Gallery */}
+              {/* Media Gallery - now correctly handles primary image */}
               <MediaGallery 
                 galleryImages={galleryImages} 
                 videoURL={videoURL}
                 autoplayVideo={true}
-                skipPrimaryImage={true} // Skip primary image as it's already shown in hero banner
+                skipPrimaryImage={true} // Skip primary image in carousel as it's shown in hero banner
               />
               
               {/* Business Overview */}

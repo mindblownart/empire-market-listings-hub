@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useRef } from 'react';
+
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { MediaItem, MediaFile, VideoInfo } from './types';
 import { extractVideoInfo } from './video-utils';
@@ -23,6 +24,9 @@ interface MediaUploadProps {
   onImagesReorder?: (images: string[]) => void;
 }
 
+// Hash cache for existing images to prevent duplicates
+const imageHashCache: Map<string, string> = new Map();
+
 const MediaUpload: React.FC<MediaUploadProps> = ({
   existingImages = [],
   existingVideoUrl = null,
@@ -39,7 +43,33 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const [videoThumbnail, setVideoThumbnail] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [processingFiles, setProcessingFiles] = useState(false);
+  const [existingImageHashes, setExistingImageHashes] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Precompute hashes for existing images when they change
+  useEffect(() => {
+    const loadExistingImageHashes = async () => {
+      const hashes: string[] = [];
+      
+      // Create dummy hash values based on URLs for existing images
+      // This is a simplification since we can't access the actual file data
+      existingImages.forEach(url => {
+        // Use URL as a simple hash for existing images
+        // In a real implementation, you might want to store hashes when images are first uploaded
+        const simpleHash = String(
+          url.split('').reduce((acc, char) => {
+            return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
+          }, 0)
+        );
+        hashes.push(simpleHash);
+        imageHashCache.set(url, simpleHash);
+      });
+      
+      setExistingImageHashes(hashes);
+    };
+    
+    loadExistingImageHashes();
+  }, [existingImages]);
   
   // Convert to MediaItem format with correct typing
   const items: MediaItem[] = [];
@@ -160,8 +190,16 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       const result = await processFiles(
         files, 
         existingImages.length + newImages.length,
-        !!existingVideoUrl || !!newVideo
+        !!existingVideoUrl || !!newVideo,
+        existingImageHashes
       );
+      
+      // Check for duplicates
+      if (result.duplicateDetected) {
+        toast.error("Duplicate image detected", {
+          description: "This image has already been uploaded. Please choose another file."
+        });
+      }
       
       // Update images state
       if (result.acceptedImages.length > 0) {
@@ -208,7 +246,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       setProcessingFiles(false);
       setDragActive(false);
     }
-  }, [existingImages.length, existingVideoUrl, newImages, newVideo, onImagesChange, onVideoChange, onVideoUrlChange]);
+  }, [existingImages.length, existingVideoUrl, newImages, newVideo, onImagesChange, onVideoChange, onVideoUrlChange, existingImageHashes]);
   
   // Handle drop event
   const handleDrop = useCallback((e: React.DragEvent) => {
