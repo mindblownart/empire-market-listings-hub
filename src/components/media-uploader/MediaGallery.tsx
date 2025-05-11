@@ -1,12 +1,13 @@
 
 import React, { useState, useCallback } from 'react';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/button';
-import { Plus, Video, Loader2 } from 'lucide-react';
-import MediaItem from './MediaItem';
 import VideoPreviewModal from './VideoPreviewModal';
 import { MediaItem as MediaItemType } from './types';
+import { 
+  MediaGrid, 
+  GalleryControls, 
+  FileUploadInfo 
+} from './gallery';
 
 interface MediaGalleryProps {
   items: MediaItemType[];
@@ -57,7 +58,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, []);
   
-  // Handle reordering of items with proper swapping - this is the key function that needs fixing
+  // Handle reordering of items with proper swapping
   const moveItem = useCallback((dragIndex: number, hoverIndex: number) => {
     // Don't allow moving to/from video slot (index 1)
     if (dragIndex === 1 || hoverIndex === 1) return;
@@ -120,79 +121,26 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   return (
     <TooltipProvider>
       <div className="space-y-4">
-        <div 
-          className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 ${isDragging ? 'border-2 border-dashed border-primary rounded-lg p-2' : ''}`}
-          onDragOver={(e) => e.preventDefault()}
-        >
-          {/* Render all media slots */}
-          {completeGrid.map((item, index) => (
-            <Tooltip key={item.id}>
-              <TooltipTrigger asChild>
-                <div 
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onDrop(e);
-                  }}
-                  className="h-full"
-                >
-                  <MediaItem
-                    item={item}
-                    index={index}
-                    moveItem={moveItem}
-                    onDelete={() => onDelete(item.id)}
-                    onPreview={() => handleVideoPreview(item)}
-                    onVideoSlotClick={index === 1 ? handleVideoSlotClick : undefined}
-                    isFixed={index === 1} // Video slot is fixed
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                {item.isEmpty ? (
-                  index === 1 ? 'Video slot (optional)' : 'Drop files here'
-                ) : (
-                  index === 0 ? 'Primary image (drag to reorder)' : 
-                  index === 1 ? 'Video (fixed position)' : 
-                  `Image ${index} (can be reordered)`
-                )}
-              </TooltipContent>
-            </Tooltip>
-          ))}
-        </div>
+        <MediaGrid
+          items={completeGrid}
+          moveItem={moveItem}
+          onDelete={onDelete}
+          onPreview={handleVideoPreview}
+          onVideoSlotClick={handleVideoSlotClick}
+          isDragging={isDragging}
+          onDrop={onDrop}
+        />
         
-        <div className="flex justify-between items-center mt-1">
-          <div className="text-sm text-gray-500">
-            <span className="font-medium">{totalMediaCount}</span> of <span className="font-medium">11</span> media slots used 
-            {imageItems.length > 0 && <span> ({imageItems.length} images{videoItem ? ', 1 video' : ''})</span>}
-          </div>
-          
-          <div className="flex gap-2">
-            {onAddVideo && !videoItem && (
-              <Button 
-                variant="outline" 
-                onClick={onAddVideo} 
-                className="flex items-center gap-2"
-              >
-                <Video className="h-4 w-4" /> Add Video URL
-              </Button>
-            )}
-            
-            <Button 
-              variant="outline" 
-              onClick={onFileSelect} 
-              className="flex items-center gap-2"
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Plus className="h-4 w-4" />
-              )}
-              {isProcessing ? 'Processing...' : 'Select Files'}
-            </Button>
-          </div>
-        </div>
+        <GalleryControls
+          totalMediaCount={totalMediaCount}
+          imageItems={imageItems.length}
+          videoItem={!!videoItem}
+          onAddVideo={onAddVideo}
+          onFileSelect={onFileSelect}
+          isProcessing={isProcessing}
+        />
+        
+        <FileUploadInfo />
         
         {/* Video Preview Modal */}
         <VideoPreviewModal
