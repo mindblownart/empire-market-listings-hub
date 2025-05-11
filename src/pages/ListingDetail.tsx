@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -196,7 +195,7 @@ const ListingDetail = () => {
             <BusinessHeader 
               businessName={business.business_name} 
               industry={business.category} 
-              locationName={business.location} 
+              location={business.location} 
               flagCode={business.location === "Singapore" ? "SG" : "GL"} 
               primaryImage={heroImage} 
               askingPrice={business.asking_price} 
@@ -225,17 +224,17 @@ const ListingDetail = () => {
                 annualRevenue={business.annual_revenue} 
                 annualProfit={business.annual_profit} 
                 currencyCode={business.currency_code} 
-                locationName={business.location} 
+                location={business.location} 
                 industry={business.category} 
                 yearEstablished={business.year_established?.toString() || 'N/A'} 
                 employees={business.employees || 'N/A'} 
               />
               
               <ContactInformation 
-                fullName={business.contact_name || 'Contact not provided'} 
-                email={business.contact_email || 'Email not provided'} 
-                phone={business.contact_phone || 'Phone not provided'} 
-                role={business.contact_role || 'Role not specified'} 
+                contactName={business.contact_name || 'Contact not provided'} 
+                contactEmail={business.contact_email || 'Email not provided'} 
+                contactPhone={business.contact_phone || 'Phone not provided'} 
+                contactRole={business.contact_role || 'Role not specified'} 
               />
               
               {/* Contact Seller Button */}
