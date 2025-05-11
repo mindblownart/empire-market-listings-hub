@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -267,7 +266,7 @@ const PreviewListing = () => {
         </div>
       </main>
       
-      <Footer className="mt-20 md:mt-0" /> {/* Add extra margin on mobile to account for fixed button */}
+      <Footer />
     </div>
   );
 };
