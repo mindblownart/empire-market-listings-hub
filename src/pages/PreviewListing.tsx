@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -230,7 +229,7 @@ const PreviewListing = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column (70% width on desktop) */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Media Gallery - now correctly handles primary image */}
+              {/* Media Gallery - updated to use full-width, scrollable carousel */}
               <MediaGallery 
                 galleryImages={galleryImages} 
                 videoURL={videoURL}
