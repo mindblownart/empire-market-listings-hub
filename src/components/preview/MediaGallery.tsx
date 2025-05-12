@@ -12,19 +12,13 @@ interface MediaGalleryProps {
 export const MediaGallery: React.FC<MediaGalleryProps> = ({
   galleryImages = [],
   videoURL,
-  autoplayVideo = true,
+  autoplayVideo = false,
   skipPrimaryImage = false,
 }) => {
-  // Ensure we have valid arrays and values before rendering
-  const validImages = Array.isArray(galleryImages) ? galleryImages.filter(Boolean) : [];
-  
-  // Validate video URL
-  const validVideoURL = videoURL && typeof videoURL === 'string' ? videoURL : null;
-  
   return (
     <EnhancedCarousel
-      images={validImages}
-      videoURL={validVideoURL}
+      images={galleryImages}
+      videoURL={videoURL}
       autoplayVideo={autoplayVideo}
       skipPrimaryImage={skipPrimaryImage}
     />

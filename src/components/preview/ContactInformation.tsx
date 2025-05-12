@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Mail, Phone, AtSign, Contact } from 'lucide-react';
+import { formatPhoneNumber } from '@/components/submit/countries';
 
 interface ContactInformationProps {
   contactName?: string;
@@ -9,34 +10,6 @@ interface ContactInformationProps {
   contactPhone?: string;
   contactRole?: string;
 }
-
-// Function to format international phone number for display
-const formatInternationalPhone = (phone: string): string => {
-  if (!phone) return 'Not provided';
-  
-  // Phone number already in international format (starts with +)
-  if (phone.startsWith('+')) {
-    // First try to find the dial code boundary
-    const match = phone.match(/^\+(\d{1,4})\s*(.*)$/);
-    
-    if (match) {
-      const [, dialCode, nationalNumber] = match;
-      // Format the national number with spaces for readability
-      // This is a simple approach that may need to be customized per country
-      const formattedNational = nationalNumber.replace(/\D/g, '')
-        .replace(/(\d{4})(\d{1,})/, '$1 $2')
-        .replace(/(\d{3})(\d{1,})/, '$1 $2');
-        
-      return `+${dialCode} ${formattedNational}`.trim();
-    }
-    
-    // If we can't parse properly, just return the cleaned input
-    return phone.replace(/\s+/g, ' ').trim();
-  }
-  
-  // For numbers without a + prefix, just return as is
-  return phone;
-};
 
 export const ContactInformation: React.FC<ContactInformationProps> = ({
   contactName,
@@ -83,7 +56,7 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
               <span className="text-gray-500">Phone Number</span>
             </div>
             <div className="w-[60%] text-right font-medium break-words">
-              {contactPhone ? formatInternationalPhone(contactPhone) : 'Not provided'}
+              {contactPhone ? formatPhoneNumber(contactPhone) : 'Not provided'}
             </div>
           </div>
           

@@ -1,6 +1,5 @@
 
-import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
+import { useState } from 'react';
 
 type ValidationErrors = Record<string, string>;
 
@@ -8,12 +7,12 @@ export const useFormValidation = () => {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   
   // Validate a single field
-  const validateField = useCallback((field: string, value: any) => {
+  const validateField = (field: string, value: any) => {
     let error = '';
     
     switch (field) {
       case 'businessName':
-        if (!value || !value.trim()) error = 'Business name is required';
+        if (!value.trim()) error = 'Business name is required';
         break;
       case 'industry':
         if (!value) error = 'Industry is required';
@@ -30,9 +29,7 @@ export const useFormValidation = () => {
         break;
       case 'annualRevenue':
       case 'annualProfit':
-        if (!value) {
-          error = field === 'annualRevenue' ? 'Annual revenue is required' : 'Annual profit is required';
-        } else if (value && !/^[0-9]+(\.[0-9]{1,2})?$/.test(value)) {
+        if (value && !/^[0-9]+(\.[0-9]{1,2})?$/.test(value)) {
           error = 'Please enter a valid number';
         }
         break;
@@ -47,41 +44,22 @@ export const useFormValidation = () => {
         }
         break; 
       case 'description':
-        if (!value || value.trim() === '') {
-          error = 'Description is required';
-        } else if (value && value.trim().length < 10) {
+        if (value && value.trim().length < 10) {
           error = 'Description must be at least 10 characters long';
         }
         break;
       case 'fullName':
-        if (!value || !value.trim()) error = 'Full name is required';
+        if (!value.trim()) error = 'Full name is required';
         break;
       case 'email':
-        if (!value || !value.trim()) {
+        if (!value.trim()) {
           error = 'Email is required';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           error = 'Please enter a valid email address';
         }
         break;
       case 'phone':
-        if (!value || !value.trim()) {
-          error = 'Phone number is required';
-        } else if (!value.includes('+')) {
-          error = 'Phone number must include country code (e.g., +1)';
-        } else {
-          // Remove the country code part (everything after the +)
-          const nationalNumber = value.replace(/^\+\d+\s*/, '');
-          // Remove all non-digit characters
-          const digitsOnly = nationalNumber.replace(/\D/g, '');
-          
-          // Basic validation: make sure there are at least 5 digits after the country code
-          if (digitsOnly.length < 5) {
-            error = 'Phone number is too short';
-          } else if (digitsOnly.length > 15) {
-            // International standard: phone numbers should be 15 digits or less
-            error = 'Phone number is too long';
-          }
-        }
+        if (!value.trim()) error = 'Phone number is required';
         break;
       case 'role':
         if (!value) error = 'Role is required';
@@ -96,101 +74,41 @@ export const useFormValidation = () => {
     }));
     
     return !error;
-  }, []);
+  };
 
-  // Validate all fields before submission - improved for better error reporting
-  const validateAllFields = useCallback((formData: any) => {
-    let isValid = true;
-    const allErrors: ValidationErrors = {};
-    const requiredFields = [
-      { name: 'businessName', value: formData.businessName, label: 'Business name' },
-      { name: 'industry', value: formData.industry, label: 'Industry' },
-      { name: 'location', value: formData.location, label: 'Location' },
-      { name: 'askingPrice', value: formData.askingPrice, label: 'Asking price' },
-      { name: 'annualRevenue', value: formData.annualRevenue, label: 'Annual revenue' },
-      { name: 'annualProfit', value: formData.annualProfit, label: 'Annual profit' },
-      { name: 'description', value: formData.description, label: 'Business description' },
-      { name: 'yearEstablished', value: formData.yearEstablished, label: 'Year established' },
-      { name: 'employees', value: formData.employees, label: 'Employee count' },
-      { name: 'fullName', value: formData.fullName, label: 'Full name' },
-      { name: 'email', value: formData.email, label: 'Email' },
-      { name: 'phone', value: formData.phone, label: 'Phone number' },
-      { name: 'role', value: formData.role, label: 'Role' }
+  // Validate all fields before submission
+  const validateAllFields = (formData: any) => {
+    const fields = [
+      { name: 'businessName', value: formData.businessName },
+      { name: 'industry', value: formData.industry },
+      { name: 'location', value: formData.location },
+      { name: 'askingPrice', value: formData.askingPrice },
+      { name: 'annualRevenue', value: formData.annualRevenue },
+      { name: 'annualProfit', value: formData.annualProfit },
+      { name: 'description', value: formData.description },
+      { name: 'yearEstablished', value: formData.yearEstablished },
+      { name: 'employees', value: formData.employees },
+      { name: 'fullName', value: formData.fullName },
+      { name: 'email', value: formData.email },
+      { name: 'phone', value: formData.phone },
+      { name: 'role', value: formData.role }
     ];
     
-    // Track missing fields for the toast message
-    const missingFields: string[] = [];
+    let isValid = true;
     
-    // Check if we have at least one image
-    const hasAtLeastOneImage = 
-      (formData.businessImages && formData.businessImages.length > 0) || 
-      (sessionStorage.getItem('imageOrder') && JSON.parse(sessionStorage.getItem('imageOrder') || '[]').length > 0);
-      
-    if (!hasAtLeastOneImage) {
-      missingFields.push('Primary image');
-      allErrors['businessImages'] = 'At least one image is required';
-      isValid = false;
-    }
-    
-    requiredFields.forEach(field => {
-      // Check if the field actually has a value before validation
-      const fieldHasValue = field.value !== undefined && field.value !== null && field.value !== '';
-      let fieldIsValid = true;
-      
-      if (!fieldHasValue) {
-        fieldIsValid = false;
-        allErrors[field.name] = `${field.label} is required`;
-        missingFields.push(field.label);
-      } else {
-        // Only validate fields that have values
-        fieldIsValid = validateField(field.name, field.value);
-      }
-      
-      if (!fieldIsValid) {
+    fields.forEach(field => {
+      if (!validateField(field.name, field.value)) {
         isValid = false;
       }
     });
     
-    // Update all validation errors at once
-    setValidationErrors(allErrors);
-    
-    // Show detailed toast for missing fields if validation fails
-    if (!isValid && missingFields.length > 0) {
-      const missingFieldsList = missingFields.slice(0, 3).join(', ') + 
-        (missingFields.length > 3 ? ` and ${missingFields.length - 3} more` : '');
-      
-      toast.error(`Please complete all required fields`, {
-        description: `Missing information: ${missingFieldsList}`
-      });
-      
-      // Find the first element with an error and scroll to it
-      setTimeout(() => {
-        const firstErrorField = Object.keys(allErrors)[0];
-        if (firstErrorField) {
-          const elementId = firstErrorField === 'businessName' ? 'business-name' : 
-                          firstErrorField === 'businessImages' ? 'media-upload' :
-                          `business-${firstErrorField.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-          const element = document.getElementById(elementId);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            element.focus();
-          }
-        }
-      }, 100);
-    }
-    
     return isValid;
-  }, [validateField]);
+  };
 
   // Clear all validation errors
-  const clearValidationErrors = useCallback(() => {
+  const clearValidationErrors = () => {
     setValidationErrors({});
-  }, []);
-
-  return { 
-    validationErrors, 
-    validateField, 
-    validateAllFields, 
-    clearValidationErrors 
   };
+
+  return { validationErrors, validateField, validateAllFields, clearValidationErrors };
 };

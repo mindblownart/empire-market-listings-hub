@@ -4,54 +4,215 @@ export interface CountryOption {
   label: string;
   flagCode: string;
   currencyCode: string;
-  dialCode: string; // Added dial code
 }
 
 export const countries = [
-  { value: 'us', label: 'United States', flagCode: 'us', currencyCode: 'USD', dialCode: '1' },
-  { value: 'gb', label: 'United Kingdom', flagCode: 'gb', currencyCode: 'GBP', dialCode: '44' },
-  { value: 'ca', label: 'Canada', flagCode: 'ca', currencyCode: 'CAD', dialCode: '1' },
-  { value: 'au', label: 'Australia', flagCode: 'au', currencyCode: 'AUD', dialCode: '61' },
-  { value: 'de', label: 'Germany', flagCode: 'de', currencyCode: 'EUR', dialCode: '49' },
-  { value: 'fr', label: 'France', flagCode: 'fr', currencyCode: 'EUR', dialCode: '33' },
-  { value: 'es', label: 'Spain', flagCode: 'es', currencyCode: 'EUR', dialCode: '34' },
-  { value: 'it', label: 'Italy', flagCode: 'it', currencyCode: 'EUR', dialCode: '39' },
-  { value: 'nl', label: 'Netherlands', flagCode: 'nl', currencyCode: 'EUR', dialCode: '31' },
-  { value: 'be', label: 'Belgium', flagCode: 'be', currencyCode: 'EUR', dialCode: '32' },
-  { value: 'ch', label: 'Switzerland', flagCode: 'ch', currencyCode: 'CHF', dialCode: '41' },
-  { value: 'se', label: 'Sweden', flagCode: 'se', currencyCode: 'SEK', dialCode: '46' },
-  { value: 'no', label: 'Norway', flagCode: 'no', currencyCode: 'NOK', dialCode: '47' },
-  { value: 'dk', label: 'Denmark', flagCode: 'dk', currencyCode: 'DKK', dialCode: '45' },
-  { value: 'fi', label: 'Finland', flagCode: 'fi', currencyCode: 'EUR', dialCode: '358' },
-  { value: 'at', label: 'Austria', flagCode: 'at', currencyCode: 'EUR', dialCode: '43' },
-  { value: 'ie', label: 'Ireland', flagCode: 'ie', currencyCode: 'EUR', dialCode: '353' },
-  { value: 'pt', label: 'Portugal', flagCode: 'pt', currencyCode: 'EUR', dialCode: '351' },
-  { value: 'gr', label: 'Greece', flagCode: 'gr', currencyCode: 'EUR', dialCode: '30' },
-  { value: 'pl', label: 'Poland', flagCode: 'pl', currencyCode: 'PLN', dialCode: '48' },
-  { value: 'cz', label: 'Czech Republic', flagCode: 'cz', currencyCode: 'CZK', dialCode: '420' },
-  { value: 'hu', label: 'Hungary', flagCode: 'hu', currencyCode: 'HUF', dialCode: '36' },
-  { value: 'ru', label: 'Russia', flagCode: 'ru', currencyCode: 'RUB', dialCode: '7' },
-  { value: 'jp', label: 'Japan', flagCode: 'jp', currencyCode: 'JPY', dialCode: '81' },
-  { value: 'cn', label: 'China', flagCode: 'cn', currencyCode: 'CNY', dialCode: '86' },
-  { value: 'in', label: 'India', flagCode: 'in', currencyCode: 'INR', dialCode: '91' },
-  { value: 'br', label: 'Brazil', flagCode: 'br', currencyCode: 'BRL', dialCode: '55' },
-  { value: 'mx', label: 'Mexico', flagCode: 'mx', currencyCode: 'MXN', dialCode: '52' },
-  { value: 'ar', label: 'Argentina', flagCode: 'ar', currencyCode: 'ARS', dialCode: '54' },
-  { value: 'za', label: 'South Africa', flagCode: 'za', currencyCode: 'ZAR', dialCode: '27' },
-  { value: 'ng', label: 'Nigeria', flagCode: 'ng', currencyCode: 'NGN', dialCode: '234' },
-  { value: 'eg', label: 'Egypt', flagCode: 'eg', currencyCode: 'EGP', dialCode: '20' },
-  { value: 'sa', label: 'Saudi Arabia', flagCode: 'sa', currencyCode: 'SAR', dialCode: '966' },
-  { value: 'ae', label: 'United Arab Emirates', flagCode: 'ae', currencyCode: 'AED', dialCode: '971' },
-  { value: 'sg', label: 'Singapore', flagCode: 'sg', currencyCode: 'SGD', dialCode: '65' },
-  { value: 'hk', label: 'Hong Kong', flagCode: 'hk', currencyCode: 'HKD', dialCode: '852' },
-  { value: 'nz', label: 'New Zealand', flagCode: 'nz', currencyCode: 'NZD', dialCode: '64' },
-  { value: 'kr', label: 'South Korea', flagCode: 'kr', currencyCode: 'KRW', dialCode: '82' },
-  { value: 'tr', label: 'Turkey', flagCode: 'tr', currencyCode: 'TRY', dialCode: '90' },
-  { value: 'id', label: 'Indonesia', flagCode: 'id', currencyCode: 'IDR', dialCode: '62' },
-  { value: 'my', label: 'Malaysia', flagCode: 'my', currencyCode: 'MYR', dialCode: '60' },
-  { value: 'th', label: 'Thailand', flagCode: 'th', currencyCode: 'THB', dialCode: '66' },
-  { value: 'vn', label: 'Vietnam', flagCode: 'vn', currencyCode: 'VND', dialCode: '84' },
-  { value: 'ph', label: 'Philippines', flagCode: 'ph', currencyCode: 'PHP', dialCode: '63' },
+  { value: 'us', label: 'United States', flagCode: 'us', currencyCode: 'USD' },
+  { value: 'gb', label: 'United Kingdom', flagCode: 'gb', currencyCode: 'GBP' },
+  { value: 'ca', label: 'Canada', flagCode: 'ca', currencyCode: 'CAD' },
+  { value: 'au', label: 'Australia', flagCode: 'au', currencyCode: 'AUD' },
+  { value: 'de', label: 'Germany', flagCode: 'de', currencyCode: 'EUR' },
+  { value: 'fr', label: 'France', flagCode: 'fr', currencyCode: 'EUR' },
+  { value: 'es', label: 'Spain', flagCode: 'es', currencyCode: 'EUR' },
+  { value: 'it', label: 'Italy', flagCode: 'it', currencyCode: 'EUR' },
+  { value: 'nl', label: 'Netherlands', flagCode: 'nl', currencyCode: 'EUR' },
+  { value: 'be', label: 'Belgium', flagCode: 'be', currencyCode: 'EUR' },
+  { value: 'ch', label: 'Switzerland', flagCode: 'ch', currencyCode: 'CHF' },
+  { value: 'se', label: 'Sweden', flagCode: 'se', currencyCode: 'SEK' },
+  { value: 'no', label: 'Norway', flagCode: 'no', currencyCode: 'NOK' },
+  { value: 'dk', label: 'Denmark', flagCode: 'dk', currencyCode: 'DKK' },
+  { value: 'fi', label: 'Finland', flagCode: 'fi', currencyCode: 'EUR' },
+  { value: 'at', label: 'Austria', flagCode: 'at', currencyCode: 'EUR' },
+  { value: 'ie', label: 'Ireland', flagCode: 'ie', currencyCode: 'EUR' },
+  { value: 'pt', label: 'Portugal', flagCode: 'pt', currencyCode: 'EUR' },
+  { value: 'gr', label: 'Greece', flagCode: 'gr', currencyCode: 'EUR' },
+  { value: 'pl', label: 'Poland', flagCode: 'pl', currencyCode: 'PLN' },
+  { value: 'cz', label: 'Czech Republic', flagCode: 'cz', currencyCode: 'CZK' },
+  { value: 'hu', label: 'Hungary', flagCode: 'hu', currencyCode: 'HUF' },
+  { value: 'ru', label: 'Russia', flagCode: 'ru', currencyCode: 'RUB' },
+  { value: 'jp', label: 'Japan', flagCode: 'jp', currencyCode: 'JPY' },
+  { value: 'cn', label: 'China', flagCode: 'cn', currencyCode: 'CNY' },
+  { value: 'in', label: 'India', flagCode: 'in', currencyCode: 'INR' },
+  { value: 'br', label: 'Brazil', flagCode: 'br', currencyCode: 'BRL' },
+  { value: 'mx', label: 'Mexico', flagCode: 'mx', currencyCode: 'MXN' },
+  { value: 'ar', label: 'Argentina', flagCode: 'ar', currencyCode: 'ARS' },
+  { value: 'za', label: 'South Africa', flagCode: 'za', currencyCode: 'ZAR' },
+  { value: 'ng', label: 'Nigeria', flagCode: 'ng', currencyCode: 'NGN' },
+  { value: 'eg', label: 'Egypt', flagCode: 'eg', currencyCode: 'EGP' },
+  { value: 'sa', label: 'Saudi Arabia', flagCode: 'sa', currencyCode: 'SAR' },
+  { value: 'ae', label: 'United Arab Emirates', flagCode: 'ae', currencyCode: 'AED' },
+  { value: 'sg', label: 'Singapore', flagCode: 'sg', currencyCode: 'SGD' },
+  { value: 'hk', label: 'Hong Kong', flagCode: 'hk', currencyCode: 'HKD' },
+  { value: 'nz', label: 'New Zealand', flagCode: 'nz', currencyCode: 'NZD' },
+  { value: 'kr', label: 'South Korea', flagCode: 'kr', currencyCode: 'KRW' },
+  { value: 'tr', label: 'Turkey', flagCode: 'tr', currencyCode: 'TRY' },
+  { value: 'id', label: 'Indonesia', flagCode: 'id', currencyCode: 'IDR' },
+  { value: 'my', label: 'Malaysia', flagCode: 'my', currencyCode: 'MYR' },
+  { value: 'th', label: 'Thailand', flagCode: 'th', currencyCode: 'THB' },
+  { value: 'vn', label: 'Vietnam', flagCode: 'vn', currencyCode: 'VND' },
+  { value: 'ph', label: 'Philippines', flagCode: 'ph', currencyCode: 'PHP' },
+  { value: 'bd', label: 'Bangladesh', flagCode: 'bd', currencyCode: 'BDT' },
+  { value: 'pk', label: 'Pakistan', flagCode: 'pk', currencyCode: 'PKR' },
+  { value: 'ke', label: 'Kenya', flagCode: 'ke', currencyCode: 'KES' },
+  { value: 'gh', label: 'Ghana', flagCode: 'gh', currencyCode: 'GHS' },
+  { value: 'tz', label: 'Tanzania', flagCode: 'tz', currencyCode: 'TZS' },
+  { value: 'ug', label: 'Uganda', flagCode: 'ug', currencyCode: 'UGX' },
+  { value: 'co', label: 'Colombia', flagCode: 'co', currencyCode: 'COP' },
+  { value: 'pe', label: 'Peru', flagCode: 'pe', currencyCode: 'PEN' },
+  { value: 'cl', label: 'Chile', flagCode: 'cl', currencyCode: 'CLP' },
+  { value: 'ec', label: 'Ecuador', flagCode: 'ec', currencyCode: 'USD' },
+  { value: 've', label: 'Venezuela', flagCode: 've', currencyCode: 'VES' },
+  { value: 'py', label: 'Paraguay', flagCode: 'py', currencyCode: 'PYG' },
+  { value: 'uy', label: 'Uruguay', flagCode: 'uy', currencyCode: 'UYU' },
+  { value: 'bo', label: 'Bolivia', flagCode: 'bo', currencyCode: 'BOB' },
+  { value: 'gt', label: 'Guatemala', flagCode: 'gt', currencyCode: 'GTQ' },
+  { value: 'pa', label: 'Panama', flagCode: 'pa', currencyCode: 'PAB' },
+  { value: 'cr', label: 'Costa Rica', flagCode: 'cr', currencyCode: 'CRC' },
+  { value: 'do', label: 'Dominican Republic', flagCode: 'do', currencyCode: 'DOP' },
+  { value: 'cu', label: 'Cuba', flagCode: 'cu', currencyCode: 'CUP' },
+  { value: 'ht', label: 'Haiti', flagCode: 'ht', currencyCode: 'HTG' },
+  { value: 'sv', label: 'El Salvador', flagCode: 'sv', currencyCode: 'USD' },
+  { value: 'hn', label: 'Honduras', flagCode: 'hn', currencyCode: 'HNL' },
+  { value: 'ni', label: 'Nicaragua', flagCode: 'ni', currencyCode: 'NIO' },
+  { value: 'lr', label: 'Liberia', flagCode: 'lr', currencyCode: 'LRD' },
+  { value: 'sl', label: 'Sierra Leone', flagCode: 'sl', currencyCode: 'SLL' },
+  { value: 'gm', label: 'Gambia', flagCode: 'gm', currencyCode: 'GMD' },
+  { value: 'sn', label: 'Senegal', flagCode: 'sn', currencyCode: 'XOF' },
+  { value: 'ml', label: 'Mali', flagCode: 'ml', currencyCode: 'XOF' },
+  { value: 'ci', label: 'Ivory Coast', flagCode: 'ci', currencyCode: 'XOF' },
+  { value: 'bf', label: 'Burkina Faso', flagCode: 'bf', currencyCode: 'XOF' },
+  { value: 'ne', label: 'Niger', flagCode: 'ne', currencyCode: 'XOF' },
+  { value: 'tg', label: 'Togo', flagCode: 'tg', currencyCode: 'XOF' },
+  { value: 'bj', label: 'Benin', flagCode: 'bj', currencyCode: 'XOF' },
+  { value: 'cm', label: 'Cameroon', flagCode: 'cm', currencyCode: 'XAF' },
+  { value: 'cf', label: 'Central African Republic', flagCode: 'cf', currencyCode: 'XAF' },
+  { value: 'td', label: 'Chad', flagCode: 'td', currencyCode: 'XAF' },
+  { value: 'cg', label: 'Republic of the Congo', flagCode: 'cg', currencyCode: 'XAF' },
+  { value: 'ga', label: 'Gabon', flagCode: 'ga', currencyCode: 'XAF' },
+  { value: 'gq', label: 'Equatorial Guinea', flagCode: 'gq', currencyCode: 'XAF' },
+  { value: 'ao', label: 'Angola', flagCode: 'ao', currencyCode: 'AOA' },
+  { value: 'zw', label: 'Zimbabwe', flagCode: 'zw', currencyCode: 'ZWL' },
+  { value: 'mz', label: 'Mozambique', flagCode: 'mz', currencyCode: 'MZN' },
+  { value: 'mg', label: 'Madagascar', flagCode: 'mg', currencyCode: 'MGA' },
+  { value: 'mw', label: 'Malawi', flagCode: 'mw', currencyCode: 'MWK' },
+  { value: 'zm', label: 'Zambia', flagCode: 'zm', currencyCode: 'ZMW' },
+  { value: 'bw', label: 'Botswana', flagCode: 'bw', currencyCode: 'BWP' },
+  { value: 'na', label: 'Namibia', flagCode: 'na', currencyCode: 'NAD' },
+  { value: 'ls', label: 'Lesotho', flagCode: 'ls', currencyCode: 'LSL' },
+  { value: 'sz', label: 'Eswatini', flagCode: 'sz', currencyCode: 'SZL' },
+  { value: 'dj', label: 'Djibouti', flagCode: 'dj', currencyCode: 'DJF' },
+  { value: 'er', label: 'Eritrea', flagCode: 'er', currencyCode: 'ERN' },
+  { value: 'et', label: 'Ethiopia', flagCode: 'et', currencyCode: 'ETB' },
+  { value: 'so', label: 'Somalia', flagCode: 'so', currencyCode: 'SOS' },
+  { value: 'ss', label: 'South Sudan', flagCode: 'ss', currencyCode: 'SSP' },
+  { value: 'sd', label: 'Sudan', flagCode: 'sd', currencyCode: 'SDG' },
+  { value: 'mr', label: 'Mauritania', flagCode: 'mr', currencyCode: 'MRU' },
+  { value: 'eh', label: 'Western Sahara', flagCode: 'eh', currencyCode: 'MAD' },
+  { value: 'dz', label: 'Algeria', flagCode: 'dz', currencyCode: 'DZD' },
+  { value: 'tn', label: 'Tunisia', flagCode: 'tn', currencyCode: 'TND' },
+  { value: 'ly', label: 'Libya', flagCode: 'ly', currencyCode: 'LYD' },
+  { value: 'ma', label: 'Morocco', flagCode: 'ma', currencyCode: 'MAD' },
+  { value: 'il', label: 'Israel', flagCode: 'il', currencyCode: 'ILS' },
+  { value: 'ps', label: 'Palestine', flagCode: 'ps', currencyCode: 'ILS' },
+  { value: 'jo', label: 'Jordan', flagCode: 'jo', currencyCode: 'JOD' },
+  { value: 'lb', label: 'Lebanon', flagCode: 'lb', currencyCode: 'LBP' },
+  { value: 'sy', label: 'Syria', flagCode: 'sy', currencyCode: 'SYP' },
+  { value: 'iq', label: 'Iraq', flagCode: 'iq', currencyCode: 'IQD' },
+  { value: 'ir', label: 'Iran', flagCode: 'ir', currencyCode: 'IRR' },
+  { value: 'af', label: 'Afghanistan', flagCode: 'af', currencyCode: 'AFN' },
+  { value: 'tj', label: 'Tajikistan', flagCode: 'tj', currencyCode: 'TJS' },
+  { value: 'uz', label: 'Uzbekistan', flagCode: 'uz', currencyCode: 'UZS' },
+  { value: 'tm', label: 'Turkmenistan', flagCode: 'tm', currencyCode: 'TMT' },
+  { value: 'kg', label: 'Kyrgyzstan', flagCode: 'kg', currencyCode: 'KGS' },
+  { value: 'kz', label: 'Kazakhstan', flagCode: 'kz', currencyCode: 'KZT' },
+  { value: 'mn', label: 'Mongolia', flagCode: 'mn', currencyCode: 'MNT' },
+  { value: 'kp', label: 'North Korea', flagCode: 'kp', currencyCode: 'KPW' },
+  { value: 'mm', label: 'Myanmar', flagCode: 'mm', currencyCode: 'MMK' },
+  { value: 'kh', label: 'Cambodia', flagCode: 'kh', currencyCode: 'KHR' },
+  { value: 'la', label: 'Laos', flagCode: 'la', currencyCode: 'LAK' },
+  { value: 'np', label: 'Nepal', flagCode: 'np', currencyCode: 'NPR' },
+  { value: 'bt', label: 'Bhutan', flagCode: 'bt', currencyCode: 'BTN' },
+  { value: 'lk', label: 'Sri Lanka', flagCode: 'lk', currencyCode: 'LKR' },
+  { value: 'mv', label: 'Maldives', flagCode: 'mv', currencyCode: 'MVR' },
+  { value: 'am', label: 'Armenia', flagCode: 'am', currencyCode: 'AMD' },
+  { value: 'ge', label: 'Georgia', flagCode: 'ge', currencyCode: 'GEL' },
+  { value: 'az', label: 'Azerbaijan', flagCode: 'az', currencyCode: 'AZN' },
+  { value: 'by', label: 'Belarus', flagCode: 'by', currencyCode: 'BYN' },
+  { value: 'md', label: 'Moldova', flagCode: 'md', currencyCode: 'MDL' },
+  { value: 'ua', label: 'Ukraine', flagCode: 'ua', currencyCode: 'UAH' },
+  { value: 'lv', label: 'Latvia', flagCode: 'lv', currencyCode: 'EUR' },
+  { value: 'lt', label: 'Lithuania', flagCode: 'lt', currencyCode: 'EUR' },
+  { value: 'ee', label: 'Estonia', flagCode: 'ee', currencyCode: 'EUR' },
+  { value: 'hr', label: 'Croatia', flagCode: 'hr', currencyCode: 'EUR' },
+  { value: 'si', label: 'Slovenia', flagCode: 'si', currencyCode: 'EUR' },
+  { value: 'sk', label: 'Slovakia', flagCode: 'sk', currencyCode: 'EUR' },
+  { value: 'ba', label: 'Bosnia and Herzegovina', flagCode: 'ba', currencyCode: 'BAM' },
+  { value: 'rs', label: 'Serbia', flagCode: 'rs', currencyCode: 'RSD' },
+  { value: 'al', label: 'Albania', flagCode: 'al', currencyCode: 'ALL' },
+  { value: 'mk', label: 'North Macedonia', flagCode: 'mk', currencyCode: 'MKD' },
+  { value: 'bg', label: 'Bulgaria', flagCode: 'bg', currencyCode: 'BGN' },
+  { value: 'ro', label: 'Romania', flagCode: 'ro', currencyCode: 'RON' },
+  { value: 'mt', label: 'Malta', flagCode: 'mt', currencyCode: 'EUR' },
+  { value: 'cy', label: 'Cyprus', flagCode: 'cy', currencyCode: 'EUR' },
+  { value: 'is', label: 'Iceland', flagCode: 'is', currencyCode: 'ISK' },
+  { value: 'li', label: 'Liechtenstein', flagCode: 'li', currencyCode: 'CHF' },
+  { value: 'mc', label: 'Monaco', flagCode: 'mc', currencyCode: 'EUR' },
+  { value: 'sm', label: 'San Marino', flagCode: 'sm', currencyCode: 'EUR' },
+  { value: 'va', label: 'Vatican City', flagCode: 'va', currencyCode: 'EUR' },
+  { value: 'ad', label: 'Andorra', flagCode: 'ad', currencyCode: 'EUR' },
+  { value: 'lu', label: 'Luxembourg', flagCode: 'lu', currencyCode: 'EUR' },
+  { value: 'gi', label: 'Gibraltar', flagCode: 'gi', currencyCode: 'GIP' },
+  { value: 'je', label: 'Jersey', flagCode: 'je', currencyCode: 'GBP' },
+  { value: 'gg', label: 'Guernsey', flagCode: 'gg', currencyCode: 'GBP' },
+  { value: 'im', label: 'Isle of Man', flagCode: 'im', currencyCode: 'GBP' },
+  { value: 'fo', label: 'Faroe Islands', flagCode: 'fo', currencyCode: 'DKK' },
+  { value: 'gl', label: 'Greenland', flagCode: 'gl', currencyCode: 'DKK' },
+  { value: 'ax', label: 'Åland Islands', flagCode: 'ax', currencyCode: 'EUR' },
+  { value: 'yt', label: 'Mayotte', flagCode: 'yt', currencyCode: 'EUR' },
+  { value: 're', label: 'Réunion', flagCode: 're', currencyCode: 'EUR' },
+  { value: 'tf', label: 'French Southern Territories', flagCode: 'tf', currencyCode: 'EUR' },
+  { value: 'mq', label: 'Martinique', flagCode: 'mq', currencyCode: 'EUR' },
+  { value: 'gp', label: 'Guadeloupe', flagCode: 'gp', currencyCode: 'EUR' },
+  { value: 'gf', label: 'French Guiana', flagCode: 'gf', currencyCode: 'EUR' },
+  { value: 'pm', label: 'Saint Pierre and Miquelon', flagCode: 'pm', currencyCode: 'EUR' },
+  { value: 'bl', label: 'Saint Barthélemy', flagCode: 'bl', currencyCode: 'EUR' },
+  { value: 'mf', label: 'Saint Martin', flagCode: 'mf', currencyCode: 'EUR' },
+  { value: 'wf', label: 'Wallis and Futuna', flagCode: 'wf', currencyCode: 'XPF' },
+  { value: 'pf', label: 'French Polynesia', flagCode: 'pf', currencyCode: 'XPF' },
+  { value: 'nc', label: 'New Caledonia', flagCode: 'nc', currencyCode: 'XPF' },
+  { value: 'vu', label: 'Vanuatu', flagCode: 'vu', currencyCode: 'VUV' },
+  { value: 'fj', label: 'Fiji', flagCode: 'fj', currencyCode: 'FJD' },
+  { value: 'sb', label: 'Solomon Islands', flagCode: 'sb', currencyCode: 'SBD' },
+  { value: 'pg', label: 'Papua New Guinea', flagCode: 'pg', currencyCode: 'PGK' },
+  { value: 'ki', label: 'Kiribati', flagCode: 'ki', currencyCode: 'AUD' },
+  { value: 'mh', label: 'Marshall Islands', flagCode: 'mh', currencyCode: 'USD' },
+  { value: 'fm', label: 'Micronesia', flagCode: 'fm', currencyCode: 'USD' },
+  { value: 'pw', label: 'Palau', flagCode: 'pw', currencyCode: 'USD' },
+  { value: 'nr', label: 'Nauru', flagCode: 'nr', currencyCode: 'AUD' },
+  { value: 'tv', label: 'Tuvalu', flagCode: 'tv', currencyCode: 'AUD' },
+  { value: 'ws', label: 'Samoa', flagCode: 'ws', currencyCode: 'WST' },
+  { value: 'to', label: 'Tonga', flagCode: 'to', currencyCode: 'TOP' },
+  { value: 'ck', label: 'Cook Islands', flagCode: 'ck', currencyCode: 'NZD' },
+  { value: 'nu', label: 'Niue', flagCode: 'nu', currencyCode: 'NZD' },
+  { value: 'tk', label: 'Tokelau', flagCode: 'tk', currencyCode: 'NZD' },
+  { value: 'pn', label: 'Pitcairn Islands', flagCode: 'pn', currencyCode: 'NZD' },
+  { value: 'ai', label: 'Anguilla', flagCode: 'ai', currencyCode: 'XCD' },
+  { value: 'bm', label: 'Bermuda', flagCode: 'bm', currencyCode: 'BMD' },
+  { value: 'vg', label: 'British Virgin Islands', flagCode: 'vg', currencyCode: 'USD' },
+  { value: 'ky', label: 'Cayman Islands', flagCode: 'ky', currencyCode: 'KYD' },
+  { value: 'fk', label: 'Falkland Islands', flagCode: 'fk', currencyCode: 'FKP' },
+  { value: 'ms', label: 'Montserrat', flagCode: 'ms', currencyCode: 'XCD' },
+  { value: 'tc', label: 'Turks and Caicos Islands', flagCode: 'tc', currencyCode: 'USD' },
+  { value: 'aw', label: 'Aruba', flagCode: 'aw', currencyCode: 'AWG' },
+  { value: 'bq', label: 'Bonaire, Sint Eustatius and Saba', flagCode: 'bq', currencyCode: 'USD' },
+  { value: 'cw', label: 'Curaçao', flagCode: 'cw', currencyCode: 'ANG' },
+  { value: 'sx', label: 'Sint Maarten', flagCode: 'sx', currencyCode: 'ANG' },
+  { value: 'km', label: 'Comoros', flagCode: 'km', currencyCode: 'KMF' },
+  { value: 'st', label: 'Sao Tome and Principe', flagCode: 'st', currencyCode: 'STD' },
+  { value: 'cv', label: 'Cape Verde', flagCode: 'cv', currencyCode: 'CVE' },
+  { value: 'gw', label: 'Guinea-Bissau', flagCode: 'gw', currencyCode: 'XOF' },
+  { value: 'gn', label: 'Guinea', flagCode: 'gn', currencyCode: 'GNF' },
+  { value: 'ao', label: 'Angola', flagCode: 'ao', currencyCode: 'AOA' },
 ];
 
 export const countryOptions = countries.map(country => ({
@@ -60,60 +221,24 @@ export const countryOptions = countries.map(country => ({
   flagCode: country.flagCode,
 }));
 
-// Function to format a phone number based on country
-export function formatPhoneNumber(phoneNumberString: string, countryCode: string = 'us'): string {
+// Function to format a phone number in US format: (123) 456-7890
+export function formatPhoneNumber(phoneNumberString: string): string {
   const cleaned = phoneNumberString.replace(/\D/g, '');
-  
-  // Exit early if the string is empty
+
+  // Handle empty input
   if (!cleaned) return '';
-  
-  // Country-specific formatting
-  switch (countryCode) {
-    case 'us':
-    case 'ca':
-      // Format: (123) 456-7890
-      if (cleaned.length <= 3) {
-        return cleaned;
-      } else if (cleaned.length <= 6) {
-        return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
-      } else {
-        return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
-      }
-    
-    case 'gb':
-      // Format: 07xxx xxx xxx (mobile)
-      if (cleaned.length <= 5) {
-        return cleaned;
-      } else if (cleaned.length <= 8) {
-        return `${cleaned.slice(0, 5)} ${cleaned.slice(5)}`;
-      } else {
-        return `${cleaned.slice(0, 5)} ${cleaned.slice(5, 8)} ${cleaned.slice(8)}`;
-      }
-      
-    case 'sg':
-      // Format: 8123 4567
-      if (cleaned.length <= 4) {
-        return cleaned;
-      } else {
-        return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 8)}`;
-      }
-    
-    case 'au':
-      // Format: 0412 345 678
-      if (cleaned.length <= 4) {
-        return cleaned;
-      } else if (cleaned.length <= 7) {
-        return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
-      } else {
-        return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
-      }
-      
-    // Add more country-specific formats as needed
-    
-    default:
-      // Generic grouping by 3 digits
-      return cleaned.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+
+  let formatted = '';
+
+  if (cleaned.length <= 3) {
+    return cleaned;
+  } else if (cleaned.length <= 6) {
+    formatted = `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
+  } else {
+    formatted = `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
   }
+
+  return formatted;
 }
 
 // Function to get country name from country code
@@ -126,9 +251,4 @@ export function getCountryNameFromCode(code?: string): string {
 
 export function findCountryByFlagCode(flagCode: string) {
   return countries.find(c => c.flagCode === flagCode);
-}
-
-// Function to get country by dial code
-export function findCountryByDialCode(dialCode: string) {
-  return countries.find(c => c.dialCode === dialCode.replace('+', ''));
 }

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,76 +17,72 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   images = [],
   videoURL,
   autoplayVideo = true,
-  skipPrimaryImage = false,
+  skipPrimaryImage = true,
 }) => {
   // Media state management
   const [activeIndex, setActiveIndex] = useState(0);
   const [mediaItems, setMediaItems] = useState<Array<{type: 'image' | 'video', url: string}>>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Set up media items to display with video always in position 1 if available
+  // Set up media items to display (video first, then images excluding primary if needed)
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
     
-    // Make sure we have valid arrays
-    let validImages = Array.isArray(images) ? images.filter(Boolean) : [];
-    
-    if (validImages.length === 0 && !videoURL) {
-      setMediaItems([]);
-      return;
-    }
-    
-    // If skipPrimaryImage is true, remove the first image (primary) from the carousel
-    if (skipPrimaryImage && validImages.length > 0) {
-      validImages = validImages.slice(1);
-    }
-    
-    // Always add video as first item if available
+    // Add video as first item if available
     if (videoURL) {
       items.push({ type: 'video', url: videoURL });
     }
     
-    // Add all remaining images after the video
-    if (validImages.length > 0) {
-      validImages.forEach(url => {
-        items.push({ type: 'image', url });
-      });
-    }
+    // Add images, skipping the first one if skipPrimaryImage is true
+    const imagesToAdd = skipPrimaryImage && images.length > 0 
+      ? images.slice(1) 
+      : [...images];
+    
+    imagesToAdd.forEach(url => {
+      items.push({ type: 'image', url });
+    });
     
     setMediaItems(items);
-    setActiveIndex(0); // Reset active index when media items change
+    
+    // Reset active index when media items change
+    setActiveIndex(0);
   }, [images, videoURL, skipPrimaryImage]);
 
-  // Event handlers for navigation
-  const handlePrev = useCallback((e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    setActiveIndex(prev => {
-      if (prev > 0) return prev - 1;
-      return prev;
-    });
-  }, []);
+  // Calculate display states
+  const hasMedia = mediaItems.length > 0;
+  const hasMultipleItems = mediaItems.length > 1;
+  const isAtStart = activeIndex === 0;
+  const isAtEnd = activeIndex === mediaItems.length - 1;
   
-  const handleNext = useCallback((e?: React.MouseEvent) => {
+  // Event handlers for navigation
+  const handlePrev = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
     
-    setActiveIndex(prev => {
-      if (prev < mediaItems.length - 1) return prev + 1;
-      return prev;
-    });
-  }, [mediaItems.length]);
+    if (activeIndex > 0) {
+      setActiveIndex(prev => prev - 1);
+    }
+  };
+  
+  const handleNext = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    if (activeIndex < mediaItems.length - 1) {
+      setActiveIndex(prev => prev + 1);
+    }
+  };
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!containerRef.current) return;
       
+      // Only process events when our container is focused or in the active document
       if (containerRef.current.contains(document.activeElement) || document.activeElement === document.body) {
         if (e.key === 'ArrowLeft') {
           e.preventDefault();
@@ -98,27 +94,17 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       }
     };
     
-    if (mediaItems.length > 1) {
+    if (hasMultipleItems) {
       window.addEventListener('keydown', handleKeyDown);
     }
     
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleNext, handlePrev, mediaItems.length]);
-
-  // Memoize display states
-  const displayState = useMemo(() => {
-    const hasMedia = mediaItems.length > 0;
-    const hasMultipleItems = mediaItems.length > 1;
-    const isAtStart = activeIndex === 0;
-    const isAtEnd = activeIndex === mediaItems.length - 1;
-    
-    return { hasMedia, hasMultipleItems, isAtStart, isAtEnd };
-  }, [mediaItems, activeIndex]);
+  }, [activeIndex, hasMultipleItems]);
 
   // Fallback when no media is available
-  if (!displayState.hasMedia) {
+  if (!hasMedia) {
     return (
       <div className="w-full rounded-lg overflow-hidden">
         <AspectRatio ratio={16 / 9} className="bg-gray-100">
@@ -130,6 +116,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
     );
   }
   
+  // Return the complete carousel component
   return (
     <div 
       className="w-full rounded-lg overflow-hidden shadow-md relative"
@@ -156,22 +143,21 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       </div>
       
       {/* Navigation arrows - only shown if multiple items */}
-      {displayState.hasMultipleItems && (
+      {hasMultipleItems && (
         <>
           {/* Left navigation arrow */}
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={handlePrev}
-            disabled={displayState.isAtStart}
+            disabled={isAtStart}
             className={cn(
               "absolute left-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
               "bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800",
               "shadow-md z-20 transition-opacity",
-              displayState.isAtStart ? "opacity-60" : "opacity-100"
+              isAtStart ? "opacity-60" : "opacity-100"
             )}
             aria-label="Previous item"
-            type="button"
           >
             <ChevronLeft className="h-6 w-6" />
           </Button>
@@ -181,15 +167,14 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
             variant="ghost" 
             size="icon" 
             onClick={handleNext}
-            disabled={displayState.isAtEnd}
+            disabled={isAtEnd}
             className={cn(
               "absolute right-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
               "bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800",
               "shadow-md z-20 transition-opacity",
-              displayState.isAtEnd ? "opacity-60" : "opacity-100"
+              isAtEnd ? "opacity-60" : "opacity-100"
             )}
             aria-label="Next item"
-            type="button"
           >
             <ChevronRight className="h-6 w-6" />
           </Button>
@@ -197,7 +182,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       )}
       
       {/* Pagination indicators - only shown if multiple items */}
-      {displayState.hasMultipleItems && (
+      {hasMultipleItems && (
         <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
           {mediaItems.map((_, index) => (
             <button
@@ -215,7 +200,6 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
               )}
               aria-label={`Go to item ${index + 1}`}
               aria-current={activeIndex === index ? 'true' : 'false'}
-              type="button"
             />
           ))}
         </div>

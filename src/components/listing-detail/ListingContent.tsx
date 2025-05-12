@@ -15,7 +15,8 @@ interface ListingContentProps {
 }
 
 export const ListingContent: React.FC<ListingContentProps> = ({ business }) => {
-  // Always use primary_image_url as the hero image
+  // Use primary_image_url as the hero image
+  // If it's not available, don't try to use the first gallery image
   const heroImage = business.primary_image_url;
   
   // Ensure location is properly formatted for flag display

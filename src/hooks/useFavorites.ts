@@ -100,23 +100,6 @@ export const useFavorites = (userId?: string) => {
         
         return { success: true, isFavorited: false, needsLogin: false };
       } else {
-        // Check if the favorite already exists to prevent duplicates
-        const { data: existingFavorite } = await supabase
-          .from('favorites')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('listing_id', listingId)
-          .maybeSingle();
-          
-        if (existingFavorite) {
-          // Favorite already exists, no need to add again
-          toast({
-            title: "Already in favorites",
-            description: "This listing is already in your favorites",
-          });
-          return { success: true, isFavorited: true, needsLogin: false };
-        }
-        
         // Add to favorites in database
         const { error } = await supabase
           .from('favorites')

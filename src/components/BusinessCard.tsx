@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -27,12 +26,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface BusinessCardProps {
   id: string;
@@ -153,27 +146,22 @@ const BusinessCard = ({
             )}
           </div>
           
-          {/* Favorite button with bookmark icon - updated styling */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button 
-                  className="absolute top-2 right-2 z-20 p-1.5 rounded-full shadow-sm cursor-pointer transition-colors bg-white/80 hover:bg-white"
-                  onClick={handleFavoriteToggle}
-                  disabled={isProcessingFavorite}
-                  aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-                >
-                  <Bookmark 
-                    className={`h-5 w-5 text-gray-500 ${isFavorited ? 'fill-[#F4C542] text-[#F4C542]' : ''} 
-                    ${isProcessingFavorite ? 'opacity-50' : ''}`}
-                  />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {isFavorited ? "Saved to favorites" : "Save to favorites"}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {/* Favorite button with bookmark icon */}
+          <button 
+            className={`absolute top-2 right-2 z-20 p-1.5 rounded-full shadow-sm cursor-pointer transition-colors
+              ${isFavorited 
+                ? 'bg-yellow-400 hover:bg-yellow-500' 
+                : 'bg-white/80 hover:bg-white'
+              }`}
+            onClick={handleFavoriteToggle}
+            disabled={isProcessingFavorite}
+            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Bookmark 
+              className={`h-5 w-5 ${isFavorited ? 'text-white' : 'text-gray-500'} 
+              ${isProcessingFavorite ? 'opacity-50' : ''}`}
+            />
+          </button>
           
           <img 
             src={imageUrl} 
