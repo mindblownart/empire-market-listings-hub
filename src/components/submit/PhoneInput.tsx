@@ -4,7 +4,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Check, ChevronDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { countryOptions } from '@/components/submit/countries';
 
@@ -187,27 +186,25 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-[250px] p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Search country..." />
-              <CommandEmpty>No country found.</CommandEmpty>
-              <CommandGroup className="max-h-64 overflow-y-auto">
-                {phoneCountries.map((country) => (
-                  <CommandItem
-                    key={country.value}
-                    value={country.label}
-                    onSelect={() => handleCountrySelect(country)}
-                    className="flex items-center gap-2"
-                  >
-                    <span className={`fi fi-${country.flagCode} rounded-sm`}></span>
-                    <span>{country.label}</span>
-                    <span className="ml-auto text-gray-500">{country.dialCode}</span>
-                    {selectedCountry.value === country.value && (
-                      <Check className="h-4 w-4 ml-2" />
-                    )}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
+            <div className="max-h-64 overflow-y-auto p-2">
+              {phoneCountries.map((country) => (
+                <div
+                  key={country.value}
+                  onClick={() => handleCountrySelect(country)}
+                  className={cn(
+                    "flex items-center gap-2 py-2 px-2 cursor-pointer rounded-md hover:bg-accent",
+                    selectedCountry.value === country.value ? "bg-accent text-accent-foreground" : ""
+                  )}
+                >
+                  <span className={`fi fi-${country.flagCode} rounded-sm`}></span>
+                  <span>{country.label}</span>
+                  <span className="ml-auto text-gray-500">{country.dialCode}</span>
+                  {selectedCountry.value === country.value && (
+                    <Check className="h-4 w-4 ml-2" />
+                  )}
+                </div>
+              ))}
+            </div>
           </PopoverContent>
         </Popover>
         
