@@ -1,3 +1,3 @@
 
-export * from './ImageCarousel';
+export * from './EnhancedCarousel';
 export * from './VideoPlayer';

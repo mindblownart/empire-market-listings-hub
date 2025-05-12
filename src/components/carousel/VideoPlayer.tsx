@@ -3,7 +3,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getVideoEmbedUrl } from '@/components/media-uploader/video-utils';
 
 interface VideoPlayerProps {
   url: string;
@@ -85,7 +84,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               loop
               muted={isMuted}
               playsInline
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
             
             {/* Video Controls - increase z-index to ensure it's above navigation arrows */}
