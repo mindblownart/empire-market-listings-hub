@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 import { getVideoEmbedUrl } from '@/components/media-uploader/video-utils';
@@ -91,6 +91,28 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, [mediaItems]);
 
+  // Add keyboard navigation support
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!carouselRef.current) return;
+      
+      if (event.key === 'ArrowLeft') {
+        carouselRef.current.scrollPrev();
+      } else if (event.key === 'ArrowRight') {
+        carouselRef.current.scrollNext();
+      }
+    };
+    
+    // Only add listener if we have multiple items
+    if (mediaItems.length > 1) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mediaItems.length]);
+
   if (!hasMedia) {
     // Fallback placeholder when no media is available
     return (
@@ -117,7 +139,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     <div className="w-full rounded-lg overflow-hidden shadow-md">
       {/* Main Carousel */}
       <Carousel 
-        className="w-full" 
+        className="w-full relative" 
         setApi={(api) => {
           carouselRef.current = api;
           if (api) {
@@ -195,11 +217,32 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
           ))}
         </CarouselContent>
         
-        {/* Only show navigation controls if there's more than one item */}
+        {/* Always show navigation controls when multiple items exist */}
         {mediaItems.length > 1 && (
           <>
-            <CarouselPrevious className="left-2 bg-white/70 hover:bg-white" />
-            <CarouselNext className="right-2 bg-white/70 hover:bg-white" />
+            {/* Custom navigation arrows that stay visible */}
+            <div className="absolute left-0 top-0 bottom-0 flex items-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-sm ml-2 sm:ml-4 lg:ml-2 focus:ring-0 focus-visible:ring-2 z-10"
+                onClick={() => carouselRef.current?.scrollPrev()}
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="absolute right-0 top-0 bottom-0 flex items-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-sm mr-2 sm:mr-4 lg:mr-2 focus:ring-0 focus-visible:ring-2 z-10"
+                onClick={() => carouselRef.current?.scrollNext()}
+                aria-label="Next slide"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </>
         )}
       </Carousel>
