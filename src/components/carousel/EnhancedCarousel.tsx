@@ -32,10 +32,6 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
     skipPrimaryImage 
   });
   
-  // Fix: Verify that videoURL is actually a string
-  const hasValidVideo = typeof videoURL === 'string' && videoURL.trim() !== '';
-  console.log("Has valid video:", hasValidVideo, "Video URL:", videoURL);
-  
   // Set up media items to display with video always in slot 2 (index 1 in carousel)
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
@@ -47,8 +43,8 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       items.push({ type: 'image', url: images[0] });
       console.log("Added first image to carousel:", images[0]);
       
-      // Then add the video as the second item (slot 2)
-      if (hasValidVideo && videoURL) {
+      // Then add the video as the second item
+      if (videoURL && videoURL.trim() !== '') {
         items.push({ type: 'video', url: videoURL });
         console.log("Added video to carousel at index 1:", videoURL);
       }
@@ -60,10 +56,12 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
         }
         console.log(`Added ${images.length - 1} more images to carousel`);
       }
-    } else if (hasValidVideo && videoURL) {
+    } else {
       // If there are no images, just add the video
-      items.push({ type: 'video', url: videoURL });
-      console.log("Only adding video to carousel:", videoURL);
+      if (videoURL && videoURL.trim() !== '') {
+        items.push({ type: 'video', url: videoURL });
+        console.log("Only adding video to carousel:", videoURL);
+      }
     }
     
     console.log("Final media items for carousel:", items);
@@ -71,7 +69,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
     
     // Reset active index when media items change
     setActiveIndex(0);
-  }, [images, videoURL, skipPrimaryImage, hasValidVideo]);
+  }, [images, videoURL, skipPrimaryImage]);
 
   // Calculate display states
   const hasMedia = mediaItems.length > 0;

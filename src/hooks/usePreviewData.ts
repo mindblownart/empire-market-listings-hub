@@ -61,41 +61,23 @@ export const usePreviewData = () => {
           }
         }
         
-        // FIXED: Enhanced video handling to support both URL and File
-        console.log("Checking for video data in session storage");
+        // FIXED: Improved video URL handling
+        // First explicitly check for video URL in session storage
+        console.log("Checking for video URL in session storage");
+        const sessionVideo = sessionStorage.getItem('previewVideoUrl');
+        console.log("Retrieved video URL from session:", sessionVideo);
         
-        // First check for video file data (from local upload)
-        const videoFileData = sessionStorage.getItem('previewVideoFile');
-        console.log("Retrieved video file data from session:", videoFileData);
-        
-        if (videoFileData) {
-          try {
-            const parsedVideoFile = JSON.parse(videoFileData);
-            if (parsedVideoFile && parsedVideoFile.previewUrl) {
-              console.log("Setting video URL from file blob URL:", parsedVideoFile.previewUrl);
-              setVideoURL(parsedVideoFile.previewUrl);
-            }
-          } catch (error) {
-            console.error("Error parsing video file data:", error);
-          }
-        } 
-        // If no video file, check for video URL (YouTube/Vimeo)
-        else {
-          const sessionVideo = sessionStorage.getItem('previewVideoUrl');
-          console.log("Retrieved video URL from session:", sessionVideo);
-          
-          if (sessionVideo) {
-            console.log("Setting video URL from session storage:", sessionVideo);
-            setVideoURL(sessionVideo);
-          } else if (parsedData.businessVideoUrl) {
-            // Fallback to businessVideoUrl from form data if sessionVideo is not available
-            console.log("Setting video URL from form data:", parsedData.businessVideoUrl);
-            setVideoURL(parsedData.businessVideoUrl);
-          } else {
-            // Ensure video URL is null if none exists
-            console.log("No video URL found, setting to null");
-            setVideoURL(null);
-          }
+        if (sessionVideo) {
+          console.log("Setting video URL from session storage:", sessionVideo);
+          setVideoURL(sessionVideo);
+        } else if (parsedData.businessVideoUrl) {
+          // Fallback to businessVideoUrl from form data if sessionVideo is not available
+          console.log("Setting video URL from form data:", parsedData.businessVideoUrl);
+          setVideoURL(parsedData.businessVideoUrl);
+        } else {
+          // Ensure video URL is null if none exists
+          console.log("No video URL found, setting to null");
+          setVideoURL(null);
         }
         
         setIsLoading(false);

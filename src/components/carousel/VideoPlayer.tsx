@@ -67,10 +67,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
   
-  // IMPROVED: Better detection of URL types including blob URLs
+  // Determine if it's a YouTube/Vimeo URL
   const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
   const isVimeo = url.includes('vimeo.com');
-  const isBlobUrl = url.startsWith('blob:') || url.startsWith('data:');
   
   // Extract YouTube video ID
   const getYoutubeId = (youtubeUrl: string) => {
@@ -145,7 +144,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
   
-  // For MP4, blob URLs and other direct video files
+  // For MP4 and other direct video files
   console.log("Rendering direct video file:", url);
   return (
     <AspectRatio ratio={16 / 9} className="bg-black">

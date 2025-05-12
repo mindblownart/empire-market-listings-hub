@@ -31,19 +31,16 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     ? galleryImages.slice(1)
     : [...galleryImages];
   
-  // Validate video URL to prevent errors
-  const validVideoURL = typeof videoURL === 'string' && videoURL.trim() !== '' ? videoURL : null;
-  
-  // Log the exact images and video being displayed in the carousel
+  // Log the exact images being displayed in the carousel
   useEffect(() => {
     console.log("MediaGallery displaying images:", displayImages);
-    console.log("MediaGallery displaying video:", validVideoURL);
-  }, [displayImages, validVideoURL]);
+    console.log("MediaGallery displaying video:", videoURL);
+  }, [displayImages, videoURL]);
   
   return (
     <EnhancedCarousel
       images={displayImages}
-      videoURL={validVideoURL}
+      videoURL={videoURL}
       autoplayVideo={autoplayVideo}
       skipPrimaryImage={false} // We've already handled the skipping here
     />
