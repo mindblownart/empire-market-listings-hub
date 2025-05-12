@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { LaptopIcon, UtensilsIcon, ShoppingBagIcon, FactoryIcon, HeartPulseIcon, BriefcaseIcon } from 'lucide-react';
 
 interface IndustryFieldProps {
   value: string;
@@ -22,6 +23,25 @@ const IndustryField: React.FC<IndustryFieldProps> = ({
   onKeyDown,
   error
 }) => {
+  // Function to get industry label with icon
+  const getIndustryLabel = (code: string, label: string) => {
+    const iconMap: Record<string, JSX.Element> = {
+      'tech': <LaptopIcon className="h-4 w-4 mr-2" />,
+      'food': <UtensilsIcon className="h-4 w-4 mr-2" />,
+      'retail': <ShoppingBagIcon className="h-4 w-4 mr-2" />,
+      'manufacturing': <FactoryIcon className="h-4 w-4 mr-2" />,
+      'health': <HeartPulseIcon className="h-4 w-4 mr-2" />,
+      'service': <BriefcaseIcon className="h-4 w-4 mr-2" />
+    };
+
+    return (
+      <div className="flex items-center">
+        {iconMap[code]}
+        <span>{label}</span>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-2">
       <Label htmlFor="industry">Industry</Label>
@@ -37,12 +57,24 @@ const IndustryField: React.FC<IndustryFieldProps> = ({
           <SelectValue placeholder="Select industry" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="tech">Technology</SelectItem>
-          <SelectItem value="food">Food & Beverage</SelectItem>
-          <SelectItem value="retail">Retail</SelectItem>
-          <SelectItem value="manufacturing">Manufacturing</SelectItem>
-          <SelectItem value="health">Health & Wellness</SelectItem>
-          <SelectItem value="service">Professional Services</SelectItem>
+          <SelectItem value="tech">
+            {getIndustryLabel('tech', 'Technology')}
+          </SelectItem>
+          <SelectItem value="food">
+            {getIndustryLabel('food', 'Food & Beverage')}
+          </SelectItem>
+          <SelectItem value="retail">
+            {getIndustryLabel('retail', 'Retail')}
+          </SelectItem>
+          <SelectItem value="manufacturing">
+            {getIndustryLabel('manufacturing', 'Manufacturing')}
+          </SelectItem>
+          <SelectItem value="health">
+            {getIndustryLabel('health', 'Health & Wellness')}
+          </SelectItem>
+          <SelectItem value="service">
+            {getIndustryLabel('service', 'Professional Services')}
+          </SelectItem>
         </SelectContent>
       </Select>
       {error && (

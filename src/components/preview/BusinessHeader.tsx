@@ -3,7 +3,7 @@ import React from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Tag } from 'lucide-react';
+import { MapPin, LaptopIcon, UtensilsIcon, ShoppingBagIcon, FactoryIcon, HeartPulseIcon, BriefcaseIcon } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { getCountryNameFromCode } from '@/components/submit/countries';
 
@@ -45,6 +45,22 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
     
     return industryMapping[industryCode.toLowerCase()] || industryCode;
   };
+  
+  // Function to get the appropriate icon based on industry
+  const getCategoryIcon = (industryCode?: string) => {
+    if (!industryCode) return <BriefcaseIcon className="h-4 w-4" />;
+    
+    const iconMapping: Record<string, JSX.Element> = {
+      'tech': <LaptopIcon className="h-4 w-4" />,
+      'food': <UtensilsIcon className="h-4 w-4" />,
+      'retail': <ShoppingBagIcon className="h-4 w-4" />,
+      'manufacturing': <FactoryIcon className="h-4 w-4" />,
+      'health': <HeartPulseIcon className="h-4 w-4" />,
+      'service': <BriefcaseIcon className="h-4 w-4" />
+    };
+    
+    return iconMapping[industryCode.toLowerCase()] || <BriefcaseIcon className="h-4 w-4" />;
+  };
 
   // Render hero banner with image or fallback card
   if (primaryImage) {
@@ -59,10 +75,10 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
           
-          {/* Category Tag - Redesigned with blurred background */}
+          {/* Category Tag - Updated with dynamic icon */}
           <div className="absolute top-4 left-4 md:top-6 md:left-6">
             <Badge variant="category" size="lg" className="flex items-center gap-1.5">
-              <Tag className="h-4 w-4" />
+              {getCategoryIcon(industry)}
               <span>{formatIndustryName(industry)}</span>
             </Badge>
           </div>
@@ -113,10 +129,10 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   return (
     <Card className="mb-8 shadow-md">
       <CardHeader className="relative">
-        {/* Category badge with new styling */}
+        {/* Category badge with dynamic icon */}
         <div className="w-fit mb-4">
           <Badge variant="category" size="md" className="flex items-center gap-1.5">
-            <Tag className="h-4 w-4" />
+            {getCategoryIcon(industry)}
             <span>{formatIndustryName(industry)}</span>
           </Badge>
         </div>
