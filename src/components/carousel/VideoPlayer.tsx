@@ -17,22 +17,29 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  // Set up video autoplay when component mounts
+  // Set up video autoplay when component mounts or updates
   useEffect(() => {
     if (videoRef.current && autoplay) {
       videoRef.current.muted = isMuted;
       
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.log('Autoplay prevented:', error);
-        });
-      }
+      // Make sure to play the video after a short delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        const playPromise = videoRef.current?.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.log('Autoplay prevented:', error);
+          });
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
-  }, [autoplay]);
+  }, [autoplay, isMuted]);
   
   // Toggle mute state
-  const toggleMute = () => {
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent click from bubbling to parent elements
+    
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
@@ -77,8 +84,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               className="w-full h-full object-cover"
             />
             
-            {/* Video Controls */}
-            <div className="absolute bottom-4 right-4 z-10">
+            {/* Video Controls - increase z-index to ensure it's above navigation arrows */}
+            <div className="absolute bottom-4 right-4 z-20">
               <Button
                 variant="outline"
                 size="icon"

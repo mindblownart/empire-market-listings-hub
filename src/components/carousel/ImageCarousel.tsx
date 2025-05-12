@@ -37,29 +37,41 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
     }
   }, [currentIndex, onIndexChange]);
 
-  // Handle navigation
-  const handlePrev = () => {
+  // Handle navigation with improved event handling
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
     }
   };
   
-  const handleNext = () => {
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
     if (currentIndex < images.length - 1) {
       setCurrentIndex(prev => prev + 1);
     }
   };
   
-  // Add keyboard navigation
+  // Add keyboard navigation with improved event handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        handlePrev();
-      } else if (e.key === 'ArrowRight') {
-        handleNext();
+      // Only process if we're the active carousel (based on focus within container)
+      if (containerRef.current && containerRef.current.contains(document.activeElement)) {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          if (currentIndex > 0) {
+            setCurrentIndex(prev => prev - 1);
+          }
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          if (currentIndex < images.length - 1) {
+            setCurrentIndex(prev => prev + 1);
+          }
+        }
       }
     };
     
+    // Add a global handler to support keyboard navigation even when not focused
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentIndex, images.length]);
@@ -82,7 +94,11 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   const isAtEnd = currentIndex === images.length - 1;
 
   return (
-    <div className="relative w-full rounded-lg overflow-hidden" ref={containerRef}>
+    <div 
+      className="relative w-full rounded-lg overflow-hidden" 
+      ref={containerRef}
+      tabIndex={0} // Make container focusable for keyboard events
+    >
       {/* Main Image */}
       <AspectRatio ratio={16 / 9}>
         <img 
@@ -93,8 +109,8 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
         />
       </AspectRatio>
       
-      {/* Navigation Controls */}
-      <div className="absolute inset-x-0 top-0 bottom-0 flex items-center justify-between pointer-events-none">
+      {/* Navigation Controls - improved positioning and z-index */}
+      <div className="absolute inset-x-0 top-0 bottom-0 flex items-center justify-between z-10">
         <Button
           variant="ghost"
           size="icon"
@@ -124,16 +140,20 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
         </Button>
       </div>
       
-      {/* Navigation Indicators */}
+      {/* Navigation Indicators - improved styling and interaction */}
       {images.length > 1 && (
-        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10">
           {images.map((_, index) => (
             <button
               key={index}
-              onClick={() => setCurrentIndex(index)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex(index);
+              }}
               aria-label={`Go to image ${index + 1}`}
+              aria-current={index === currentIndex ? 'true' : 'false'}
               className={cn(
-                "w-2 h-2 rounded-full transition-all",
+                "w-2 h-2 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-white",
                 index === currentIndex 
                   ? "bg-white w-6" 
                   : "bg-white/50 hover:bg-white/70"

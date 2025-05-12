@@ -21,10 +21,11 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   autoplayVideo = false,
   skipPrimaryImage = false,
 }) => {
-  const [isMuted, setIsMuted] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
   const carouselRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Check if any media is available
   const hasVideo = !!videoURL;
@@ -72,16 +73,24 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, [mediaItems]);
 
-  // Handle mute toggle for video
-  const toggleMute = () => {
+  // Handle mute toggle for video with proper event stopping
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
     if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
+      videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
   };
 
-  // Handle previous and next navigation with proper boundary checks
-  const handlePrev = () => {
+  // Improved navigation handlers with proper event stopping
+  const handlePrev = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    
     if (!carouselRef.current) return;
     
     if (activeIndex > 0) {
@@ -91,7 +100,12 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   };
   
-  const handleNext = () => {
+  const handleNext = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    
     if (!carouselRef.current) return;
     
     if (activeIndex < mediaItems.length - 1) {
@@ -101,13 +115,21 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   };
   
-  // Add keyboard navigation support
+  // Enhanced keyboard navigation support
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowLeft') {
-        handlePrev();
-      } else if (event.key === 'ArrowRight') {
-        handleNext();
+      // Check if this component is in view
+      if (containerRef.current && 
+          (containerRef.current.contains(document.activeElement) || 
+           document.activeElement === document.body)) {
+        
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          handlePrev();
+        } else if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          handleNext();
+        }
       }
     };
     
@@ -148,8 +170,8 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const isAtEnd = activeIndex === mediaItems.length - 1;
 
   return (
-    <div className="w-full rounded-lg overflow-hidden shadow-md">
-      {/* Main Carousel */}
+    <div className="w-full rounded-lg overflow-hidden shadow-md" ref={containerRef} tabIndex={0}>
+      {/* Main Carousel with improved event handling */}
       <Carousel 
         className="w-full relative" 
         setApi={(api) => {
@@ -210,8 +232,8 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                           className="w-full h-full object-cover" 
                         />
                         
-                        {/* Video Controls */}
-                        <div className="absolute bottom-4 right-4 z-20">
+                        {/* Video Controls - increased z-index */}
+                        <div className="absolute bottom-4 right-4 z-30">
                           <Button 
                             variant="outline" 
                             size="icon" 
@@ -230,16 +252,16 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
           ))}
         </CarouselContent>
         
-        {/* Custom navigation arrows - always visible, properly positioned */}
+        {/* Custom navigation arrows - improved positioning, z-index and hit areas */}
         {mediaItems.length > 1 && (
           <>
-            {/* Left arrow */}
-            <div className="absolute left-0 top-0 bottom-0 flex items-center z-10 pointer-events-none">
+            {/* Left arrow - increased padding and z-index */}
+            <div className="absolute left-0 top-0 bottom-0 flex items-center z-20 pointer-events-none">
               <Button
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md ml-2 sm:ml-4 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto",
+                  "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md ml-2 sm:ml-4 focus-visible:ring-2 transition-opacity pointer-events-auto",
                   isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
                 )}
                 onClick={handlePrev}
@@ -250,13 +272,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
               </Button>
             </div>
             
-            {/* Right arrow */}
-            <div className="absolute right-0 top-0 bottom-0 flex items-center z-10 pointer-events-none">
+            {/* Right arrow - increased padding and z-index */}
+            <div className="absolute right-0 top-0 bottom-0 flex items-center z-20 pointer-events-none">
               <Button
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md mr-2 sm:mr-4 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto",
+                  "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md mr-2 sm:mr-4 focus-visible:ring-2 transition-opacity pointer-events-auto",
                   isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
                 )}
                 onClick={handleNext}
@@ -270,20 +292,22 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
         )}
       </Carousel>
       
-      {/* Improved thumbnail navigation indicators */}
+      {/* Improved thumbnail navigation indicators with more spacing and better visibility */}
       {mediaItems.length > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-2 pb-2 px-4 overflow-x-auto">
+        <div className="flex items-center justify-center gap-2 mt-3 pb-3 px-4 overflow-x-auto z-20">
           {mediaItems.map((_, index) => (
             <button
               key={`indicator-${index}`}
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 if (carouselRef.current) {
                   setActiveIndex(index);
                   carouselRef.current.scrollTo(index);
                 }
               }}
               className={cn(
-                "min-w-6 h-2 rounded-full transition-all cursor-pointer",
+                "min-w-6 h-2 rounded-full transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary",
                 activeIndex === index 
                   ? "bg-primary w-10" 
                   : "bg-gray-300 w-6 opacity-50 hover:opacity-75"
