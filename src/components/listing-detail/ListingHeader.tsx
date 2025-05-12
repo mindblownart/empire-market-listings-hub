@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Edit, Trash2, Briefcase, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFavorites } from '@/hooks/useFavorites';
-import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface ListingHeaderProps {
