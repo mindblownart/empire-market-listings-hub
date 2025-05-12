@@ -38,7 +38,7 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
             </div>
           </div>
           
-          {/* Email row - updated to allow wrapping */}
+          {/* Email row */}
           <div className="flex items-start">
             <div className="w-[40%] flex items-center">
               <Mail className="h-4 w-4 mr-2 text-gray-500 flex-shrink-0" />
@@ -49,7 +49,7 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
             </div>
           </div>
           
-          {/* Phone Number row - now using formatPhoneNumber */}
+          {/* Phone Number row */}
           <div className="flex items-start">
             <div className="w-[40%] flex items-center">
               <Phone className="h-4 w-4 mr-2 text-gray-500 flex-shrink-0" />
