@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Edit, Trash2, Briefcase, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,11 +29,6 @@ export const ListingHeader: React.FC<ListingHeaderProps> = ({
   const handleFavoriteToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (!userId) {
-      setIsLoginDialogOpen(true);
-      return;
-    }
     
     const result = await toggleFavorite(id);
     

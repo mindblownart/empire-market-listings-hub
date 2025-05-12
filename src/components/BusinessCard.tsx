@@ -73,11 +73,6 @@ const BusinessCard = ({
     e.preventDefault();
     e.stopPropagation();
     
-    if (!userId) {
-      setIsLoginDialogOpen(true);
-      return;
-    }
-    
     const result = await toggleFavorite(id);
     
     if (!result.success && result.needsLogin) {

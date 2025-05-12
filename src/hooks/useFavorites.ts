@@ -53,7 +53,9 @@ export const useFavorites = (userId?: string) => {
   }, [userId]);
   
   const toggleFavorite = async (listingId: string) => {
-    if (!userId) return { success: false, needsLogin: true };
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, needsLogin: true };
     
     try {
       const isFavorited = favorites.includes(listingId);
@@ -63,7 +65,7 @@ export const useFavorites = (userId?: string) => {
         const { error } = await supabase
           .from('favorites')
           .delete()
-          .eq('user_id', userId)
+          .eq('user_id', user.id)
           .eq('listing_id', listingId);
           
         if (error) throw error;
@@ -82,7 +84,7 @@ export const useFavorites = (userId?: string) => {
         const { error } = await supabase
           .from('favorites')
           .insert({
-            user_id: userId,
+            user_id: user.id,
             listing_id: listingId
           });
           
