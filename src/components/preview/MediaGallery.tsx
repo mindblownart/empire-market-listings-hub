@@ -91,15 +91,24 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, [mediaItems]);
 
+  // Handle previous and next navigation
+  const handlePrev = () => {
+    if (!carouselRef.current) return;
+    carouselRef.current.scrollPrev();
+  };
+  
+  const handleNext = () => {
+    if (!carouselRef.current) return;
+    carouselRef.current.scrollNext();
+  };
+  
   // Add keyboard navigation support
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!carouselRef.current) return;
-      
       if (event.key === 'ArrowLeft') {
-        carouselRef.current.scrollPrev();
+        handlePrev();
       } else if (event.key === 'ArrowRight') {
-        carouselRef.current.scrollNext();
+        handleNext();
       }
     };
     
@@ -134,6 +143,10 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   if (mediaItems.length === 0) {
     return null;
   }
+
+  // Calculate if we're at the first or last slide for UI feedback
+  const isAtStart = activeIndex === 0;
+  const isAtEnd = activeIndex === mediaItems.length - 1;
 
   return (
     <div className="w-full rounded-lg overflow-hidden shadow-md">
@@ -198,7 +211,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                         />
                         
                         {/* Video Controls */}
-                        <div className="absolute bottom-4 right-4">
+                        <div className="absolute bottom-4 right-4 z-20">
                           <Button 
                             variant="outline" 
                             size="icon" 
@@ -217,30 +230,32 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
           ))}
         </CarouselContent>
         
-        {/* Always show navigation controls when multiple items exist */}
+        {/* Only show navigation controls if there's more than one item */}
         {mediaItems.length > 1 && (
           <>
             {/* Custom navigation arrows that stay visible */}
-            <div className="absolute left-0 top-0 bottom-0 flex items-center">
+            <div className="absolute left-0 top-0 bottom-0 flex items-center z-10">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-sm ml-2 sm:ml-4 lg:ml-2 focus:ring-0 focus-visible:ring-2 z-10"
-                onClick={() => carouselRef.current?.scrollPrev()}
+                className={`h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md ml-2 sm:ml-4 lg:ml-2 focus-visible:ring-2 z-10 transition-opacity ${isAtStart ? 'opacity-70' : 'opacity-100'}`}
+                onClick={handlePrev}
                 aria-label="Previous slide"
+                disabled={false} // Never disable to maintain consistent UX
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-5 w-5" />
               </Button>
             </div>
-            <div className="absolute right-0 top-0 bottom-0 flex items-center">
+            <div className="absolute right-0 top-0 bottom-0 flex items-center z-10">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-sm mr-2 sm:mr-4 lg:mr-2 focus:ring-0 focus-visible:ring-2 z-10"
-                onClick={() => carouselRef.current?.scrollNext()}
+                className={`h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md mr-2 sm:mr-4 lg:mr-2 focus-visible:ring-2 z-10 transition-opacity ${isAtEnd ? 'opacity-70' : 'opacity-100'}`}
+                onClick={handleNext}
                 aria-label="Next slide"
+                disabled={false} // Never disable to maintain consistent UX
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-5 w-5" />
               </Button>
             </div>
           </>
