@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -26,6 +25,10 @@ export const useBusinessSubmission = () => {
           navigate('/login', { state: { redirect: '/submit' } });
           return;
         }
+        
+        // Get image ordering from session storage if available
+        let orderedImages: string[] = [];
+        const imageOrdering = sessionStorage.getItem('imageOrder');
         
         // Prepare business listing data with proper type conversions
         const businessData = {
@@ -58,11 +61,40 @@ export const useBusinessSubmission = () => {
         if (formData.businessImages && formData.businessImages.length > 0) {
           const mediaUrls = await uploadBusinessMedia(formData.businessImages);
           
-          // Add media URLs to business data
-          businessData.primary_image_url = mediaUrls.primaryImageUrl;
-          businessData.gallery_images = mediaUrls.galleryImages;
+          // Get the uploaded image URLs
+          if (mediaUrls.galleryImages && mediaUrls.galleryImages.length > 0) {
+            orderedImages = [...mediaUrls.galleryImages];
+            
+            // Apply custom ordering if available
+            if (imageOrdering) {
+              try {
+                const orderMap = JSON.parse(imageOrdering);
+                if (Array.isArray(orderMap) && orderMap.length > 0) {
+                  // Some images might be in the ordering but not in the uploaded images
+                  // (e.g. if we're keeping existing images)
+                  const existingImages = orderMap.filter(url => 
+                    !orderedImages.includes(url) && url.startsWith('http')
+                  );
+                  
+                  // Combine existing and new images
+                  orderedImages = [...existingImages, ...orderedImages];
+                }
+              } catch (error) {
+                console.error("Error parsing image ordering:", error);
+              }
+            }
+            
+            // Add media URLs to business data
+            businessData.primary_image_url = orderedImages[0];
+            businessData.gallery_images = orderedImages;
+          }
+          
           businessData.video_url = formData.businessVideoUrl || null;
         }
+        
+        // Store final image ordering in session storage
+        sessionStorage.setItem('previewImageUrls', JSON.stringify(orderedImages));
+        sessionStorage.setItem('previewImageOrdering', JSON.stringify(orderedImages));
         
         console.log("Submitting business data:", businessData);
         
@@ -79,6 +111,16 @@ export const useBusinessSubmission = () => {
           return false;
         } else {
           toast.success("Business listing submitted successfully!");
+          
+          // Store updated data for preview consistency
+          sessionStorage.setItem('previewFormData', JSON.stringify(formData));
+          if (orderedImages.length > 0) {
+            sessionStorage.setItem('previewImageUrls', JSON.stringify(orderedImages));
+          }
+          if (formData.businessVideoUrl) {
+            sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
+          }
+          
           navigate(`/listing/${insertedBusiness.id}`);
           return true;
         }

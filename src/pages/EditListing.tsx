@@ -262,6 +262,14 @@ const EditListing = () => {
         description: "Your business listing has been updated."
       });
       
+      // Store updated data in sessionStorage for preview consistency
+      sessionStorage.setItem('previewFormData', JSON.stringify(formData));
+      sessionStorage.setItem('previewImageUrls', JSON.stringify(updatedImageUrls));
+      sessionStorage.setItem('previewImageOrdering', JSON.stringify(updatedImageUrls));
+      if (formData.businessVideoUrl) {
+        sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
+      }
+      
       // Navigate back to the listing detail page
       navigate(`/business/${id}`);
     } catch (error) {
@@ -331,7 +339,8 @@ const EditListing = () => {
     // Store the reordered images both in state and in sessionStorage
     setImageUrls(reorderedImages);
     
-    // Also save the ordering to sessionStorage for preview
+    // Also save the ordering to sessionStorage for preview and persistence
+    sessionStorage.setItem('imageOrder', JSON.stringify(reorderedImages));
     sessionStorage.setItem('previewImageOrdering', JSON.stringify(reorderedImages));
     
     // First image becomes primary automatically

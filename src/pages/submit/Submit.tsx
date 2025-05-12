@@ -19,6 +19,13 @@ const Submit = () => {
   const { formData, updateFormData } = useFormData();
   const { validationErrors, validateField } = useBusinessSubmission();
   
+  // Handler for reordering images
+  const handleImagesReorder = (reorderedImages: string[]) => {
+    // Store reordering in sessionStorage for persistence
+    sessionStorage.setItem('imageOrder', JSON.stringify(reorderedImages));
+    sessionStorage.setItem('previewImageOrdering', JSON.stringify(reorderedImages));
+  };
+  
   return (
     <AuthCheck>
       <div className="min-h-screen flex flex-col">
@@ -70,6 +77,7 @@ const Submit = () => {
                       onImagesChange={(images: MediaFile[]) => updateFormData({ businessImages: images })}
                       onVideoChange={(video: MediaFile | null) => updateFormData({ businessVideo: video })}
                       onVideoUrlChange={(url: string | null) => updateFormData({ businessVideoUrl: url || '' })}
+                      onImagesReorder={handleImagesReorder}
                       maxImages={10}
                     />
                   </DragContext>

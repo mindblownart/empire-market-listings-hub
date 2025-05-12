@@ -34,9 +34,20 @@ const FormContainer: React.FC<FormContainerProps> = ({
       if (onSubmit) {
         await onSubmit();
         toast.success("Changes saved successfully!");
+        
+        // Store updated data in sessionStorage for preview page
+        sessionStorage.setItem('previewFormData', JSON.stringify(formData));
+        
+        // If we have ordered images, make sure to preserve that order
+        const imageOrdering = sessionStorage.getItem('imageOrder');
+        if (imageOrdering) {
+          sessionStorage.setItem('previewImageOrdering', imageOrdering);
+        }
       } else {
         const result = await handleSubmit(formData);
         if (result) {
+          // Store data for preview if submission is successful
+          sessionStorage.setItem('previewFormData', JSON.stringify(formData));
           toast.success("Business listing submitted successfully!");
         }
       }

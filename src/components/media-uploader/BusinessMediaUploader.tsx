@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { X } from 'lucide-react';
@@ -17,7 +18,8 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
   onImagesChange,
   onVideoChange,
   onVideoUrlChange,
-  onSetPrimaryImage
+  onSetPrimaryImage,
+  onImagesReorder
 }) => {
   // State for all media
   const [images, setImages] = useState<MediaFile[]>([]);
@@ -113,6 +115,11 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     // First image is always primary
     if (onSetPrimaryImage && reorderedImages.length > 0) {
       onSetPrimaryImage(0);
+    }
+    
+    // Provide reordered images to parent component
+    if (onImagesReorder) {
+      onImagesReorder(reorderedImages);
     }
   };
 

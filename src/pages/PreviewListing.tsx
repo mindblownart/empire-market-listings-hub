@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -33,7 +32,7 @@ const PreviewListing = () => {
       const sessionData = sessionStorage.getItem('previewFormData');
       const sessionImages = sessionStorage.getItem('previewImageUrls');
       const sessionVideo = sessionStorage.getItem('previewVideoUrl');
-      const sessionOrdering = sessionStorage.getItem('previewImageOrdering');
+      const sessionOrdering = sessionStorage.getItem('previewImageOrdering') || sessionStorage.getItem('imageOrder');
       
       if (sessionData) {
         // We have data in session storage, use it
@@ -286,7 +285,7 @@ const PreviewListing = () => {
                 contactRole={previewData.role}
               />
               
-              {/* Back to Form Button - replacing Contact Seller button */}
+              {/* Back to Form Button */}
               <div className="md:static fixed bottom-0 left-0 right-0 p-4 bg-white md:bg-transparent md:p-0 md:mt-6 z-10 shadow-lg md:shadow-none">
                 <Button 
                   className="w-full bg-[#9b87f5] hover:bg-[#8673e0] py-6 h-auto text-white text-lg font-medium"

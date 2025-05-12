@@ -117,11 +117,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
         className="w-full" 
         setApi={(api) => {
           carouselRef.current = api;
-          api?.scrollTo(0);
-          api?.on('select', () => {
-            const selectedIndex = api.selectedScrollSnap();
-            setActiveIndex(selectedIndex);
-          });
+          if (api) {
+            api.scrollTo(0);
+            api.on('select', () => {
+              const selectedIndex = api.selectedScrollSnap();
+              setActiveIndex(selectedIndex);
+            });
+          }
         }}
       >
         <CarouselContent>
@@ -142,7 +144,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                     {item.url && (item.url.includes('youtube.com') || item.url.includes('youtu.be')) ? (
                       // YouTube embed
                       <iframe 
-                        src={getVideoEmbedUrl('youtube', item.url.split('v=')[1] || item.url.split('/').pop() || '')} 
+                        src={getVideoEmbedUrl('youtube', item.url.includes('v=') ? item.url.split('v=')[1].split('&')[0] : item.url.split('/').pop() || '')} 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                         className="w-full h-full"
