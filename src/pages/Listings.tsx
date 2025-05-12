@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -212,7 +211,7 @@ const Listings = () => {
           isHot: listing.is_hot,
           // Add a property to indicate if this is the current user's listing
           isOwnListing: userSession && listing.user_id === userSession.user.id,
-          userId: listing.user_id
+          userId: userSession?.user?.id
         }));
         
         setBusinesses(mappedBusinesses);

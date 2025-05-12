@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -36,7 +37,29 @@ const Index = () => {
   const [minRevenue, setMinRevenue] = useState<string>('');
   const [maxRevenue, setMaxRevenue] = useState<string>('');
   const [businesses, setBusinesses] = useState<any[]>([]);
+  const [featuredBusinesses, setFeaturedBusinesses] = useState<any[]>([]);
+  const [regularBusinesses, setRegularBusinesses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userSession, setUserSession] = useState<any>(null);
+
+  // Fetch current user session
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUserSession(data.session);
+    };
+    
+    checkAuth();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUserSession(session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Fetch businesses from Supabase
   useEffect(() => {
@@ -49,7 +72,7 @@ const Index = () => {
           .select('*')
           .eq('is_published', true)
           .order('is_featured', { ascending: false }) // Featured listings first
-          .limit(6); // Limit to 6 businesses for the homepage
+          .limit(12); // Increased limit to account for both featured and regular
         
         if (error) {
           console.error('Error fetching business listings:', error);
@@ -67,12 +90,23 @@ const Index = () => {
             imageUrl: listing.primary_image_url || '/placeholder.svg',
             currencyCode: listing.currency_code,
             isNew: listing.is_new,
-            isHot: listing.is_hot
+            isHot: listing.is_hot,
+            isFeatured: listing.is_featured,
+            userId: userSession?.user?.id
           }));
           
           setBusinesses(mappedBusinesses);
+          
+          // Separate featured and regular businesses
+          const featured = mappedBusinesses.filter(b => b.isFeatured);
+          const regular = mappedBusinesses.filter(b => !b.isFeatured).slice(0, 6); // Limit regular to 6
+          
+          setFeaturedBusinesses(featured);
+          setRegularBusinesses(regular);
         } else {
           setBusinesses([]);
+          setFeaturedBusinesses([]);
+          setRegularBusinesses([]);
         }
       } catch (error) {
         console.error('Error fetching business listings:', error);
@@ -103,7 +137,7 @@ const Index = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [userSession]);
 
   const handleSearch = () => {
     // Redirect to listings page with search params
@@ -282,14 +316,37 @@ const Index = () => {
             </div>
           ) : businesses.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {businesses.map(business => (
-                  <BusinessCard
-                    key={business.id}
-                    {...business}
-                  />
-                ))}
-              </div>
+              {/* Featured Listings Section - Only show if we have featured listings */}
+              {featuredBusinesses.length > 0 && (
+                <div className="mb-16">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Featured Listings</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {featuredBusinesses.map(business => (
+                      <BusinessCard
+                        key={business.id}
+                        {...business}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Regular Listings */}
+              {regularBusinesses.length > 0 && (
+                <div>
+                  {featuredBusinesses.length > 0 && (
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">More Businesses</h3>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {regularBusinesses.map(business => (
+                      <BusinessCard
+                        key={business.id}
+                        {...business}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
               
               <div className="mt-12 text-center">
                 <Link to="/listings" state={{ resetFilters: true }}>

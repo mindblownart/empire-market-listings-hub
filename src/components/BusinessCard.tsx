@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Bookmark, Edit, Trash2 } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Edit, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -16,7 +17,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { useFavorites } from '@/hooks/useFavorites';
 import {
   Dialog,
@@ -148,19 +149,16 @@ const BusinessCard = ({
           
           {/* Favorite button with bookmark icon */}
           <button 
-            className={`absolute top-2 right-2 z-20 p-1.5 rounded-full shadow-sm cursor-pointer transition-colors
-              ${isFavorited 
-                ? 'bg-yellow-400 hover:bg-yellow-500' 
-                : 'bg-white/80 hover:bg-white'
-              }`}
+            className={`absolute top-2 right-2 z-20 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm cursor-pointer transition-colors`}
             onClick={handleFavoriteToggle}
             disabled={isProcessingFavorite}
             aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
           >
-            <Bookmark 
-              className={`h-5 w-5 ${isFavorited ? 'text-white' : 'text-gray-500'} 
-              ${isProcessingFavorite ? 'opacity-50' : ''}`}
-            />
+            {isFavorited ? (
+              <BookmarkCheck className="h-5 w-5 text-yellow-400" />
+            ) : (
+              <Bookmark className="h-5 w-5 text-gray-500" />
+            )}
           </button>
           
           <img 
