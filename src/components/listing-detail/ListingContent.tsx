@@ -51,7 +51,7 @@ export const ListingContent: React.FC<ListingContentProps> = ({ business }) => {
           {/* Media Gallery exactly aligned with Business Overview */}
           <MediaGallery 
             galleryImages={business.gallery_images || []} 
-            videoURL={business.video_url || undefined} 
+            videoURL={business.video_url} 
             autoplayVideo={true} 
             skipPrimaryImage={true} // Skip primary image since it's shown in hero
           />

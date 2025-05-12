@@ -123,7 +123,7 @@ const FormContainer: React.FC<FormContainerProps> = ({
       }
       
       // Store video URL separately to ensure it's available in preview
-      // Fix: Always ensure the video URL is set correctly, even if null or empty
+      // IMPORTANT: Always ensure the video URL is set correctly, even if null or empty
       if (formData.businessVideoUrl) {
         sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
         console.log("Video URL saved for preview:", formData.businessVideoUrl);

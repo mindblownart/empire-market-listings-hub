@@ -17,7 +17,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   images = [],
   videoURL,
   autoplayVideo = true,
-  skipPrimaryImage = false, // Default changed to false as we handle this in MediaGallery
+  skipPrimaryImage = false,
 }) => {
   // Media state management
   const [activeIndex, setActiveIndex] = useState(0);
@@ -36,14 +36,13 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
     
-    // If we have a video, insert it at position 0 (slot 2 in the UI after the hero image)
+    // If we have a video, always insert it as the first item in the carousel
     if (videoURL) {
       items.push({ type: 'video', url: videoURL });
       console.log("Added video to carousel:", videoURL);
     }
     
     // Add all the images after the video
-    // We're using the images directly since skipPrimaryImage is handled in MediaGallery
     images.forEach(url => {
       items.push({ type: 'image', url });
     });
