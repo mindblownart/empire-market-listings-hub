@@ -90,6 +90,9 @@ const PreviewListing = () => {
         
         if (sessionVideo) {
           setVideoURL(sessionVideo);
+        } else if (parsedData.businessVideoUrl) {
+          // Fallback to businessVideoUrl from form data if sessionVideo is not available
+          setVideoURL(parsedData.businessVideoUrl);
         }
         
         setIsLoading(false);

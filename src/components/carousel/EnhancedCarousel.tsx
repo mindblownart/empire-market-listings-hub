@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
