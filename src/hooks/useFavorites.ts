@@ -1,10 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 export const useFavorites = (userId?: string) => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!userId) return;
@@ -31,7 +33,7 @@ export const useFavorites = (userId?: string) => {
     
     // Set up realtime subscription for favorites
     const channel = supabase
-      .channel('public:favorites')
+      .channel('favorites-changes')
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -51,36 +53,59 @@ export const useFavorites = (userId?: string) => {
   }, [userId]);
   
   const toggleFavorite = async (listingId: string) => {
-    if (!userId) return false;
-    
-    const isFavorite = favorites.includes(listingId);
+    if (!userId) return { success: false, needsLogin: true };
     
     try {
-      if (isFavorite) {
+      const isFavorited = favorites.includes(listingId);
+      
+      if (isFavorited) {
         // Remove from favorites
-        await supabase
+        const { error } = await supabase
           .from('favorites')
           .delete()
           .eq('user_id', userId)
           .eq('listing_id', listingId);
           
+        if (error) throw error;
+        
+        // Optimistically update the UI
         setFavorites(favorites.filter(id => id !== listingId));
+        
+        toast({
+          title: "Removed from favorites",
+          description: "Listing removed from your saved items",
+        });
+        
+        return { success: true, isFavorited: false, needsLogin: false };
       } else {
         // Add to favorites
-        await supabase
+        const { error } = await supabase
           .from('favorites')
           .insert({
             user_id: userId,
             listing_id: listingId
           });
           
+        if (error) throw error;
+        
+        // Optimistically update the UI
         setFavorites([...favorites, listingId]);
+        
+        toast({
+          title: "Saved to favorites",
+          description: "Listing added to your favorites",
+        });
+        
+        return { success: true, isFavorited: true, needsLogin: false };
       }
-      
-      return true;
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      return false;
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+      return { success: false, needsLogin: false };
     }
   };
   

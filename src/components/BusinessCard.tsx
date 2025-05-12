@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { BookmarkCheck, Bookmark, Edit, Trash2 } from 'lucide-react';
+import { Bookmark, Edit, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -17,8 +16,16 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useFavorites } from '@/hooks/useFavorites';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface BusinessCardProps {
   id: string;
@@ -55,6 +62,7 @@ const BusinessCard = ({
 }: BusinessCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -65,29 +73,15 @@ const BusinessCard = ({
     e.preventDefault();
     e.stopPropagation();
     
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to save listings",
-        variant: "destructive",
-      });
+    if (!userId) {
+      setIsLoginDialogOpen(true);
       return;
     }
     
-    const success = await toggleFavorite(id);
+    const result = await toggleFavorite(id);
     
-    if (success) {
-      toast({
-        title: isFavorite(id) ? "Removed from favorites" : "Added to favorites",
-        description: isFavorite(id) ? "Listing removed from your saved items" : "Listing saved to your favorites",
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to update favorites. Please try again.",
-        variant: "destructive",
-      });
+    if (!result.success && result.needsLogin) {
+      setIsLoginDialogOpen(true);
     }
   };
 
@@ -131,7 +125,7 @@ const BusinessCard = ({
   };
 
   // Check if this listing is in favorites
-  const favoriteStatus = userId ? isFavorite(id) : false;
+  const isFavorited = userId ? isFavorite(id) : false;
 
   return (
     <>
@@ -156,25 +150,19 @@ const BusinessCard = ({
             )}
           </div>
           
-          {/* Favorite button with bookmark icon */}
+          {/* Favorite button with bookmark icon - ensure it's not in a disabled container */}
           <button 
-            className={`absolute top-2 right-2 z-10 p-1.5 rounded-full shadow-sm 
-              ${favoriteStatus 
-                ? 'bg-white' 
+            className={`absolute top-2 right-2 z-20 p-1.5 rounded-full shadow-sm cursor-pointer transition-colors
+              ${isFavorited 
+                ? 'bg-yellow-400' 
                 : 'bg-white/80 hover:bg-white'
               }`}
             onClick={handleFavoriteToggle}
-            aria-label={favoriteStatus ? "Remove from favorites" : "Add to favorites"}
+            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
           >
-            {favoriteStatus ? (
-              <Bookmark 
-                className="h-5 w-5 text-yellow-400 fill-yellow-400" 
-              />
-            ) : (
-              <Bookmark 
-                className="h-5 w-5 text-gray-500" 
-              />
-            )}
+            <Bookmark 
+              className={`h-5 w-5 ${isFavorited ? 'text-white' : 'text-gray-500'}`}
+            />
           </button>
           
           <img 
@@ -266,6 +254,36 @@ const BusinessCard = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Login Dialog */}
+      <Dialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign in to save favorites</DialogTitle>
+            <DialogDescription>
+              You need to be logged in to save listings to your favorites.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsLoginDialogOpen(false)} 
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setIsLoginDialogOpen(false);
+                navigate('/login');
+              }}
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90"
+            >
+              Sign in
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

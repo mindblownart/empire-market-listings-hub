@@ -21,7 +21,33 @@ const ListingDetail = () => {
   const location = useLocation();
   const [isCurrentUserOwner, setIsCurrentUserOwner] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [userId, setUserId] = useState<string | undefined>(undefined);
   
+  // Fetch the current user session
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        setUserId(data.session.user.id);
+      }
+    };
+    
+    getSession();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUserId(session.user.id);
+      } else {
+        setUserId(undefined);
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   // Log the ID to confirm it's defined
   console.log('Listing ID:', id);
 
@@ -96,6 +122,7 @@ const ListingDetail = () => {
         <div className="container mx-auto max-w-7xl">
           <ListingHeader
             id={id || ''}
+            userId={userId}
             isCurrentUserOwner={isCurrentUserOwner}
             onDeleteClick={() => setIsDeleteDialogOpen(true)}
           />
