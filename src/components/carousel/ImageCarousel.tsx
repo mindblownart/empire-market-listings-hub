@@ -37,18 +37,24 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
     }
   }, [currentIndex, onIndexChange]);
 
-  // Handle navigation with improved event handling
-  const handlePrev = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation(); // Prevent event bubbling
+  // Handle navigation with robust event handling
+  const handlePrev = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation(); // Prevent event bubbling
+    }
+    
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
     }
   };
   
-  const handleNext = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation(); // Prevent event bubbling
+  const handleNext = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation(); // Prevent event bubbling
+    }
+    
     if (currentIndex < images.length - 1) {
       setCurrentIndex(prev => prev + 1);
     }
@@ -57,22 +63,24 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   // Add keyboard navigation with improved event handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Process keyboard events globally
+      // Only process if container is in view
+      if (!containerRef.current?.closest('body')) return;
+      
+      // Process keyboard events when focused or document level
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (currentIndex > 0) {
-          setCurrentIndex(prev => prev - 1);
-        }
+        handlePrev();
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        if (currentIndex < images.length - 1) {
-          setCurrentIndex(prev => prev + 1);
-        }
+        handleNext();
       }
     };
     
-    // Add a global handler to support keyboard navigation
-    window.addEventListener('keydown', handleKeyDown);
+    // Add global handler to support keyboard navigation
+    if (images.length > 1) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentIndex, images.length]);
   
@@ -92,6 +100,9 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   // Calculate if we're at first or last slide
   const isAtStart = currentIndex === 0;
   const isAtEnd = currentIndex === images.length - 1;
+  
+  // Only show navigation controls if there are multiple images
+  const showNavigation = images.length > 1;
 
   return (
     <div 
@@ -109,40 +120,42 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
         />
       </AspectRatio>
       
-      {/* Navigation Controls - improved positioning, size and z-index */}
-      <div className="absolute inset-0 flex items-center justify-between z-40 pointer-events-none">
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 ml-2 sm:ml-4 pointer-events-auto transition-opacity",
-            isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
-          )}
-          onClick={handlePrev}
-          disabled={isAtStart}
-          aria-label="Previous image"
-        >
-          <ChevronLeft className="h-8 w-8" />
-        </Button>
-        
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 mr-2 sm:mr-4 pointer-events-auto transition-opacity",
-            isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
-          )}
-          onClick={handleNext}
-          disabled={isAtEnd}
-          aria-label="Next image"
-        >
-          <ChevronRight className="h-8 w-8" />
-        </Button>
-      </div>
+      {/* Navigation Controls - only show if multiple images */}
+      {showNavigation && (
+        <div className="absolute inset-0 flex items-center justify-between z-50 pointer-events-none">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 ml-2 sm:ml-4 pointer-events-auto transition-opacity",
+              isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
+            )}
+            onClick={handlePrev}
+            disabled={isAtStart}
+            aria-label="Previous image"
+          >
+            <ChevronLeft className="h-8 w-8" />
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 mr-2 sm:mr-4 pointer-events-auto transition-opacity",
+              isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
+            )}
+            onClick={handleNext}
+            disabled={isAtEnd}
+            aria-label="Next image"
+          >
+            <ChevronRight className="h-8 w-8" />
+          </Button>
+        </div>
+      )}
       
       {/* Navigation Indicators - improved styling and interaction */}
-      {images.length > 1 && (
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-40">
+      {showNavigation && (
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-50">
           {images.map((_, index) => (
             <button
               key={index}

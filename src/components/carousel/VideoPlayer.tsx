@@ -30,11 +30,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             console.log('Autoplay prevented:', error);
           });
         }
-      }, 100);
+      }, 200);
       
       return () => clearTimeout(timer);
     }
-  }, [autoplay, isMuted]);
+  }, [autoplay, isMuted, url]);
   
   // Toggle mute state with improved event handling
   const toggleMute = (e: React.MouseEvent) => {
@@ -59,7 +59,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <iframe 
             src={getVideoEmbedUrl('youtube', url.includes('v=') 
               ? url.split('v=')[1].split('&')[0] 
-              : url.split('/').pop() || '')} 
+              : url.split('/').pop() || '', autoplay)} 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
             allowFullScreen
             className="w-full h-full"
@@ -67,7 +67,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           />
         ) : isVimeo ? (
           <iframe 
-            src={`https://player.vimeo.com/video/${url.split('/').pop()}?autoplay=${autoplay ? '1' : '0'}`}
+            src={`https://player.vimeo.com/video/${url.split('/').pop()}?autoplay=${autoplay ? '1' : '0'}&muted=${isMuted ? '1' : '0'}`}
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
             className="w-full h-full"
@@ -87,11 +87,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             />
             
             {/* Video Controls - increase z-index to ensure it's above navigation arrows */}
-            <div className="absolute bottom-4 right-4 z-50">
+            <div className="absolute bottom-4 right-4 z-[100]">
               <Button
                 variant="outline"
                 size="icon"
-                className="bg-white/80 backdrop-blur-sm hover:bg-white rounded-full"
+                className="bg-white/80 backdrop-blur-sm hover:bg-white rounded-full pointer-events-auto"
                 onClick={toggleMute}
               >
                 {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}

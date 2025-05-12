@@ -27,14 +27,12 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   // Check if any media is available
   const hasVideo = !!videoURL;
   const hasImages = Array.isArray(galleryImages) && galleryImages.length > 0;
-  const hasMedia = hasVideo || hasImages;
   
   // Organize media items to ensure correct order based on settings
   const mediaItems = React.useMemo(() => {
     const items = [];
     
     // Get images based on whether we should skip primary image
-    // When skipPrimaryImage is true, we exclude the first image since it's shown in the hero banner
     const imagesToUse = skipPrimaryImage && galleryImages.length > 0 
       ? galleryImages.slice(1)  // Skip the primary image (index 0)
       : [...galleryImages];     // Use all images
@@ -44,7 +42,6 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       items.push({
         type: 'video',
         url: videoURL || '',
-        isPrimary: false
       });
     }
     
@@ -54,13 +51,15 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
         items.push({
           type: 'image',
           url,
-          isPrimary: false
         });
       });
     }
     
     return items;
   }, [galleryImages, hasVideo, videoURL, skipPrimaryImage]);
+
+  const hasMedia = mediaItems.length > 0;
+  const hasMultipleItems = mediaItems.length > 1;
 
   // Reset active index when media items change
   useEffect(() => {
@@ -90,14 +89,14 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     };
     
     // Only add listener if we have multiple items
-    if (mediaItems.length > 1) {
+    if (hasMultipleItems) {
       window.addEventListener('keydown', handleKeyDown);
     }
     
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [mediaItems.length, activeIndex]);
+  }, [hasMultipleItems, activeIndex]);
 
   // Improved navigation handlers with proper event stopping
   const handlePrev = (e?: React.MouseEvent) => {
@@ -155,6 +154,9 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   // Calculate if we're at the first or last slide for UI feedback
   const isAtStart = activeIndex === 0;
   const isAtEnd = activeIndex === mediaItems.length - 1;
+  
+  // Only show navigation if we have multiple items
+  const showNavigation = hasMultipleItems;
 
   return (
     <div className="w-full rounded-lg overflow-hidden shadow-md relative" ref={containerRef} tabIndex={0}>
@@ -192,16 +194,16 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
         </CarouselContent>
       </Carousel>
       
-      {/* Custom navigation arrows - improved positioning, z-index and hit areas */}
-      {mediaItems.length > 1 && (
+      {/* Custom navigation arrows - only show if we have multiple items */}
+      {showNavigation && (
         <>
-          {/* Left arrow - increased size, padding and z-index */}
-          <div className="absolute left-0 top-0 bottom-0 flex items-center justify-center z-50 px-2 sm:px-4 py-2 pointer-events-none">
+          {/* Left arrow - increased z-index to ensure clickability */}
+          <div className="absolute left-0 top-0 bottom-0 flex items-center justify-center z-[100] px-2 sm:px-4 py-2 pointer-events-none">
             <Button
               variant="ghost"
               size="icon"
               className={cn(
-                "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md focus-visible:ring-2 transition-opacity pointer-events-auto",
+                "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md pointer-events-auto transition-opacity",
                 isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
               )}
               onClick={handlePrev}
@@ -212,13 +214,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
             </Button>
           </div>
           
-          {/* Right arrow - increased size, padding and z-index */}
-          <div className="absolute right-0 top-0 bottom-0 flex items-center justify-center z-50 px-2 sm:px-4 py-2 pointer-events-none">
+          {/* Right arrow - increased z-index to ensure clickability */}
+          <div className="absolute right-0 top-0 bottom-0 flex items-center justify-center z-[100] px-2 sm:px-4 py-2 pointer-events-none">
             <Button
               variant="ghost"
               size="icon"
               className={cn(
-                "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md focus-visible:ring-2 transition-opacity pointer-events-auto",
+                "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md pointer-events-auto transition-opacity",
                 isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
               )}
               onClick={handleNext}
@@ -231,9 +233,9 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
         </>
       )}
       
-      {/* Improved thumbnail navigation indicators with better visibility */}
-      {mediaItems.length > 1 && (
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-50">
+      {/* Improved thumbnail navigation indicators - only show if multiple items */}
+      {showNavigation && (
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-[100]">
           {mediaItems.map((_, index) => (
             <button
               key={`indicator-${index}`}
@@ -248,8 +250,8 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
               className={cn(
                 "h-3 rounded-full transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pointer-events-auto",
                 activeIndex === index 
-                  ? "bg-primary w-8" 
-                  : "bg-gray-300 w-3 opacity-70 hover:opacity-100"
+                  ? "bg-white w-8" 
+                  : "bg-white/50 w-3 hover:bg-white/80"
               )}
               aria-label={`Go to slide ${index + 1}`}
               aria-current={activeIndex === index ? 'true' : 'false'}
