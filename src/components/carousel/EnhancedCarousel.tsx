@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { VideoPlayer } from './VideoPlayer';
@@ -107,9 +106,12 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   if (!hasMedia) {
     return (
       <div className="w-full rounded-lg overflow-hidden">
-        <AspectRatio ratio={16 / 9} className="bg-gray-100">
+        <AspectRatio ratio={16 / 9} className="bg-gray-50">
           <div className="flex items-center justify-center h-full">
-            <p className="text-gray-500">No media available</p>
+            <div className="text-center">
+              <ImageOff className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-500 font-medium">No media uploaded yet</p>
+            </div>
           </div>
         </AspectRatio>
       </div>
