@@ -41,7 +41,8 @@ export const useFavorites = (userId?: string) => {
           table: 'favorites',
           filter: `user_id=eq.${userId}` 
         },
-        () => {
+        (payload) => {
+          console.log('Realtime favorites change:', payload);
           fetchFavorites();
         }
       )
@@ -70,7 +71,10 @@ export const useFavorites = (userId?: string) => {
           .eq('user_id', user.id)
           .eq('listing_id', listingId);
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error removing favorite:', error);
+          throw error;
+        }
         
         // Optimistically update the UI
         setFavorites(favorites.filter(id => id !== listingId));
@@ -90,7 +94,10 @@ export const useFavorites = (userId?: string) => {
             listing_id: listingId
           });
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error adding favorite:', error);
+          throw error;
+        }
         
         // Optimistically update the UI
         setFavorites([...favorites, listingId]);
@@ -102,11 +109,11 @@ export const useFavorites = (userId?: string) => {
         
         return { success: true, isFavorited: true, needsLogin: false };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error toggling favorite:', error);
       toast({
         title: "Something went wrong",
-        description: "Please try again later",
+        description: error.message || "Please try again later",
         variant: "destructive",
       });
       return { success: false, needsLogin: false };
