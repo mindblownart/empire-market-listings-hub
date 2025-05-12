@@ -43,15 +43,6 @@ const Index = () => {
     const fetchBusinesses = async () => {
       setIsLoading(true);
       try {
-        // Configure Supabase to enable real-time updates
-        await supabase
-          .from('business_listings')
-          .on('*', payload => {
-            console.log('Change received!', payload);
-            fetchBusinesses();
-          })
-          .subscribe();
-
         // Query the business_listings table for featured and published listings
         const { data, error } = await supabase
           .from('business_listings')
@@ -93,9 +84,24 @@ const Index = () => {
 
     fetchBusinesses();
 
+    // Set up a channel to listen for changes
+    const channel = supabase
+      .channel('public:business_listings')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'business_listings' 
+        }, 
+        () => {
+          fetchBusinesses();
+        }
+      )
+      .subscribe();
+
     // Clean up any subscriptions when component unmounts
     return () => {
-      supabase.removeAllChannels();
+      supabase.removeChannel(channel);
     };
   }, []);
 

@@ -58,7 +58,7 @@ const BusinessDetails: React.FC<BusinessDetailsProps> = ({
     // Prepare the update
     const updateData: Partial<BusinessFormData> = {
       location: value,
-      locationName: selectedCountry?.name,
+      locationName: selectedCountry?.label,
       flagCode: selectedCountry?.flagCode,
       currencyCode: newCurrencyCode,
     };

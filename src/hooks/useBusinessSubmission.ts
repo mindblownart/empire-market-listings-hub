@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -165,5 +166,12 @@ export const useBusinessSubmission = () => {
     }
   };
   
-  return { handleSubmit, isSubmitting, validationErrors, validateField, validateAllFields, clearValidationErrors };
+  return { 
+    handleSubmit, 
+    isSubmitting, 
+    validationErrors, 
+    validateField, 
+    validateAllFields, 
+    clearValidationErrors 
+  };
 };

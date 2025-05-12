@@ -1,14 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-
-// Define a Favorite type
-interface Favorite {
-  id: string;
-  user_id: string;
-  listing_id: string;
-  created_at: string;
-}
+import type { Favorite } from '@/types/supabase';
 
 export const useFavorites = (userId?: string) => {
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -20,7 +13,7 @@ export const useFavorites = (userId?: string) => {
     const fetchFavorites = async () => {
       setIsLoading(true);
       try {
-        // Using a more generic approach with any to avoid type errors
+        // Using a properly typed query approach
         const { data, error } = await supabase
           .from('favorites')
           .select('listing_id')
@@ -66,7 +59,7 @@ export const useFavorites = (userId?: string) => {
     
     try {
       if (isFavorite) {
-        // Remove from favorites using a more generic approach
+        // Remove from favorites
         await supabase
           .from('favorites')
           .delete()
@@ -75,7 +68,7 @@ export const useFavorites = (userId?: string) => {
           
         setFavorites(favorites.filter(id => id !== listingId));
       } else {
-        // Add to favorites using a more generic approach
+        // Add to favorites
         await supabase
           .from('favorites')
           .insert({

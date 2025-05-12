@@ -1,3 +1,4 @@
+
 export interface CountryOption {
   value: string;
   label: string;
@@ -245,7 +246,7 @@ export function getCountryNameFromCode(code?: string): string {
   if (!code) return 'Not specified';
 
   const country = countries.find(c => c.flagCode === code);
-  return country ? country.name : 'Unknown';
+  return country ? country.label : 'Unknown';
 }
 
 export function findCountryByFlagCode(flagCode: string) {
