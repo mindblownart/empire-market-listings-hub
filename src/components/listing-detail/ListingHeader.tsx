@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Edit, Trash2, Briefcase, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -68,7 +68,7 @@ export const ListingHeader: React.FC<ListingHeaderProps> = ({
               }`}
               onClick={handleFavoriteToggle}
             >
-              <Bookmark className="h-4 w-4" />
+              <Bookmark className={`h-4 w-4 ${isFavorited ? 'text-white' : 'text-gray-500'}`} />
               {isFavorited ? 'Saved' : 'Save'}
             </Button>
           )}

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -145,11 +146,11 @@ const BusinessCard = ({
             )}
           </div>
           
-          {/* Favorite button with bookmark icon - ensure it's not in a disabled container */}
+          {/* Favorite button with bookmark icon */}
           <button 
             className={`absolute top-2 right-2 z-20 p-1.5 rounded-full shadow-sm cursor-pointer transition-colors
               ${isFavorited 
-                ? 'bg-yellow-400' 
+                ? 'bg-yellow-400 hover:bg-yellow-500' 
                 : 'bg-white/80 hover:bg-white'
               }`}
             onClick={handleFavoriteToggle}

@@ -55,7 +55,9 @@ export const useFavorites = (userId?: string) => {
   const toggleFavorite = async (listingId: string) => {
     // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { success: false, needsLogin: true };
+    if (!user) {
+      return { success: false, needsLogin: true };
+    }
     
     try {
       const isFavorited = favorites.includes(listingId);
