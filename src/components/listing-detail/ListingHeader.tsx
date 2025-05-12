@@ -22,9 +22,10 @@ export const ListingHeader: React.FC<ListingHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const { isFavorite, toggleFavorite } = useFavorites(userId);
+  const { isFavorite, toggleFavorite, isProcessing } = useFavorites(userId);
   
   const isFavorited = userId ? isFavorite(id) : false;
+  const isProcessingFavorite = isProcessing?.[id] || false;
   
   const handleFavoriteToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -67,8 +68,11 @@ export const ListingHeader: React.FC<ListingHeaderProps> = ({
                   : 'hover:bg-gray-100'
               }`}
               onClick={handleFavoriteToggle}
+              disabled={isProcessingFavorite}
             >
-              <Bookmark className={`h-4 w-4 ${isFavorited ? 'text-white' : 'text-gray-500'}`} />
+              <Bookmark className={`h-4 w-4 ${
+                isFavorited ? 'text-white' : 'text-gray-500'
+              } ${isProcessingFavorite ? 'opacity-50' : ''}`} />
               {isFavorited ? 'Saved' : 'Save'}
             </Button>
           )}

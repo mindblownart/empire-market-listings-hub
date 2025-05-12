@@ -6,8 +6,10 @@ import { useToast } from '@/components/ui/use-toast';
 export const useFavorites = (userId?: string) => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState<{[key: string]: boolean}>({});
   const { toast } = useToast();
 
+  // Fetch user's favorites when component mounts or userId changes
   useEffect(() => {
     if (!userId) return;
     
@@ -60,11 +62,24 @@ export const useFavorites = (userId?: string) => {
       return { success: false, needsLogin: true };
     }
     
+    // Set processing state for this specific listing
+    setIsProcessing(prev => ({ ...prev, [listingId]: true }));
+    
     try {
       const isFavorited = favorites.includes(listingId);
       
+      // Optimistically update the UI immediately before the request completes
       if (isFavorited) {
-        // Remove from favorites
+        // Remove from favorites UI immediately
+        setFavorites(favorites.filter(id => id !== listingId));
+      } else {
+        // Add to favorites UI immediately
+        setFavorites([...favorites, listingId]);
+      }
+      
+      // Then perform the actual database operation
+      if (isFavorited) {
+        // Remove from favorites in database
         const { error } = await supabase
           .from('favorites')
           .delete()
@@ -73,11 +88,10 @@ export const useFavorites = (userId?: string) => {
           
         if (error) {
           console.error('Error removing favorite:', error);
+          // Revert optimistic update if there was an error
+          setFavorites(prev => [...prev, listingId]);
           throw error;
         }
-        
-        // Optimistically update the UI
-        setFavorites(favorites.filter(id => id !== listingId));
         
         toast({
           title: "Removed from favorites",
@@ -86,7 +100,7 @@ export const useFavorites = (userId?: string) => {
         
         return { success: true, isFavorited: false, needsLogin: false };
       } else {
-        // Add to favorites
+        // Add to favorites in database
         const { error } = await supabase
           .from('favorites')
           .insert({
@@ -96,11 +110,10 @@ export const useFavorites = (userId?: string) => {
           
         if (error) {
           console.error('Error adding favorite:', error);
+          // Revert optimistic update if there was an error
+          setFavorites(prev => prev.filter(id => id !== listingId));
           throw error;
         }
-        
-        // Optimistically update the UI
-        setFavorites([...favorites, listingId]);
         
         toast({
           title: "Saved to favorites",
@@ -117,6 +130,9 @@ export const useFavorites = (userId?: string) => {
         variant: "destructive",
       });
       return { success: false, needsLogin: false };
+    } finally {
+      // Clear processing state for this listing
+      setIsProcessing(prev => ({ ...prev, [listingId]: false }));
     }
   };
   
@@ -124,6 +140,7 @@ export const useFavorites = (userId?: string) => {
     favorites,
     toggleFavorite,
     isLoading,
+    isProcessing,
     isFavorite: (listingId: string) => favorites.includes(listingId)
   };
 };

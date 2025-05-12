@@ -68,8 +68,11 @@ const BusinessCard = ({
   const navigate = useNavigate();
   
   // Use our custom hook to handle favorites
-  const { isFavorite, toggleFavorite } = useFavorites(userId);
+  const { isFavorite, toggleFavorite, isProcessing } = useFavorites(userId);
   
+  const isFavorited = userId ? isFavorite(id) : false;
+  const isProcessingFavorite = isProcessing?.[id] || false;
+
   const handleFavoriteToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -154,10 +157,12 @@ const BusinessCard = ({
                 : 'bg-white/80 hover:bg-white'
               }`}
             onClick={handleFavoriteToggle}
+            disabled={isProcessingFavorite}
             aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
           >
             <Bookmark 
-              className={`h-5 w-5 ${isFavorited ? 'text-white' : 'text-gray-500'}`}
+              className={`h-5 w-5 ${isFavorited ? 'text-white' : 'text-gray-500'} 
+              ${isProcessingFavorite ? 'opacity-50' : ''}`}
             />
           </button>
           
