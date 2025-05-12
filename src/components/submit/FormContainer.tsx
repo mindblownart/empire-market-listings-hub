@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +14,7 @@ interface FormContainerProps {
   isSubmitting?: boolean;
   onPreview?: () => void; // Custom preview handler
   previewDisabled?: boolean; // New prop to disable preview button
-  onValidate?: () => boolean; // New prop for custom validation
+  onValidate?: () => boolean; // Custom validation function
 }
 
 const FormContainer: React.FC<FormContainerProps> = ({ 
@@ -28,19 +29,22 @@ const FormContainer: React.FC<FormContainerProps> = ({
   const navigate = useNavigate();
   const { formData } = useFormData();
   const { handleSubmit, isSubmitting: defaultIsSubmitting, validateAllFields } = useBusinessSubmission();
+  const [isValidating, setIsValidating] = useState(false);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setIsValidating(true);
+      
       // Run custom validation if provided
       if (onValidate && !onValidate()) {
+        setIsValidating(false);
         return;
       }
       
       if (onSubmit) {
         await onSubmit();
         // The navigation will now be handled in the onSubmit function itself
-        // We no longer need to navigate here as that's controlled by the parent component
       } else {
         const result = await handleSubmit(formData);
         if (result) {
@@ -61,53 +65,69 @@ const FormContainer: React.FC<FormContainerProps> = ({
           color: '#ef4444',
         },
       });
+    } finally {
+      setIsValidating(false);
     }
   };
 
-  // Handle preview click - ensure all form data is captured before navigating
-  const handlePreview = (e: React.MouseEvent) => {
+  // Handle preview click with improved validation
+  const handlePreview = async (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Run validation if onValidate is provided
-    if (onValidate && !onValidate()) {
-      return;
-    }
-    
-    // Run default validation for required fields
-    if (!validateAllFields(formData)) {
-      toast.error("Please complete all required fields before previewing.", {
-        style: {
-          border: '1px solid #f87171',
-          borderRadius: '0.375rem',
-          background: '#fff',
-          color: '#ef4444',
-        },
-      });
-      return;
-    }
-    
-    // Store current form data in sessionStorage to preserve across navigation
-    sessionStorage.setItem('previewFormData', JSON.stringify(formData));
-    sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
-    
-    // We'll allow preview without validation
-    // but let's show a toast if there are major issues
-    if (!formData.businessName || !formData.industry || !formData.location) {
-      toast.warning("Your preview is missing important information. Consider adding more details.");
-    }
-    
-    // Save current image ordering for preview consistency
-    const imageOrdering = sessionStorage.getItem('imageOrder');
-    if (imageOrdering) {
-      sessionStorage.setItem('previewImageOrdering', imageOrdering);
-      sessionStorage.setItem('lastSavedImageOrdering', imageOrdering);
-    }
-    
-    // Use custom preview handler if provided, otherwise use default behavior
-    if (onPreview) {
-      onPreview();
-    } else {
-      navigate('/preview-listing');
+    try {
+      setIsValidating(true);
+      
+      // Run validation if onValidate is provided
+      let isValid = true;
+      
+      if (onValidate) {
+        isValid = onValidate();
+        if (!isValid) {
+          setIsValidating(false);
+          return;
+        }
+      }
+      
+      // Run default validation for required fields only if custom validation passed
+      if (isValid) {
+        const requiredFieldsValid = validateAllFields(formData);
+        
+        if (!requiredFieldsValid) {
+          toast.error("Please complete all required fields before previewing.", {
+            description: "Check for highlighted fields that need attention."
+          });
+          setIsValidating(false);
+          return;
+        }
+      }
+      
+      // Store current form data in sessionStorage to preserve across navigation
+      sessionStorage.setItem('previewFormData', JSON.stringify(formData));
+      sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
+      
+      // Save current image ordering for preview consistency
+      const imageOrdering = sessionStorage.getItem('imageOrder');
+      if (imageOrdering) {
+        sessionStorage.setItem('previewImageOrdering', imageOrdering);
+        sessionStorage.setItem('lastSavedImageOrdering', imageOrdering);
+      }
+      
+      // Save video URL for preview if it exists
+      if (formData.businessVideoUrl) {
+        sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
+      }
+      
+      // Use custom preview handler if provided, otherwise use default behavior
+      if (onPreview) {
+        onPreview();
+      } else {
+        navigate('/preview-listing');
+      }
+    } catch (error) {
+      console.error("Preview error:", error);
+      toast.error("There was a problem generating the preview");
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -121,9 +141,10 @@ const FormContainer: React.FC<FormContainerProps> = ({
           variant="outline" 
           className="px-10 py-6 text-lg flex items-center gap-2 transition-all hover:bg-gray-100" 
           onClick={handlePreview}
-          disabled={previewDisabled}
+          disabled={previewDisabled || isValidating}
         >
-          <Eye className="h-5 w-5" /> Preview
+          <Eye className="h-5 w-5" /> 
+          {isValidating ? 'Validating...' : 'Preview'}
         </Button>
         <Button 
           type="submit" 

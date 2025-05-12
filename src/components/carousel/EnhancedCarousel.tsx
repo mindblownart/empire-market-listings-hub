@@ -24,19 +24,23 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   const [mediaItems, setMediaItems] = useState<Array<{type: 'image' | 'video', url: string}>>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Set up media items to display (video first, then images excluding primary if needed)
+  // Set up media items to display (primary image first, then video, then other images)
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
     
-    // Add video as first item if available
+    // If we have images and aren't skipping the primary image, add it first
+    if (images.length > 0 && !skipPrimaryImage) {
+      items.push({ type: 'image', url: images[0] });
+    }
+    
+    // Add video as second item if available (position 1 if primary image is shown, position 0 otherwise)
     if (videoURL) {
       items.push({ type: 'video', url: videoURL });
     }
     
-    // Add images, skipping the first one if skipPrimaryImage is true
-    const imagesToAdd = skipPrimaryImage && images.length > 0 
-      ? images.slice(1) 
-      : [...images];
+    // Add remaining images, skipping the first one if skipPrimaryImage is true
+    const startIndex = skipPrimaryImage ? 1 : 1;
+    const imagesToAdd = images.slice(startIndex);
     
     imagesToAdd.forEach(url => {
       items.push({ type: 'image', url });

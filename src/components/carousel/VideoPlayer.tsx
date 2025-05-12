@@ -21,7 +21,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (videoRef.current && autoplay) {
       videoRef.current.muted = isMuted;
       
-      // Make sure to play the video after a short delay to ensure DOM is ready
+      // Play video with a short delay to ensure DOM is ready
       const timer = setTimeout(() => {
         const playPromise = videoRef.current?.play();
         if (playPromise !== undefined) {
@@ -29,7 +29,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             console.log('Autoplay prevented:', error);
           });
         }
-      }, 200);
+      }, 300); // Increased delay for better reliability
       
       return () => clearTimeout(timer);
     }
@@ -65,7 +65,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Create embed URL for Vimeo videos
   const getVimeoEmbedUrl = () => {
     const videoId = url.split('/').pop() || '';
-    return `https://player.vimeo.com/video/${videoId}?autoplay=${autoplay ? '1' : '0'}&muted=${isMuted ? '1' : '0'}&loop=1`;
+    return `https://player.vimeo.com/video/${videoId}?autoplay=${autoplay ? '1' : '0'}&muted=${isMuted ? '1' : '0'}&loop=1&background=1`;
   };
   
   return (

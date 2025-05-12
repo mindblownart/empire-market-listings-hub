@@ -12,7 +12,7 @@ interface MediaGalleryProps {
 export const MediaGallery: React.FC<MediaGalleryProps> = ({
   galleryImages = [],
   videoURL,
-  autoplayVideo = false,
+  autoplayVideo = true,
   skipPrimaryImage = false,
 }) => {
   return (

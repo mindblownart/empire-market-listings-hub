@@ -32,6 +32,7 @@ const PreviewListing = () => {
       const sessionData = sessionStorage.getItem('previewFormData');
       const sessionImages = sessionStorage.getItem('previewImageUrls');
       const sessionVideo = sessionStorage.getItem('previewVideoUrl');
+      const sessionVideoUrl = sessionStorage.getItem('businessVideoUrl');
       const sessionOrdering = sessionStorage.getItem('previewImageOrdering') || sessionStorage.getItem('imageOrder');
       
       if (sessionData) {
@@ -88,8 +89,13 @@ const PreviewListing = () => {
           }
         }
         
+        // Try different sources for video URL
         if (sessionVideo) {
           setVideoURL(sessionVideo);
+        } else if (sessionVideoUrl) {
+          setVideoURL(sessionVideoUrl);
+        } else if (parsedData.businessVideoUrl) {
+          setVideoURL(parsedData.businessVideoUrl);
         }
         
         setIsLoading(false);
@@ -198,6 +204,7 @@ const PreviewListing = () => {
           }
         }
         
+        // Check for video URL from formData
         if (formData.businessVideoUrl) {
           setVideoURL(formData.businessVideoUrl);
         }
