@@ -40,20 +40,19 @@ export interface Favorite {
   created_at: string;
 }
 
-// Extend the existing Database type to include our tables
-export type ExtendedDatabase = Database & {
-  public: {
-    Tables: {
-      business_listings: {
-        Row: BusinessListing;
-        Insert: Partial<BusinessListing>;
-        Update: Partial<BusinessListing>;
-      };
-      favorites: {
-        Row: Favorite;
-        Insert: Omit<Favorite, 'id' | 'created_at'>;
-        Update: Partial<Favorite>;
-      };
-    } & Database['public']['Tables'];
-  };
-};
+// Add the favorites table to the Database type
+declare module '@/integrations/supabase/types' {
+  interface Database {
+    public: {
+      Tables: {
+        favorites: {
+          Row: Favorite;
+          Insert: Omit<Favorite, 'id' | 'created_at'>;
+          Update: Partial<Favorite>;
+        };
+      } & Database['public']['Tables'];
+    };
+  }
+}
+
+export type { Database };

@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Favorite } from '@/types/supabase';
 
 export const useFavorites = (userId?: string) => {
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -13,7 +12,7 @@ export const useFavorites = (userId?: string) => {
     const fetchFavorites = async () => {
       setIsLoading(true);
       try {
-        // Using type assertion to bypass TypeScript limitations
+        // Using any type to bypass TypeScript limitations since "favorites" is not in the generated types
         const { data, error } = await supabase
           .from('favorites')
           .select('listing_id')
@@ -34,7 +33,7 @@ export const useFavorites = (userId?: string) => {
     
     // Set up realtime subscription for favorites
     const channel = supabase
-      .channel('public:favorites')
+      .channel('favorites')
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -70,12 +69,14 @@ export const useFavorites = (userId?: string) => {
         setFavorites(favorites.filter(id => id !== listingId));
       } else {
         // Add to favorites
+        const favoriteData = {
+          user_id: userId,
+          listing_id: listingId
+        };
+        
         await supabase
           .from('favorites')
-          .insert({
-            user_id: userId,
-            listing_id: listingId
-          }) as any;
+          .insert(favoriteData) as any;
           
         setFavorites([...favorites, listingId]);
       }
