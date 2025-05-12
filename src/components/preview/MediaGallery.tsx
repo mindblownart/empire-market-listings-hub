@@ -54,11 +54,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const mediaItems = React.useMemo(() => {
     const items = [];
     
-    // Primary image should NOT be in the carousel if skipPrimaryImage is true
-    // It should be displayed elsewhere (as hero image)
-    const startIdx = skipPrimaryImage ? 1 : 0;
-
-    // Add video as first item if it exists
+    // Get images based on whether we should skip primary image
+    // When skipPrimaryImage is true, we exclude the first image since it's shown in the hero banner
+    const imagesToUse = skipPrimaryImage && galleryImages.length > 0 
+      ? galleryImages.slice(1)  // Skip the primary image (index 0)
+      : [...galleryImages];     // Use all images
+    
+    // If there's a video, add it first (slot 2)
     if (hasVideo) {
       items.push({
         type: 'video',
@@ -67,13 +69,9 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       });
     }
     
-    // Add all images except primary (if primary should be shown elsewhere)
-    if (hasImages) {
-      // Skip the primary image if skipPrimaryImage is true
-      const imagesToInclude = galleryImages.slice(startIdx);
-      
-      // Add the images in the exact order they appear in the gallery array
-      imagesToInclude.forEach((url) => {
+    // Add all appropriate images
+    if (imagesToUse.length > 0) {
+      imagesToUse.forEach(url => {
         items.push({
           type: 'image',
           url,
@@ -83,7 +81,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
     
     return items;
-  }, [galleryImages, hasImages, hasVideo, videoURL, skipPrimaryImage]);
+  }, [galleryImages, hasVideo, videoURL, skipPrimaryImage]);
 
   // Reset active index when media items change
   useEffect(() => {
@@ -108,6 +106,11 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
         </AspectRatio>
       </div>
     );
+  }
+  
+  // Don't render the gallery if there are no items to show
+  if (mediaItems.length === 0) {
+    return null;
   }
 
   return (

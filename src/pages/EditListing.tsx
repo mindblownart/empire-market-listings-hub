@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -58,6 +59,54 @@ const EditListing = () => {
   const [error, setError] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [originalListing, setOriginalListing] = useState<ListingData | null>(null);
+  
+  // Check for returning from preview
+  useEffect(() => {
+    // When returning from preview, check if we have last saved form data
+    const checkForReturningFromPreview = () => {
+      const lastSavedFormData = sessionStorage.getItem('lastSavedFormData');
+      const lastSavedImageOrdering = sessionStorage.getItem('lastSavedImageOrdering');
+      
+      if (lastSavedFormData) {
+        try {
+          // Parse the saved form data
+          const parsedData = JSON.parse(lastSavedFormData);
+          console.log("Loading last saved form data:", parsedData);
+          
+          // Update form data with last saved values
+          updateFormData(parsedData);
+          
+          // Load the last saved image ordering if available
+          if (lastSavedImageOrdering) {
+            try {
+              const orderedImages = JSON.parse(lastSavedImageOrdering);
+              if (Array.isArray(orderedImages) && orderedImages.length > 0) {
+                setImageUrls(orderedImages);
+                console.log("Restored image ordering from last saved state:", orderedImages);
+              }
+            } catch (error) {
+              console.error("Error parsing saved image ordering:", error);
+            }
+          }
+          
+          return true;
+        } catch (error) {
+          console.error("Error parsing saved form data:", error);
+        }
+      }
+      
+      return false;
+    };
+    
+    // Only apply this logic if the component is already loaded
+    // and we're likely returning from preview
+    if (!isLoading && id) {
+      const wasReturningFromPreview = checkForReturningFromPreview();
+      if (wasReturningFromPreview) {
+        console.log("Successfully restored form state from preview return");
+      }
+    }
+  }, [isLoading, id, updateFormData]);
 
   // Fetch the listing data
   const fetchListing = async () => {
@@ -70,6 +119,31 @@ const EditListing = () => {
     try {
       setIsLoading(true);
       setError(null);
+      
+      // Check if we're returning from preview first
+      const lastSavedFormData = sessionStorage.getItem('lastSavedFormData');
+      const lastSavedImageOrdering = sessionStorage.getItem('lastSavedImageOrdering');
+      
+      if (lastSavedFormData && lastSavedImageOrdering) {
+        try {
+          // Parse the saved form data
+          const parsedData = JSON.parse(lastSavedFormData);
+          
+          // Update form data with last saved values
+          updateFormData(parsedData);
+          
+          // Load the last saved image ordering
+          const orderedImages = JSON.parse(lastSavedImageOrdering);
+          if (Array.isArray(orderedImages) && orderedImages.length > 0) {
+            setImageUrls(orderedImages);
+            console.log("Loaded image ordering from session:", orderedImages);
+            // Continue fetching to get other listing data
+          }
+        } catch (error) {
+          console.error("Error parsing saved data:", error);
+          // Continue with normal fetching
+        }
+      }
       
       // Verify user has permission to edit this listing
       const { data: { session } } = await supabase.auth.getSession();
@@ -118,50 +192,56 @@ const EditListing = () => {
       const typedListing = listing as unknown as ListingData;
       setOriginalListing(typedListing);
 
-      // Store image URLs separately and process primary image
-      if (typedListing.gallery_images && Array.isArray(typedListing.gallery_images)) {
-        let imageArray = [...typedListing.gallery_images];
-        
-        // Ensure primary image is first in the array
-        if (typeof typedListing.primary_image_index === 'number' && 
-            typedListing.primary_image_index < imageArray.length &&
-            typedListing.primary_image_index !== 0) {
-          // Move primary image to index 0
-          const primaryImage = imageArray[typedListing.primary_image_index];
-          imageArray.splice(typedListing.primary_image_index, 1);
-          imageArray.unshift(primaryImage);
+      // Only set image URLs if we didn't already load them from session storage
+      if (!lastSavedImageOrdering || !lastSavedFormData) {
+        // Store image URLs separately and process primary image
+        if (typedListing.gallery_images && Array.isArray(typedListing.gallery_images)) {
+          let imageArray = [...typedListing.gallery_images];
+          
+          // Ensure primary image is first in the array
+          if (typeof typedListing.primary_image_index === 'number' && 
+              typedListing.primary_image_index < imageArray.length &&
+              typedListing.primary_image_index !== 0) {
+            // Move primary image to index 0
+            const primaryImage = imageArray[typedListing.primary_image_index];
+            imageArray.splice(typedListing.primary_image_index, 1);
+            imageArray.unshift(primaryImage);
+          }
+          
+          setImageUrls(imageArray);
         }
         
-        setImageUrls(imageArray);
+        // Only update form data if we didn't already load from session storage
+        if (!lastSavedFormData) {
+          // Format the data for the form
+          updateFormData({
+            businessName: typedListing.business_name,
+            industry: typedListing.category,
+            location: typedListing.location,
+            yearEstablished: typedListing.year_established?.toString() || '',
+            employees: typedListing.employees || '',
+            askingPrice: typedListing.asking_price,
+            annualRevenue: typedListing.annual_revenue,
+            annualProfit: typedListing.annual_profit,
+            currencyCode: typedListing.currency_code,
+            description: typedListing.description || '',
+            highlights: typedListing.highlights || [],
+            businessImages: [],  // We'll handle the URLs separately
+            businessVideo: null,
+            businessVideoUrl: typedListing.video_url || '',
+            fullName: typedListing.contact_name || '',
+            email: typedListing.contact_email || '',
+            phone: typedListing.contact_phone || '',
+            role: typedListing.contact_role || '',
+            originalValues: {
+              askingPrice: typedListing.asking_price,
+              annualRevenue: typedListing.annual_revenue,
+              annualProfit: typedListing.annual_profit,
+              currencyCode: typedListing.currency_code,
+            }
+          });
+        }
       }
-      
-      // Format the data for the form
-      updateFormData({
-        businessName: typedListing.business_name,
-        industry: typedListing.category,
-        location: typedListing.location,
-        yearEstablished: typedListing.year_established?.toString() || '',
-        employees: typedListing.employees || '',
-        askingPrice: typedListing.asking_price,
-        annualRevenue: typedListing.annual_revenue,
-        annualProfit: typedListing.annual_profit,
-        currencyCode: typedListing.currency_code,
-        description: typedListing.description || '',
-        highlights: typedListing.highlights || [],
-        businessImages: [],  // We'll handle the URLs separately
-        businessVideo: null,
-        businessVideoUrl: typedListing.video_url || '',
-        fullName: typedListing.contact_name || '',
-        email: typedListing.contact_email || '',
-        phone: typedListing.contact_phone || '',
-        role: typedListing.contact_role || '',
-        originalValues: {
-          askingPrice: typedListing.asking_price,
-          annualRevenue: typedListing.annual_revenue,
-          annualProfit: typedListing.annual_profit,
-          currencyCode: typedListing.currency_code,
-        }
-      });
       
       setIsLoading(false);
       
@@ -264,8 +344,10 @@ const EditListing = () => {
       
       // Store updated data in sessionStorage for preview consistency
       sessionStorage.setItem('previewFormData', JSON.stringify(formData));
+      sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData)); // For returning to form
       sessionStorage.setItem('previewImageUrls', JSON.stringify(updatedImageUrls));
       sessionStorage.setItem('previewImageOrdering', JSON.stringify(updatedImageUrls));
+      sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(updatedImageUrls)); // For returning to form
       if (formData.businessVideoUrl) {
         sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
       }
@@ -342,6 +424,7 @@ const EditListing = () => {
     // Also save the ordering to sessionStorage for preview and persistence
     sessionStorage.setItem('imageOrder', JSON.stringify(reorderedImages));
     sessionStorage.setItem('previewImageOrdering', JSON.stringify(reorderedImages));
+    sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(reorderedImages)); // For returning to form
     
     // First image becomes primary automatically
     if (reorderedImages.length > 0) {
@@ -362,10 +445,12 @@ const EditListing = () => {
   const handlePreview = () => {
     // Store the current form data in sessionStorage
     sessionStorage.setItem('previewFormData', JSON.stringify(formData));
+    sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData)); // For returning to form
     
     // Store image URLs and video URL in sessionStorage
     sessionStorage.setItem('previewImageUrls', JSON.stringify(imageUrls));
     sessionStorage.setItem('previewImageOrdering', JSON.stringify(imageUrls));
+    sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(imageUrls)); // For returning to form
     
     if (formData.businessVideoUrl) {
       sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);

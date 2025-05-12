@@ -35,19 +35,23 @@ const FormContainer: React.FC<FormContainerProps> = ({
         await onSubmit();
         toast.success("Changes saved successfully!");
         
-        // Store updated data in sessionStorage for preview page
+        // Store updated data in sessionStorage for preview page and for returning to form
         sessionStorage.setItem('previewFormData', JSON.stringify(formData));
+        sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
         
         // If we have ordered images, make sure to preserve that order
         const imageOrdering = sessionStorage.getItem('imageOrder');
         if (imageOrdering) {
           sessionStorage.setItem('previewImageOrdering', imageOrdering);
+          // Also save for returning to form
+          sessionStorage.setItem('lastSavedImageOrdering', imageOrdering);
         }
       } else {
         const result = await handleSubmit(formData);
         if (result) {
           // Store data for preview if submission is successful
           sessionStorage.setItem('previewFormData', JSON.stringify(formData));
+          sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
           toast.success("Business listing submitted successfully!");
         }
       }
@@ -68,6 +72,12 @@ const FormContainer: React.FC<FormContainerProps> = ({
     // but let's show a toast if there are major issues
     if (!formData.businessName || !formData.industry || !formData.location) {
       toast.warning("Your preview is missing important information. Consider adding more details.");
+    }
+    
+    // Save current image ordering for preview consistency
+    const imageOrdering = sessionStorage.getItem('imageOrder');
+    if (imageOrdering) {
+      sessionStorage.setItem('previewImageOrdering', imageOrdering);
     }
     
     // Use custom preview handler if provided, otherwise use default behavior

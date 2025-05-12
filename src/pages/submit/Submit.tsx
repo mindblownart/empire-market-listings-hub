@@ -24,6 +24,9 @@ const Submit = () => {
     // Store reordering in sessionStorage for persistence
     sessionStorage.setItem('imageOrder', JSON.stringify(reorderedImages));
     sessionStorage.setItem('previewImageOrdering', JSON.stringify(reorderedImages));
+    // Also store for returning to form after preview
+    sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(reorderedImages));
+    console.log("Images reordered in Submit component:", reorderedImages);
   };
   
   return (

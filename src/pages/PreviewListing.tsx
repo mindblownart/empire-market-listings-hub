@@ -40,36 +40,51 @@ const PreviewListing = () => {
         setPreviewData(parsedData);
         
         if (sessionImages) {
-          const parsedImages = JSON.parse(sessionImages);
-          
-          // Apply custom ordering if available
-          let orderedImages = parsedImages;
-          if (sessionOrdering) {
-            try {
-              const orderMap = JSON.parse(sessionOrdering);
-              // Apply custom ordering if it exists
-              if (Array.isArray(orderMap) && orderMap.length > 0) {
-                orderedImages = [...parsedImages].sort((a, b) => {
-                  const indexA = orderMap.indexOf(a);
-                  const indexB = orderMap.indexOf(b);
+          try {
+            const parsedImages = JSON.parse(sessionImages);
+            
+            // Apply custom ordering if available
+            let orderedImages = parsedImages;
+            if (sessionOrdering) {
+              try {
+                const orderMap = JSON.parse(sessionOrdering);
+                // Apply custom ordering if it exists
+                if (Array.isArray(orderMap) && orderMap.length > 0) {
+                  // Use the exact order from the ordering map
+                  // but only for images that exist in parsedImages
+                  const validOrderedImages = orderMap.filter(url => 
+                    parsedImages.includes(url)
+                  );
                   
-                  // If an item isn't in the order map, put it at the end
-                  if (indexA === -1) return 1;
-                  if (indexB === -1) return -1;
-                  return indexA - indexB;
-                });
+                  // Add any images from parsedImages that aren't in the order map
+                  // (these would be newly added images)
+                  const newImages = parsedImages.filter(url => 
+                    !orderMap.includes(url)
+                  );
+                  
+                  orderedImages = [...validOrderedImages, ...newImages];
+                  console.log("Applied custom image ordering:", orderedImages);
+                }
+              } catch (error) {
+                console.error("Error parsing image ordering:", error);
               }
-            } catch (error) {
-              console.error("Error parsing image ordering:", error);
             }
-          }
-          
-          // Set primary image to first image
-          if (orderedImages.length > 0) {
-            setPrimaryImage(orderedImages[0]);
-            setGalleryImages(orderedImages);
-          } else {
-            setGalleryImages([]);
+            
+            // Set primary image to first image
+            if (orderedImages.length > 0) {
+              setPrimaryImage(orderedImages[0]);
+              setGalleryImages(orderedImages);
+            } else {
+              setGalleryImages([]);
+            }
+          } catch (error) {
+            console.error("Error parsing session images:", error);
+            if (Array.isArray(sessionImages)) {
+              setGalleryImages(sessionImages);
+              if (sessionImages.length > 0) {
+                setPrimaryImage(sessionImages[0]);
+              }
+            }
           }
         }
         
@@ -128,8 +143,32 @@ const PreviewListing = () => {
           // Set gallery images and video URL
           if (listing.gallery_images && Array.isArray(listing.gallery_images)) {
             if (listing.gallery_images.length > 0) {
-              setPrimaryImage(listing.gallery_images[0]);
-              setGalleryImages(listing.gallery_images);
+              // Apply any custom ordering stored in session
+              let orderedImages = [...listing.gallery_images];
+              
+              if (sessionOrdering) {
+                try {
+                  const orderMap = JSON.parse(sessionOrdering);
+                  // Filter the order map to only include images that exist in gallery_images
+                  if (Array.isArray(orderMap) && orderMap.length > 0) {
+                    const validOrderedImages = orderMap.filter(url => 
+                      listing.gallery_images.includes(url)
+                    );
+                    
+                    // Add any images from gallery_images that aren't in the order map
+                    const remainingImages = listing.gallery_images.filter(url => 
+                      !validOrderedImages.includes(url)
+                    );
+                    
+                    orderedImages = [...validOrderedImages, ...remainingImages];
+                  }
+                } catch (error) {
+                  console.error("Error parsing image ordering:", error);
+                }
+              }
+              
+              setPrimaryImage(orderedImages[0]);
+              setGalleryImages(orderedImages);
             }
           }
           
@@ -186,6 +225,8 @@ const PreviewListing = () => {
   const handleBackToForm = () => {
     const editingListingId = localStorage.getItem('editingListingId');
     if (editingListingId) {
+      // When navigating back to the form, ensure we preserve the image ordering
+      // This is saved in handlePreview() in EditListing.tsx and FormContainer.tsx
       navigate(`/edit-listing/${editingListingId}`);
     } else {
       navigate('/submit');
