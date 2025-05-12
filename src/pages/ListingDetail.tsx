@@ -162,39 +162,44 @@ const ListingDetail = () => {
       
       <main className="flex-grow pt-20 px-4 pb-12">
         <div className="container mx-auto max-w-7xl">
-          {/* Back Button */}
-          <Link to="/listings" className="flex items-center text-gray-600 mb-4 hover:text-primary transition-colors">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            <span>Back to Listings</span>
-          </Link>
+          {/* Back Button - Now positioned above all other elements */}
+          <div className="mb-4">
+            <Link to="/listings" className="flex items-center text-gray-600 hover:text-primary transition-colors">
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              <span>Back to Listings</span>
+            </Link>
+          </div>
           
-          {/* Business Overview Heading */}
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-5 flex items-center">
-            <Briefcase className="h-6 w-6 mr-2 text-primary" />
-            Business Overview
-          </h1>
-          
-          {/* Owner Actions */}
-          {isCurrentUserOwner && (
-            <div className="flex justify-end gap-3 mb-4">
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2"
-                onClick={() => navigate(`/edit-listing/${id}`)}
-              >
-                <Edit className="h-4 w-4" />
-                Edit Listing
-              </Button>
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                onClick={() => setIsDeleteDialogOpen(true)}
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete Listing
-              </Button>
-            </div>
-          )}
+          {/* Header Row with Title and Action Buttons aligned horizontally */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            {/* Business Overview Heading - Left aligned */}
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center mb-4 sm:mb-0">
+              <Briefcase className="h-6 w-6 mr-2 text-primary" />
+              Business Overview
+            </h1>
+            
+            {/* Owner Actions - Right aligned */}
+            {isCurrentUserOwner && (
+              <div className="flex gap-3 w-full sm:w-auto">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={() => navigate(`/edit-listing/${id}`)}
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit Listing
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Listing
+                </Button>
+              </div>
+            )}
+          </div>
           
           {/* 1. Hero Section with Business Header and Asking Price */}
           <div className="mb-6">
