@@ -344,16 +344,21 @@ const EditListing = () => {
       
       // Store updated data in sessionStorage for preview consistency
       sessionStorage.setItem('previewFormData', JSON.stringify(formData));
-      sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData)); // For returning to form
+      sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
       sessionStorage.setItem('previewImageUrls', JSON.stringify(updatedImageUrls));
       sessionStorage.setItem('previewImageOrdering', JSON.stringify(updatedImageUrls));
-      sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(updatedImageUrls)); // For returning to form
+      sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(updatedImageUrls));
       if (formData.businessVideoUrl) {
         sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
       }
       
-      // Navigate back to the listing detail page
-      navigate(`/business/${id}`);
+      // Store the current listing ID in localStorage so the preview page knows which listing we're editing
+      if (id) {
+        localStorage.setItem('editingListingId', id);
+      }
+      
+      // Navigate to the preview page instead of the detail page
+      navigate('/preview-listing');
     } catch (error) {
       console.error('Error updating listing:', error);
       toast.error("Error updating listing", {

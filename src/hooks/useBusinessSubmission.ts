@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -95,6 +96,7 @@ export const useBusinessSubmission = () => {
         // Store final image ordering in session storage
         sessionStorage.setItem('previewImageUrls', JSON.stringify(orderedImages));
         sessionStorage.setItem('previewImageOrdering', JSON.stringify(orderedImages));
+        sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(orderedImages));
         
         console.log("Submitting business data:", businessData);
         
@@ -114,14 +116,17 @@ export const useBusinessSubmission = () => {
           
           // Store updated data for preview consistency
           sessionStorage.setItem('previewFormData', JSON.stringify(formData));
+          sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
           if (orderedImages.length > 0) {
             sessionStorage.setItem('previewImageUrls', JSON.stringify(orderedImages));
+            sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(orderedImages));
           }
           if (formData.businessVideoUrl) {
             sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
           }
           
-          navigate(`/listing/${insertedBusiness.id}`);
+          // Navigate to preview instead of the listing page
+          navigate('/preview-listing');
           return true;
         }
       } catch (error) {

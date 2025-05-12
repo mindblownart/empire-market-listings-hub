@@ -1,56 +1,33 @@
 
-export interface MediaFile extends File {
-  id: string;
+export type MediaFile = File & {
+  id?: string;
   preview?: string;
-  originalFile?: File;
-}
+};
 
-export interface VideoInfo {
-  platform: 'youtube' | 'vimeo' | 'file' | null;
-  id: string | null;
-}
-
-export interface MediaItem {
+export type MediaItem = {
   id: string;
   type: 'image' | 'video' | 'empty';
-  file?: MediaFile;
+  preview?: string;
   url?: string;
-  preview: string;
-  isPrimary: boolean;
-  isNew?: boolean;
+  file?: MediaFile | File;
+  isPrimary?: boolean;
   isEmpty?: boolean;
-  videoInfo?: VideoInfo;
-}
-
-export interface DragItem {
-  id: string;
-  index: number;
-  type: string;
-}
-
-export interface MediaUploadProps {
-  existingImages?: string[];
-  existingVideoUrl?: string | null;
-  onImagesChange: (images: MediaFile[]) => void;
-  onVideoChange: (video: MediaFile | null) => void;
-  onVideoUrlChange: (url: string | null) => void;
-  maxImages?: number;
-  onDeleteExistingImage?: (index: number) => void;
-  onDeleteExistingVideo?: () => void;
-  onImagesReorder?: (images: string[]) => void;
-}
+  videoInfo?: {
+    platform: 'youtube' | 'vimeo' | 'file';
+    id?: string;
+  };
+};
 
 export interface BusinessMediaUploaderProps {
-  initialImages?: File[] | string[];
-  initialVideo?: File | null;
+  initialImages?: MediaFile[];
+  initialVideo?: MediaFile | null;
   initialVideoUrl?: string | null;
   galleryImages?: string[];
   disableImageUpload?: boolean;
   maxImages?: number;
-  onImagesChange?: (images: File[]) => void;
-  onVideoChange?: (video: File | null) => void;
-  onVideoUrlChange?: (url: string) => void;
+  onImagesChange?: (images: MediaFile[]) => void;
+  onVideoChange?: (video: MediaFile | null) => void;
+  onVideoUrlChange?: (url: string | null) => void;
   onSetPrimaryImage?: (index: number) => void;
   onImagesReorder?: (reorderedImages: string[]) => void;
 }
-

@@ -46,13 +46,21 @@ const FormContainer: React.FC<FormContainerProps> = ({
           // Also save for returning to form
           sessionStorage.setItem('lastSavedImageOrdering', imageOrdering);
         }
+        
+        // Navigate to preview page immediately after saving
+        if (onPreview) {
+          onPreview();
+        } else {
+          navigate('/preview-listing');
+        }
       } else {
         const result = await handleSubmit(formData);
         if (result) {
           // Store data for preview if submission is successful
           sessionStorage.setItem('previewFormData', JSON.stringify(formData));
           sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
-          toast.success("Business listing submitted successfully!");
+          
+          // Navigation to preview is now handled in useBusinessSubmission
         }
       }
     } catch (error) {

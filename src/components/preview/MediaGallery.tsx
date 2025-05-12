@@ -60,7 +60,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       ? galleryImages.slice(1)  // Skip the primary image (index 0)
       : [...galleryImages];     // Use all images
     
-    // If there's a video, add it first (slot 2)
+    // If there's a video, add it first (priority display)
     if (hasVideo) {
       items.push({
         type: 'video',
