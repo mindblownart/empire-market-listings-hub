@@ -39,6 +39,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
 
   // Handle navigation with improved event handling
   const handlePrev = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation(); // Prevent event bubbling
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
@@ -46,6 +47,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   };
   
   const handleNext = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation(); // Prevent event bubbling
     if (currentIndex < images.length - 1) {
       setCurrentIndex(prev => prev + 1);
@@ -55,23 +57,21 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   // Add keyboard navigation with improved event handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only process if we're the active carousel (based on focus within container)
-      if (containerRef.current && containerRef.current.contains(document.activeElement)) {
-        if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          if (currentIndex > 0) {
-            setCurrentIndex(prev => prev - 1);
-          }
-        } else if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          if (currentIndex < images.length - 1) {
-            setCurrentIndex(prev => prev + 1);
-          }
+      // Process for any focused or non-focused state
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentIndex > 0) {
+          setCurrentIndex(prev => prev - 1);
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (currentIndex < images.length - 1) {
+          setCurrentIndex(prev => prev + 1);
         }
       }
     };
     
-    // Add a global handler to support keyboard navigation even when not focused
+    // Add a global handler to support keyboard navigation
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentIndex, images.length]);
@@ -109,44 +109,45 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
         />
       </AspectRatio>
       
-      {/* Navigation Controls - improved positioning and z-index */}
-      <div className="absolute inset-x-0 top-0 bottom-0 flex items-center justify-between z-10">
+      {/* Navigation Controls - improved positioning, size and z-index */}
+      <div className="absolute inset-0 flex items-center justify-between z-20 pointer-events-none">
         <Button
           variant="ghost"
           size="icon"
           className={cn(
-            "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 ml-2 sm:ml-4 pointer-events-auto transition-opacity",
+            "h-14 w-14 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 ml-2 sm:ml-4 pointer-events-auto transition-opacity",
             isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
           )}
           onClick={handlePrev}
           disabled={isAtStart}
           aria-label="Previous image"
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ChevronLeft className="h-8 w-8" />
         </Button>
         
         <Button
           variant="ghost"
           size="icon"
           className={cn(
-            "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 mr-2 sm:mr-4 pointer-events-auto transition-opacity",
+            "h-14 w-14 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 mr-2 sm:mr-4 pointer-events-auto transition-opacity",
             isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
           )}
           onClick={handleNext}
           disabled={isAtEnd}
           aria-label="Next image"
         >
-          <ChevronRight className="h-6 w-6" />
+          <ChevronRight className="h-8 w-8" />
         </Button>
       </div>
       
       {/* Navigation Indicators - improved styling and interaction */}
       {images.length > 1 && (
-        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10">
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
           {images.map((_, index) => (
             <button
               key={index}
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 setCurrentIndex(index);
               }}

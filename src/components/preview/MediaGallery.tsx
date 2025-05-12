@@ -75,20 +75,21 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
 
   // Handle mute toggle for video with proper event stopping
   const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
     e.preventDefault();
+    e.stopPropagation();
     
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
+      const newMutedState = !isMuted;
+      videoRef.current.muted = newMutedState;
+      setIsMuted(newMutedState);
     }
   };
 
   // Improved navigation handlers with proper event stopping
   const handlePrev = (e?: React.MouseEvent) => {
     if (e) {
-      e.stopPropagation();
       e.preventDefault();
+      e.stopPropagation();
     }
     
     if (!carouselRef.current) return;
@@ -102,8 +103,8 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   
   const handleNext = (e?: React.MouseEvent) => {
     if (e) {
-      e.stopPropagation();
       e.preventDefault();
+      e.stopPropagation();
     }
     
     if (!carouselRef.current) return;
@@ -118,18 +119,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   // Enhanced keyboard navigation support
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Check if this component is in view
-      if (containerRef.current && 
-          (containerRef.current.contains(document.activeElement) || 
-           document.activeElement === document.body)) {
-        
-        if (event.key === 'ArrowLeft') {
-          event.preventDefault();
-          handlePrev();
-        } else if (event.key === 'ArrowRight') {
-          event.preventDefault();
-          handleNext();
-        }
+      // Process keyboard events for this carousel
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        handlePrev();
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        handleNext();
       }
     };
     
@@ -170,10 +166,10 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const isAtEnd = activeIndex === mediaItems.length - 1;
 
   return (
-    <div className="w-full rounded-lg overflow-hidden shadow-md" ref={containerRef} tabIndex={0}>
+    <div className="w-full rounded-lg overflow-hidden shadow-md relative" ref={containerRef} tabIndex={0}>
       {/* Main Carousel with improved event handling */}
       <Carousel 
-        className="w-full relative" 
+        className="w-full" 
         setApi={(api) => {
           carouselRef.current = api;
           if (api) {
@@ -198,103 +194,55 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                   />
                 </AspectRatio>
               ) : (
-                <AspectRatio ratio={16 / 9} className="bg-gray-100 overflow-hidden">
-                  <div className="relative w-full h-full">
-                    {item.url && (item.url.includes('youtube.com') || item.url.includes('youtu.be')) ? (
-                      // YouTube embed
-                      <iframe 
-                        src={getVideoEmbedUrl('youtube', item.url.includes('v=') ? item.url.split('v=')[1].split('&')[0] : item.url.split('/').pop() || '')} 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="w-full h-full"
-                        title="Video"
-                      />
-                    ) : item.url && item.url.includes('vimeo.com') ? (
-                      // Vimeo embed
-                      <iframe 
-                        src={`https://player.vimeo.com/video/${item.url.split('/').pop()}?autoplay=1`}
-                        allow="autoplay; fullscreen; picture-in-picture"
-                        allowFullScreen
-                        className="w-full h-full"
-                        title="Video"
-                      />
-                    ) : (
-                      // Direct video file
-                      <>
-                        <video 
-                          ref={videoRef} 
-                          src={item.url} 
-                          controls={false} 
-                          loop 
-                          muted={isMuted} 
-                          playsInline
-                          autoPlay={autoplayVideo}
-                          className="w-full h-full object-cover" 
-                        />
-                        
-                        {/* Video Controls - increased z-index */}
-                        <div className="absolute bottom-4 right-4 z-30">
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="bg-white/80 backdrop-blur-sm hover:bg-white rounded-full" 
-                            onClick={toggleMute}
-                          >
-                            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </AspectRatio>
+                <VideoPlayer url={item.url} autoplay={autoplayVideo} />
               )}
             </CarouselItem>
           ))}
         </CarouselContent>
-        
-        {/* Custom navigation arrows - improved positioning, z-index and hit areas */}
-        {mediaItems.length > 1 && (
-          <>
-            {/* Left arrow - increased padding and z-index */}
-            <div className="absolute left-0 top-0 bottom-0 flex items-center z-20 pointer-events-none">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md ml-2 sm:ml-4 focus-visible:ring-2 transition-opacity pointer-events-auto",
-                  isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
-                )}
-                onClick={handlePrev}
-                aria-label="Previous slide"
-                disabled={isAtStart}
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-            </div>
-            
-            {/* Right arrow - increased padding and z-index */}
-            <div className="absolute right-0 top-0 bottom-0 flex items-center z-20 pointer-events-none">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md mr-2 sm:mr-4 focus-visible:ring-2 transition-opacity pointer-events-auto",
-                  isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
-                )}
-                onClick={handleNext}
-                aria-label="Next slide"
-                disabled={isAtEnd}
-              >
-                <ChevronRight className="h-6 w-6" />
-              </Button>
-            </div>
-          </>
-        )}
       </Carousel>
       
-      {/* Improved thumbnail navigation indicators with more spacing and better visibility */}
+      {/* Custom navigation arrows - improved positioning, z-index and hit areas */}
       {mediaItems.length > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-3 pb-3 px-4 overflow-x-auto z-20">
+        <>
+          {/* Left arrow - increased size, padding and z-index */}
+          <div className="absolute left-0 top-0 bottom-0 flex items-center z-30 p-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "h-14 w-14 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md focus-visible:ring-2 transition-opacity",
+                isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
+              )}
+              onClick={handlePrev}
+              aria-label="Previous slide"
+              disabled={isAtStart}
+            >
+              <ChevronLeft className="h-8 w-8" />
+            </Button>
+          </div>
+          
+          {/* Right arrow - increased size, padding and z-index */}
+          <div className="absolute right-0 top-0 bottom-0 flex items-center z-30 p-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "h-14 w-14 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md focus-visible:ring-2 transition-opacity",
+                isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
+              )}
+              onClick={handleNext}
+              aria-label="Next slide"
+              disabled={isAtEnd}
+            >
+              <ChevronRight className="h-8 w-8" />
+            </Button>
+          </div>
+        </>
+      )}
+      
+      {/* Improved thumbnail navigation indicators with better visibility */}
+      {mediaItems.length > 1 && (
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-30">
           {mediaItems.map((_, index) => (
             <button
               key={`indicator-${index}`}

@@ -36,13 +36,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }, [autoplay, isMuted]);
   
-  // Toggle mute state
+  // Toggle mute state with improved event handling
   const toggleMute = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation(); // Prevent click from bubbling to parent elements
     
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
+      const newMutedState = !isMuted;
+      videoRef.current.muted = newMutedState;
+      setIsMuted(newMutedState);
     }
   };
 
@@ -85,7 +87,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             />
             
             {/* Video Controls - increase z-index to ensure it's above navigation arrows */}
-            <div className="absolute bottom-4 right-4 z-20">
+            <div className="absolute bottom-4 right-4 z-30">
               <Button
                 variant="outline"
                 size="icon"
