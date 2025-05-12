@@ -26,6 +26,9 @@ const BusinessContentPreview: React.FC<BusinessContentPreviewProps> = ({
   console.log("BusinessContentPreview with videoURL:", videoURL);
   console.log("Images to display:", imageUrls);
   
+  // Ensure we have a valid primary image for the hero section
+  const primaryImage = imageUrls.length > 0 ? imageUrls[0] : undefined;
+  
   return (
     <>
       {/* Hero Section with Business Header */}
@@ -35,7 +38,7 @@ const BusinessContentPreview: React.FC<BusinessContentPreviewProps> = ({
           industry={formData.industry} 
           location={formData.location} 
           flagCode={flagCode}
-          primaryImage={imageUrls.length > 0 ? imageUrls[0] : undefined}
+          primaryImage={primaryImage}
           askingPrice={formData.askingPrice}
           currencyCode={formData.currencyCode}
         />

@@ -74,6 +74,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (autoplay) embedUrl += '&autoplay=1';
     if (loop) embedUrl += '&loop=1&playlist=' + videoId;
     if (muted) embedUrl += '&mute=1';
+    if (!controls) embedUrl += '&controls=0';
     
     return (
       <AspectRatio ratio={16 / 9} className="bg-black">
@@ -98,6 +99,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (autoplay) embedUrl += '&autoplay=1';
     if (loop) embedUrl += '&loop=1';
     if (muted) embedUrl += '&muted=1';
+    if (!controls) embedUrl += '&controls=0';
     
     return (
       <AspectRatio ratio={16 / 9} className="bg-black">

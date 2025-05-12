@@ -79,25 +79,27 @@ const FormContainer: React.FC<FormContainerProps> = ({
   const handlePreview = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Run validation if onValidate is provided
-    if (onValidate && !onValidate()) {
-      return;
-    }
-    
-    // Run default validation for required fields
-    if (!validateAllFields(formData)) {
-      toast.error("Please complete all required fields before previewing.", {
-        style: {
-          border: '1px solid #f87171',
-          borderRadius: '0.375rem',
-          background: '#fff',
-          color: '#ef4444',
-        },
-      });
-      return;
-    }
-    
     try {
+      console.log("Starting preview preparation...");
+      
+      // Run validation if onValidate is provided
+      if (onValidate && !onValidate()) {
+        return;
+      }
+      
+      // Run default validation for required fields
+      if (!validateAllFields(formData)) {
+        toast.error("Please complete all required fields before previewing.", {
+          style: {
+            border: '1px solid #f87171',
+            borderRadius: '0.375rem',
+            background: '#fff',
+            color: '#ef4444',
+          },
+        });
+        return;
+      }
+      
       // Store current form data in sessionStorage to preserve across navigation
       // Remove circular references that can't be serialized
       const safeFormData = {
@@ -117,14 +119,18 @@ const FormContainer: React.FC<FormContainerProps> = ({
       
       // Save current image ordering for preview consistency
       const imageOrdering = sessionStorage.getItem('imageOrder');
+      console.log("Image ordering from session:", imageOrdering);
+      
       if (imageOrdering) {
         sessionStorage.setItem('previewImageOrdering', imageOrdering);
         sessionStorage.setItem('lastSavedImageOrdering', imageOrdering);
+        console.log("Image ordering saved for preview:", imageOrdering);
       }
       
-      // Store video URL separately to ensure it's available in preview
-      // IMPORTANT: Always ensure the video URL is set correctly, even if null or empty
-      if (formData.businessVideoUrl) {
+      // Critical fix: Ensure video URL always gets saved to session storage for preview
+      // The businessVideoUrl might be empty string or null, we need to handle that
+      console.log("Checking for video URL:", formData.businessVideoUrl);
+      if (formData.businessVideoUrl && formData.businessVideoUrl.trim() !== '') {
         sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
         console.log("Video URL saved for preview:", formData.businessVideoUrl);
       } else {

@@ -14,6 +14,8 @@ export const usePreviewData = () => {
   useEffect(() => {
     const loadFormData = () => {
       try {
+        console.log("usePreviewData: Loading preview data from session storage");
+        
         // Check if we have any form data in session storage
         const storedData = sessionStorage.getItem('previewFormData');
         
@@ -59,7 +61,7 @@ export const usePreviewData = () => {
           }
         }
         
-        // Load video URL from session storage
+        // First explicitly check for video URL in session storage
         const sessionVideo = sessionStorage.getItem('previewVideoUrl');
         console.log("Retrieved video URL from session:", sessionVideo);
         

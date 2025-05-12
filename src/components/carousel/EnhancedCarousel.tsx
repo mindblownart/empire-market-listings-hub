@@ -32,20 +32,37 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
     skipPrimaryImage 
   });
   
-  // Set up media items to display with video always in slot 2 (index 0 in carousel)
+  // Set up media items to display with video always in slot 2 (index 1 in carousel)
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
     
-    // If we have a video, always insert it as the first item in the carousel
-    if (videoURL) {
-      items.push({ type: 'video', url: videoURL });
-      console.log("Added video to carousel:", videoURL);
+    // Add images and video in the correct order
+    // We want the video to always be in slot 2 (index 1)
+    if (images.length > 0) {
+      // First add the first image
+      items.push({ type: 'image', url: images[0] });
+      console.log("Added first image to carousel:", images[0]);
+      
+      // Then add the video as the second item
+      if (videoURL && videoURL.trim() !== '') {
+        items.push({ type: 'video', url: videoURL });
+        console.log("Added video to carousel at index 1:", videoURL);
+      }
+      
+      // Then add the rest of the images
+      if (images.length > 1) {
+        for (let i = 1; i < images.length; i++) {
+          items.push({ type: 'image', url: images[i] });
+        }
+        console.log(`Added ${images.length - 1} more images to carousel`);
+      }
+    } else {
+      // If there are no images, just add the video
+      if (videoURL && videoURL.trim() !== '') {
+        items.push({ type: 'video', url: videoURL });
+        console.log("Only adding video to carousel:", videoURL);
+      }
     }
-    
-    // Add all the images after the video
-    images.forEach(url => {
-      items.push({ type: 'image', url });
-    });
     
     console.log("Final media items for carousel:", items);
     setMediaItems(items);
@@ -138,6 +155,9 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
           <VideoPlayer 
             url={mediaItems[activeIndex].url} 
             autoplay={autoplayVideo}
+            muted={true}
+            loop={true}
+            controls={false}
           />
         ) : (
           <AspectRatio ratio={16 / 9} className="bg-transparent">
