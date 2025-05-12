@@ -15,9 +15,12 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   autoplayVideo = true,
   skipPrimaryImage = false,
 }) => {
+  // Ensure we have valid arrays and values before rendering
+  const validImages = Array.isArray(galleryImages) ? galleryImages.filter(Boolean) : [];
+  
   return (
     <EnhancedCarousel
-      images={galleryImages}
+      images={validImages}
       videoURL={videoURL}
       autoplayVideo={autoplayVideo}
       skipPrimaryImage={skipPrimaryImage}

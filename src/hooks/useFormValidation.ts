@@ -96,7 +96,7 @@ export const useFormValidation = () => {
     return !error;
   }, []);
 
-  // Validate all fields before submission
+  // Validate all fields before submission - improved for better error reporting
   const validateAllFields = useCallback((formData: any) => {
     let isValid = true;
     const allErrors: ValidationErrors = {};
@@ -119,14 +119,21 @@ export const useFormValidation = () => {
     const missingFields: string[] = [];
     
     requiredFields.forEach(field => {
-      const fieldIsValid = validateField(field.name, field.value);
-      if (!fieldIsValid) {
-        isValid = false;
+      // Check if the field actually has a value before validation
+      const fieldHasValue = field.value !== undefined && field.value !== null && field.value !== '';
+      let fieldIsValid = true;
+      
+      if (!fieldHasValue) {
+        fieldIsValid = false;
+        allErrors[field.name] = `${field.label} is required`;
         missingFields.push(field.label);
+      } else {
+        // Only validate fields that have values
+        fieldIsValid = validateField(field.name, field.value);
       }
       
-      if (validationErrors[field.name]) {
-        allErrors[field.name] = validationErrors[field.name];
+      if (!fieldIsValid) {
+        isValid = false;
       }
     });
     
@@ -144,7 +151,7 @@ export const useFormValidation = () => {
     }
     
     return isValid;
-  }, [validateField, validationErrors]);
+  }, [validateField]);
 
   // Clear all validation errors
   const clearValidationErrors = useCallback(() => {
