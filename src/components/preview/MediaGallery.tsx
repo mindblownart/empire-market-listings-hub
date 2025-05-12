@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { getVideoEmbedUrl } from '@/components/media-uploader/video-utils';
 
 interface MediaGalleryProps {
@@ -91,15 +91,23 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, [mediaItems]);
 
-  // Handle previous and next navigation
+  // Handle previous and next navigation with proper boundary checks
   const handlePrev = () => {
     if (!carouselRef.current) return;
-    carouselRef.current.scrollPrev();
+    
+    // Make sure we don't go below 0
+    if (activeIndex > 0) {
+      carouselRef.current.scrollPrev();
+    }
   };
   
   const handleNext = () => {
     if (!carouselRef.current) return;
-    carouselRef.current.scrollNext();
+    
+    // Make sure we don't go beyond the last item
+    if (activeIndex < mediaItems.length - 1) {
+      carouselRef.current.scrollNext();
+    }
   };
   
   // Add keyboard navigation support
@@ -120,7 +128,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [mediaItems.length]);
+  }, [mediaItems.length, activeIndex]);
 
   if (!hasMedia) {
     // Fallback placeholder when no media is available
@@ -234,26 +242,26 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
         {mediaItems.length > 1 && (
           <>
             {/* Custom navigation arrows that stay visible */}
-            <div className="absolute left-0 top-0 bottom-0 flex items-center z-10">
+            <div className="absolute left-0 top-0 bottom-0 flex items-center z-10 pointer-events-none">
               <Button
                 variant="ghost"
                 size="icon"
-                className={`h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md ml-2 sm:ml-4 lg:ml-2 focus-visible:ring-2 z-10 transition-opacity ${isAtStart ? 'opacity-70' : 'opacity-100'}`}
+                className={`h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md ml-2 sm:ml-4 lg:ml-2 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto ${isAtStart ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'}`}
                 onClick={handlePrev}
                 aria-label="Previous slide"
-                disabled={false} // Never disable to maintain consistent UX
+                disabled={isAtStart} // Disable when at the first slide
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
             </div>
-            <div className="absolute right-0 top-0 bottom-0 flex items-center z-10">
+            <div className="absolute right-0 top-0 bottom-0 flex items-center z-10 pointer-events-none">
               <Button
                 variant="ghost"
                 size="icon"
-                className={`h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md mr-2 sm:mr-4 lg:mr-2 focus-visible:ring-2 z-10 transition-opacity ${isAtEnd ? 'opacity-70' : 'opacity-100'}`}
+                className={`h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md mr-2 sm:mr-4 lg:mr-2 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto ${isAtEnd ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'}`}
                 onClick={handleNext}
                 aria-label="Next slide"
-                disabled={false} // Never disable to maintain consistent UX
+                disabled={isAtEnd} // Disable when at the last slide
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -274,12 +282,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                 }
               }}
               className={`
-                min-w-8 h-2 rounded-full transition-all cursor-pointer
+                min-w-6 h-2 rounded-full transition-all cursor-pointer
                 ${activeIndex === index 
                   ? 'bg-primary w-10' 
-                  : 'bg-gray-300 w-8 opacity-50 hover:opacity-75'}
+                  : 'bg-gray-300 w-6 opacity-50 hover:opacity-75'}
               `}
               aria-label={`Go to slide ${index + 1}`}
+              aria-current={activeIndex === index ? 'true' : 'false'}
             />
           ))}
         </div>
