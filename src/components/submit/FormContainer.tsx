@@ -33,26 +33,8 @@ const FormContainer: React.FC<FormContainerProps> = ({
     try {
       if (onSubmit) {
         await onSubmit();
-        toast.success("Changes saved successfully!");
-        
-        // Store updated data in sessionStorage for preview page and for returning to form
-        sessionStorage.setItem('previewFormData', JSON.stringify(formData));
-        sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
-        
-        // If we have ordered images, make sure to preserve that order
-        const imageOrdering = sessionStorage.getItem('imageOrder');
-        if (imageOrdering) {
-          sessionStorage.setItem('previewImageOrdering', imageOrdering);
-          // Also save for returning to form
-          sessionStorage.setItem('lastSavedImageOrdering', imageOrdering);
-        }
-        
-        // Navigate to preview page immediately after saving
-        if (onPreview) {
-          onPreview();
-        } else {
-          navigate('/preview-listing');
-        }
+        // The navigation will now be handled in the onSubmit function itself
+        // We no longer need to navigate here as that's controlled by the parent component
       } else {
         const result = await handleSubmit(formData);
         if (result) {

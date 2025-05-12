@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -342,23 +341,17 @@ const EditListing = () => {
         description: "Your business listing has been updated."
       });
       
-      // Store updated data in sessionStorage for preview consistency
-      sessionStorage.setItem('previewFormData', JSON.stringify(formData));
-      sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
-      sessionStorage.setItem('previewImageUrls', JSON.stringify(updatedImageUrls));
-      sessionStorage.setItem('previewImageOrdering', JSON.stringify(updatedImageUrls));
-      sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(updatedImageUrls));
-      if (formData.businessVideoUrl) {
-        sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
-      }
+      // Clear session storage data that's no longer needed
+      sessionStorage.removeItem('previewFormData');
+      sessionStorage.removeItem('lastSavedFormData');
+      sessionStorage.removeItem('previewImageUrls');
+      sessionStorage.removeItem('previewImageOrdering');
+      sessionStorage.removeItem('lastSavedImageOrdering');
+      sessionStorage.removeItem('previewVideoUrl');
+      localStorage.removeItem('editingListingId');
       
-      // Store the current listing ID in localStorage so the preview page knows which listing we're editing
-      if (id) {
-        localStorage.setItem('editingListingId', id);
-      }
-      
-      // Navigate to the preview page instead of the detail page
-      navigate('/preview-listing');
+      // Navigate directly to the business detail page instead of the preview page
+      navigate(`/business/${id}`);
     } catch (error) {
       console.error('Error updating listing:', error);
       toast.error("Error updating listing", {
@@ -446,16 +439,16 @@ const EditListing = () => {
     fetchListing();
   };
 
-  // Handle preview click - updated to ensure data persistence including image ordering
+  // Update the preview handler to store data but still navigate back to the business detail page
   const handlePreview = () => {
     // Store the current form data in sessionStorage
     sessionStorage.setItem('previewFormData', JSON.stringify(formData));
-    sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData)); // For returning to form
+    sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData)); 
     
     // Store image URLs and video URL in sessionStorage
     sessionStorage.setItem('previewImageUrls', JSON.stringify(imageUrls));
     sessionStorage.setItem('previewImageOrdering', JSON.stringify(imageUrls));
-    sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(imageUrls)); // For returning to form
+    sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(imageUrls)); 
     
     if (formData.businessVideoUrl) {
       sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);

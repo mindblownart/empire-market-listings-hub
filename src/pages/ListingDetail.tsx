@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -24,6 +24,7 @@ const ListingDetail = () => {
   const { id } = useParams<{ id: string; }>();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isCurrentUserOwner, setIsCurrentUserOwner] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -31,7 +32,7 @@ const ListingDetail = () => {
   // Log the ID to confirm it's defined
   console.log('Listing ID:', id);
 
-  // Fetch business listing data from Supabase
+  // Fetch business listing data from Supabase with refetch on mount
   const { data: business, isLoading, error, refetch } = useQuery({
     queryKey: ['business', id],
     queryFn: async () => {
@@ -51,7 +52,13 @@ const ListingDetail = () => {
       return data as BusinessListing | null;
     },
     enabled: !!id,
+    staleTime: 0, // Always consider the data stale to force refetch
   });
+
+  // Always refetch the data when the component mounts or when returning from editing
+  useEffect(() => {
+    refetch();
+  }, [refetch, location.pathname]);
 
   // Check if current user is the owner of the listing
   useEffect(() => {
