@@ -63,7 +63,7 @@ export const ListingHeader: React.FC<ListingHeaderProps> = ({
         
         {/* Action Buttons */}
         <div className="flex gap-3 w-full sm:w-auto">
-          {/* Favorite Button for non-owners */}
+          {/* Favorite Button for non-owners - updated styling */}
           {!isCurrentUserOwner && (
             <TooltipProvider>
               <Tooltip>

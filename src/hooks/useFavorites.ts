@@ -110,6 +110,10 @@ export const useFavorites = (userId?: string) => {
           
         if (existingFavorite) {
           // Favorite already exists, no need to add again
+          toast({
+            title: "Already in favorites",
+            description: "This listing is already in your favorites",
+          });
           return { success: true, isFavorited: true, needsLogin: false };
         }
         

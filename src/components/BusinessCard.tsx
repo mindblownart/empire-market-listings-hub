@@ -153,7 +153,7 @@ const BusinessCard = ({
             )}
           </div>
           
-          {/* Favorite button with bookmark icon */}
+          {/* Favorite button with bookmark icon - updated styling */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
