@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -17,29 +16,25 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   images = [],
   videoURL,
   autoplayVideo = true,
-  skipPrimaryImage = true,
+  skipPrimaryImage = false, // Default changed to false as we handle this in MediaGallery
 }) => {
   // Media state management
   const [activeIndex, setActiveIndex] = useState(0);
   const [mediaItems, setMediaItems] = useState<Array<{type: 'image' | 'video', url: string}>>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Set up media items to display (video in slot 2, then images excluding primary if needed)
+  // Set up media items to display with video always in slot 2 (index 0 in carousel)
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
     
-    // Add images first (excluding primary if skipPrimaryImage is true)
-    const imagesToAdd = skipPrimaryImage && images.length > 0 
-      ? images.slice(1) 
-      : [...images];
-    
-    // If we have a video, insert it at position 0 (will be slot 2 in the UI after the hero image)
+    // If we have a video, insert it at position 0 (slot 2 in the UI after the hero image)
     if (videoURL) {
       items.push({ type: 'video', url: videoURL });
     }
     
     // Add all the images after the video
-    imagesToAdd.forEach(url => {
+    // We're using the images directly since skipPrimaryImage is handled in MediaGallery
+    images.forEach(url => {
       items.push({ type: 'image', url });
     });
     
@@ -105,7 +100,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   }, [activeIndex, hasMultipleItems]);
 
   // Fallback when no media is available
-  if (!hasMedia) {
+  if (!mediaItems.length) {
     return (
       <div className="w-full rounded-lg overflow-hidden">
         <AspectRatio ratio={16 / 9} className="bg-gray-100">
@@ -144,7 +139,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       </div>
       
       {/* Navigation arrows - only shown if multiple items */}
-      {hasMultipleItems && (
+      {mediaItems.length > 1 && (
         <>
           {/* Left navigation arrow */}
           <Button 
@@ -183,7 +178,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       )}
       
       {/* Pagination indicators - only shown if multiple items */}
-      {hasMultipleItems && (
+      {mediaItems.length > 1 && (
         <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
           {mediaItems.map((_, index) => (
             <button

@@ -122,6 +122,11 @@ const FormContainer: React.FC<FormContainerProps> = ({
         sessionStorage.setItem('lastSavedImageOrdering', imageOrdering);
       }
       
+      // Store video URL separately to ensure it's available in preview
+      if (formData.businessVideoUrl) {
+        sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
+      }
+      
       // Use custom preview handler if provided, otherwise use default behavior
       if (onPreview) {
         onPreview();
