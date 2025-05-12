@@ -3,7 +3,7 @@ import React from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin } from 'lucide-react';
+import { MapPin, Tag } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { getCountryNameFromCode } from '@/components/submit/countries';
 
@@ -60,16 +60,15 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
           
           {/* Category Tag - Redesigned with blurred background */}
-          <div className="absolute top-6 left-6">
-            <div className="backdrop-blur-md bg-black/30 rounded-full px-4 py-2 shadow-lg">
-              <span className="text-white font-semibold text-sm">
-                {formatIndustryName(industry)}
-              </span>
-            </div>
+          <div className="absolute top-4 left-4 md:top-6 md:left-6">
+            <Badge variant="category" size="lg" className="flex items-center gap-1.5">
+              <Tag className="h-4 w-4" />
+              <span>{formatIndustryName(industry)}</span>
+            </Badge>
           </div>
           
           <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
-            <div className="space-y-2 max-w-[70%]">
+            <div className="space-y-2 max-w-[65%]">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 line-clamp-2">
                 {businessName || 'Unnamed Business'}
               </h1>
@@ -95,11 +94,13 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
             
             {/* Asking Price - Repositioned and restyled */}
             {askingPrice && (
-              <div className="bg-white rounded-xl shadow-md px-4 py-2">
-                <div className="text-xs font-medium text-gray-500">Asking Price</div>
-                <div className="text-lg md:text-xl font-bold text-blue-600">
-                  {formatCurrency(askingPrice, currencyCode)}
-                </div>
+              <div className="flex-shrink-0">
+                <Badge variant="price" size="lg" className="flex flex-col items-start">
+                  <span className="text-xs font-medium text-gray-500">Asking Price</span>
+                  <span className="text-lg font-bold text-blue-700">
+                    {formatCurrency(askingPrice, currencyCode)}
+                  </span>
+                </Badge>
               </div>
             )}
           </div>
@@ -114,9 +115,10 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
       <CardHeader className="relative">
         {/* Category badge with new styling */}
         <div className="w-fit mb-4">
-          <div className="bg-blue-600/90 backdrop-blur-sm text-white px-3 py-1 rounded-full shadow-sm font-semibold text-sm">
-            {formatIndustryName(industry)}
-          </div>
+          <Badge variant="category" size="md" className="flex items-center gap-1.5">
+            <Tag className="h-4 w-4" />
+            <span>{formatIndustryName(industry)}</span>
+          </Badge>
         </div>
         
         <div className="flex justify-between items-end">
@@ -146,12 +148,12 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
           
           {/* Asking Price with new styling */}
           {askingPrice && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm px-4 py-2">
-              <div className="text-sm font-medium text-gray-500">Asking Price</div>
-              <div className="text-xl font-bold text-blue-600">
+            <Badge variant="price" size="lg" className="flex flex-col items-start">
+              <span className="text-xs font-medium text-gray-500">Asking Price</span>
+              <span className="text-lg font-bold text-blue-700">
                 {formatCurrency(askingPrice, currencyCode)}
-              </div>
-            </div>
+              </span>
+            </Badge>
           )}
         </div>
       </CardHeader>
