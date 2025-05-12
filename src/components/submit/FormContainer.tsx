@@ -40,8 +40,6 @@ const FormContainer: React.FC<FormContainerProps> = ({
       
       if (onSubmit) {
         await onSubmit();
-        // The navigation will now be handled in the onSubmit function itself
-        // We no longer need to navigate here as that's controlled by the parent component
       } else {
         const result = await handleSubmit(formData);
         if (result) {
@@ -58,8 +56,6 @@ const FormContainer: React.FC<FormContainerProps> = ({
             businessImages: undefined,
             businessVideo: null
           }));
-          
-          // Navigation to preview is now handled in useBusinessSubmission
         }
       }
     } catch (error) {
@@ -79,13 +75,17 @@ const FormContainer: React.FC<FormContainerProps> = ({
   const handlePreview = (e: React.MouseEvent) => {
     e.preventDefault();
     
+    console.log("Preview button clicked, preparing data...");
+    
     // Run validation if onValidate is provided
     if (onValidate && !onValidate()) {
+      console.log("Custom validation failed");
       return;
     }
     
     // Run default validation for required fields
     if (!validateAllFields(formData)) {
+      console.log("Standard validation failed");
       toast.error("Please complete all required fields before previewing.", {
         style: {
           border: '1px solid #f87171',
@@ -106,6 +106,7 @@ const FormContainer: React.FC<FormContainerProps> = ({
         businessVideo: null
       };
       
+      console.log("Saving form data to session storage:", safeFormData);
       sessionStorage.setItem('previewFormData', JSON.stringify(safeFormData));
       sessionStorage.setItem('lastSavedFormData', JSON.stringify(safeFormData));
       
@@ -118,25 +119,27 @@ const FormContainer: React.FC<FormContainerProps> = ({
       // Save current image ordering for preview consistency
       const imageOrdering = sessionStorage.getItem('imageOrder');
       if (imageOrdering) {
+        console.log("Saving image ordering to session storage:", imageOrdering);
         sessionStorage.setItem('previewImageOrdering', imageOrdering);
         sessionStorage.setItem('lastSavedImageOrdering', imageOrdering);
       }
       
-      // Store video URL separately to ensure it's available in preview
-      // Fix: Always ensure the video URL is set correctly, even if null or empty
+      // CRITICAL FIX: Always ensure the video URL is set correctly in session storage
       if (formData.businessVideoUrl) {
+        console.log("Setting video URL in session storage:", formData.businessVideoUrl);
         sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
-        console.log("Video URL saved for preview:", formData.businessVideoUrl);
       } else {
         // Ensure we clear any previous video URL if none exists now
+        console.log("No video URL found, clearing from session storage");
         sessionStorage.removeItem('previewVideoUrl');
-        console.log("No video URL found, cleared from session storage");
       }
       
       // Use custom preview handler if provided, otherwise use default behavior
       if (onPreview) {
+        console.log("Using custom preview handler");
         onPreview();
       } else {
+        console.log("Navigating to preview-listing route");
         navigate('/preview-listing');
       }
     } catch (error) {

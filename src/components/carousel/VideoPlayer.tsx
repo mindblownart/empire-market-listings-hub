@@ -21,8 +21,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  // Log video player props for debugging
-  console.log("VideoPlayer props:", { url, autoplay, loop, muted, controls });
+  // Enhanced logging for video player
+  console.log("VideoPlayer rendering with props:", { url, autoplay, loop, muted, controls });
   
   useEffect(() => {
     // Try to play video automatically if autoplay is enabled
@@ -67,13 +67,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Handle different video sources
   if (isYouTube) {
     const videoId = getYoutubeId(url);
-    if (!videoId) return null;
+    if (!videoId) {
+      console.error("Invalid YouTube URL:", url);
+      return null;
+    }
     
     // Create YouTube embed URL with autoplay and loop parameters
     let embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`;
     if (autoplay) embedUrl += '&autoplay=1';
     if (loop) embedUrl += '&loop=1&playlist=' + videoId;
     if (muted) embedUrl += '&mute=1';
+    
+    console.log("Using YouTube embed URL:", embedUrl);
     
     return (
       <AspectRatio ratio={16 / 9} className="bg-black">
@@ -91,13 +96,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   
   if (isVimeo) {
     const videoId = getVimeoId(url);
-    if (!videoId) return null;
+    if (!videoId) {
+      console.error("Invalid Vimeo URL:", url);
+      return null;
+    }
     
     // Create Vimeo embed URL with parameters
     let embedUrl = `https://player.vimeo.com/video/${videoId}?background=1`;
     if (autoplay) embedUrl += '&autoplay=1';
     if (loop) embedUrl += '&loop=1';
     if (muted) embedUrl += '&muted=1';
+    
+    console.log("Using Vimeo embed URL:", embedUrl);
     
     return (
       <AspectRatio ratio={16 / 9} className="bg-black">
@@ -114,6 +124,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }
   
   // For regular video files
+  console.log("Using HTML5 video player with URL:", url);
+  
   return (
     <AspectRatio ratio={16 / 9} className="bg-black">
       <video

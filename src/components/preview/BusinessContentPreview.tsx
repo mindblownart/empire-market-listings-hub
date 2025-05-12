@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
 import { 
   BusinessHeader, 
   BusinessOverview, 
@@ -7,7 +8,6 @@ import {
   MediaGallery, 
   ContactInformation 
 } from '@/components/preview';
-import { Button } from '@/components/ui/button';
 
 interface BusinessContentPreviewProps {
   formData: any;
@@ -23,12 +23,15 @@ const BusinessContentPreview: React.FC<BusinessContentPreviewProps> = ({
   flagCode
 }) => {
   // Add console log to debug the video URL right before rendering
-  console.log("BusinessContentPreview with videoURL:", videoURL);
-  console.log("Images to display:", imageUrls);
+  console.log("BusinessContentPreview rendering with:", {
+    videoURL,
+    imageUrlsCount: imageUrls.length,
+    firstImage: imageUrls.length > 0 ? imageUrls[0] : 'none'
+  });
   
   return (
     <>
-      {/* Hero Section with Business Header */}
+      {/* Hero Section with Business Header and Asking Price */}
       <div className="mb-6">
         <BusinessHeader 
           businessName={formData.businessName} 
@@ -59,8 +62,8 @@ const BusinessContentPreview: React.FC<BusinessContentPreviewProps> = ({
             annualRevenue={formData.annualRevenue}
             annualProfit={formData.annualProfit}
             currencyCode={formData.currencyCode}
-            description={formData.description} 
-            highlights={formData.highlights} 
+            description={formData.description || ''} 
+            highlights={formData.highlights || []} 
           />
         </div>
         
