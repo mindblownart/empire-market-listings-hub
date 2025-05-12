@@ -24,33 +24,31 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   const [mediaItems, setMediaItems] = useState<Array<{type: 'image' | 'video', url: string}>>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Set up media items to display with video always in position 1 or 2
+  // Set up media items to display with video always in position 1 if available
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
     
     // Make sure we have valid arrays
-    const validImages = Array.isArray(images) ? images.filter(Boolean) : [];
+    let validImages = Array.isArray(images) ? images.filter(Boolean) : [];
     
     if (validImages.length === 0 && !videoURL) {
       setMediaItems([]);
       return;
     }
     
-    // Add primary image first if available and not skipping
-    if (validImages.length > 0) {
-      // Always add the first image (primary)
-      items.push({ type: 'image', url: validImages[0] });
+    // If skipPrimaryImage is true, remove the first image (primary) from the carousel
+    if (skipPrimaryImage && validImages.length > 0) {
+      validImages = validImages.slice(1);
     }
     
-    // Always add video as second item if available
+    // Always add video as first item if available
     if (videoURL) {
       items.push({ type: 'video', url: videoURL });
     }
     
-    // Add remaining images after the video
-    if (validImages.length > 1) {
-      const remainingImages = validImages.slice(1);
-      remainingImages.forEach(url => {
+    // Add all remaining images after the video
+    if (validImages.length > 0) {
+      validImages.forEach(url => {
         items.push({ type: 'image', url });
       });
     }

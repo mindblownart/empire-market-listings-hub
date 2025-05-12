@@ -23,31 +23,28 @@ const VideoPlayerComponent: React.FC<VideoPlayerProps> = ({
     videoRef.current.muted = isMuted;
     
     // Play video with a short delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      if (videoRef.current) {
-        const playPromise = videoRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            console.log('Autoplay prevented:', error);
-          });
+    if (autoplay) {
+      const timer = setTimeout(() => {
+        if (videoRef.current) {
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(error => {
+              console.log('Autoplay prevented:', error);
+            });
+          }
         }
-      }
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, [autoplay, url]);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [autoplay, url, isMuted]);
   
   // Toggle mute state with improved event handling
   const toggleMute = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent click from bubbling to parent elements
     setIsMuted(prevState => !prevState);
-    
-    // Apply muted state directly to prevent render loop
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-    }
-  }, [isMuted]);
+  }, []);
 
   // Extract video type information (YouTube, Vimeo, or direct file)
   const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
