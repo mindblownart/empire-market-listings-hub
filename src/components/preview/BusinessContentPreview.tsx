@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   BusinessHeader, 
   BusinessOverview, 
@@ -22,9 +22,20 @@ const BusinessContentPreview: React.FC<BusinessContentPreviewProps> = ({
   videoURL,
   flagCode
 }) => {
-  // Add console log to debug the video URL right before rendering
-  console.log("BusinessContentPreview with videoURL:", videoURL);
-  console.log("Images to display:", imageUrls);
+  // Debug logging
+  useEffect(() => {
+    // Log all properties for debugging purposes
+    console.log("BusinessContentPreview rendered with props:", {
+      formDataKeys: Object.keys(formData),
+      imageUrlsCount: imageUrls.length,
+      videoURL,
+      flagCode
+    });
+    
+    // Add console log to debug the video URL right before rendering
+    console.log("BusinessContentPreview with videoURL:", videoURL);
+    console.log("Images to display:", imageUrls);
+  }, [formData, imageUrls, videoURL, flagCode]);
   
   // Ensure we have a valid primary image for the hero section
   const primaryImage = imageUrls.length > 0 ? imageUrls[0] : undefined;
@@ -48,7 +59,7 @@ const BusinessContentPreview: React.FC<BusinessContentPreviewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Media Gallery and Business Overview */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Media Gallery - Skipping the primary image since it's shown in the hero */}
+          {/* FIXED: Pass video URL correctly to MediaGallery */}
           <MediaGallery 
             galleryImages={imageUrls} 
             videoURL={videoURL}

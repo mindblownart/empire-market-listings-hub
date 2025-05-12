@@ -61,21 +61,23 @@ export const usePreviewData = () => {
           }
         }
         
+        // FIXED: Improved video URL handling
         // First explicitly check for video URL in session storage
+        console.log("Checking for video URL in session storage");
         const sessionVideo = sessionStorage.getItem('previewVideoUrl');
         console.log("Retrieved video URL from session:", sessionVideo);
         
         if (sessionVideo) {
+          console.log("Setting video URL from session storage:", sessionVideo);
           setVideoURL(sessionVideo);
-          console.log("Set video URL from session:", sessionVideo);
         } else if (parsedData.businessVideoUrl) {
           // Fallback to businessVideoUrl from form data if sessionVideo is not available
+          console.log("Setting video URL from form data:", parsedData.businessVideoUrl);
           setVideoURL(parsedData.businessVideoUrl);
-          console.log("Set video URL from form data:", parsedData.businessVideoUrl);
         } else {
           // Ensure video URL is null if none exists
+          console.log("No video URL found, setting to null");
           setVideoURL(null);
-          console.log("No video URL found, set to null");
         }
         
         setIsLoading(false);

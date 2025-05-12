@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { BusinessListing } from '@/types/supabase';
 import { 
@@ -15,6 +15,18 @@ interface ListingContentProps {
 }
 
 export const ListingContent: React.FC<ListingContentProps> = ({ business }) => {
+  // Debug logging on mount
+  useEffect(() => {
+    console.log("ListingContent received business data:", {
+      name: business.business_name,
+      media: {
+        primaryImage: business.primary_image_url,
+        galleryImages: business.gallery_images,
+        videoUrl: business.video_url
+      }
+    });
+  }, [business]);
+  
   // Use primary_image_url as the hero image
   // If it's not available, don't try to use the first gallery image
   const heroImage = business.primary_image_url;
@@ -48,10 +60,10 @@ export const ListingContent: React.FC<ListingContentProps> = ({ business }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Media Gallery and Business Overview */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Media Gallery exactly aligned with Business Overview */}
+          {/* FIXED: Ensure video is properly passed to MediaGallery */}
           <MediaGallery 
             galleryImages={business.gallery_images || []} 
-            videoURL={business.video_url || null} 
+            videoURL={business.video_url} 
             autoplayVideo={true} 
             skipPrimaryImage={true} // Skip primary image since it's shown in hero
           />

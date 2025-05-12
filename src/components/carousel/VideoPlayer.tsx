@@ -21,12 +21,22 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  // Log video player props for debugging
-  console.log("VideoPlayer props:", { url, autoplay, loop, muted, controls });
+  // Enhanced logging for video player
+  useEffect(() => {
+    console.log("VideoPlayer mounted with URL:", url);
+    console.log("VideoPlayer props:", { url, autoplay, loop, muted, controls });
+    
+    // Validate URL to help with debugging
+    if (!url) {
+      console.warn("VideoPlayer received empty URL");
+    } else if (typeof url !== 'string') {
+      console.error("VideoPlayer received non-string URL:", url);
+    }
+  }, [url, autoplay, loop, muted, controls]);
   
   useEffect(() => {
     // Try to play video automatically if autoplay is enabled
-    if (autoplay && videoRef.current) {
+    if (autoplay && videoRef.current && url) {
       console.log("Attempting to autoplay video:", url);
       
       const playPromise = videoRef.current.play();
@@ -45,10 +55,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }, [url, autoplay]);
   
+  // Guard against invalid URLs
+  if (!url || typeof url !== 'string') {
+    console.error("Invalid video URL provided to VideoPlayer:", url);
+    return (
+      <AspectRatio ratio={16 / 9} className="bg-gray-100">
+        <div className="flex items-center justify-center h-full text-gray-500">
+          Video unavailable
+        </div>
+      </AspectRatio>
+    );
+  }
+  
   // Determine if it's a YouTube/Vimeo URL
-  const isYouTube = url && typeof url === 'string' && 
-    (url.includes('youtube.com') || url.includes('youtu.be'));
-  const isVimeo = url && typeof url === 'string' && url.includes('vimeo.com');
+  const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+  const isVimeo = url.includes('vimeo.com');
   
   // Extract YouTube video ID
   const getYoutubeId = (youtubeUrl: string) => {
@@ -67,7 +88,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Handle different video sources
   if (isYouTube) {
     const videoId = getYoutubeId(url);
-    if (!videoId) return null;
+    if (!videoId) {
+      console.error("Could not extract YouTube video ID from:", url);
+      return null;
+    }
     
     // Create YouTube embed URL with autoplay and loop parameters
     let embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`;
@@ -76,6 +100,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (muted) embedUrl += '&mute=1';
     if (!controls) embedUrl += '&controls=0';
     
+    console.log("Rendering YouTube video with ID:", videoId);
     return (
       <AspectRatio ratio={16 / 9} className="bg-black">
         <iframe
@@ -92,7 +117,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   
   if (isVimeo) {
     const videoId = getVimeoId(url);
-    if (!videoId) return null;
+    if (!videoId) {
+      console.error("Could not extract Vimeo video ID from:", url);
+      return null;
+    }
     
     // Create Vimeo embed URL with parameters
     let embedUrl = `https://player.vimeo.com/video/${videoId}?background=1`;
@@ -101,6 +129,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (muted) embedUrl += '&muted=1';
     if (!controls) embedUrl += '&controls=0';
     
+    console.log("Rendering Vimeo video with ID:", videoId);
     return (
       <AspectRatio ratio={16 / 9} className="bg-black">
         <iframe
@@ -115,7 +144,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
   
-  // For regular video files
+  // For MP4 and other direct video files
+  console.log("Rendering direct video file:", url);
   return (
     <AspectRatio ratio={16 / 9} className="bg-black">
       <video

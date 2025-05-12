@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
@@ -100,21 +99,43 @@ const FormContainer: React.FC<FormContainerProps> = ({
         return;
       }
       
-      // Store current form data in sessionStorage to preserve across navigation
-      // Remove circular references that can't be serialized
+      // FIXED: JSON serialization issue with File objects
+      // Create a safe version of form data without circular references
       const safeFormData = {
         ...formData,
         businessImages: undefined,
-        businessVideo: null
+        businessVideo: null,
+        // Keep other properties intact
+        businessName: formData.businessName,
+        industry: formData.industry,
+        location: formData.location,
+        askingPrice: formData.askingPrice,
+        annualRevenue: formData.annualRevenue,
+        annualProfit: formData.annualProfit,
+        description: formData.description,
+        highlights: formData.highlights,
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        role: formData.role,
+        yearEstablished: formData.yearEstablished,
+        employees: formData.employees,
+        locationName: formData.locationName,
+        flagCode: formData.flagCode,
+        currencyCode: formData.currencyCode
       };
       
-      sessionStorage.setItem('previewFormData', JSON.stringify(safeFormData));
-      sessionStorage.setItem('lastSavedFormData', JSON.stringify(safeFormData));
+      console.log("Prepared safe form data for storage:", safeFormData);
       
-      // We'll allow preview without validation
-      // but let's show a toast if there are major issues
-      if (!formData.businessName || !formData.industry || !formData.location) {
-        toast.warning("Your preview is missing important information. Consider adding more details.");
+      // Store the safe form data
+      try {
+        sessionStorage.setItem('previewFormData', JSON.stringify(safeFormData));
+        sessionStorage.setItem('lastSavedFormData', JSON.stringify(safeFormData));
+        console.log("Successfully stored form data in session storage");
+      } catch (serializeError) {
+        console.error("Error serializing form data:", serializeError);
+        toast.error("Error preparing preview data");
+        return;
       }
       
       // Save current image ordering for preview consistency
@@ -127,16 +148,20 @@ const FormContainer: React.FC<FormContainerProps> = ({
         console.log("Image ordering saved for preview:", imageOrdering);
       }
       
+      // FIXED: Ensure video URL is properly handled
       // Critical fix: Ensure video URL always gets saved to session storage for preview
-      // The businessVideoUrl might be empty string or null, we need to handle that
-      console.log("Checking for video URL:", formData.businessVideoUrl);
       if (formData.businessVideoUrl && formData.businessVideoUrl.trim() !== '') {
-        sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
-        console.log("Video URL saved for preview:", formData.businessVideoUrl);
+        try {
+          console.log("Storing video URL in session storage:", formData.businessVideoUrl);
+          sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
+          console.log("Video URL saved for preview:", formData.businessVideoUrl);
+        } catch (videoError) {
+          console.error("Error storing video URL:", videoError);
+        }
       } else {
         // Ensure we clear any previous video URL if none exists now
+        console.log("No video URL found, clearing from session storage");
         sessionStorage.removeItem('previewVideoUrl');
-        console.log("No video URL found, cleared from session storage");
       }
       
       // Use custom preview handler if provided, otherwise use default behavior
