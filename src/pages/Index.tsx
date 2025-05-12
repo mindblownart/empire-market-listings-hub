@@ -273,7 +273,7 @@ const Index = () => {
               </div>
               
               <div className="mt-12 text-center">
-                <Link to="/listings">
+                <Link to="/listings" state={{ resetFilters: true }}>
                   <Button className="bg-primary hover:bg-primary-light px-8">
                     View All Listings
                   </Button>

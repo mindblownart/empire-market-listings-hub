@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Bookmark, BookmarkCheck, Edit, Trash2 } from 'lucide-react';
+import { Bookmark, Edit, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 interface BusinessCardProps {
   id: string;
@@ -126,17 +126,22 @@ const BusinessCard = ({
             )}
           </div>
           
-          {/* Favorite button */}
+          {/* Favorite button with updated styling */}
           <button 
-            className="absolute top-2 right-2 z-10 p-1.5 bg-white/80 hover:bg-white rounded-full shadow-sm"
+            className={`absolute top-2 right-2 z-10 p-1.5 rounded-full shadow-sm 
+              ${isFavorite 
+                ? 'bg-white' 
+                : 'bg-white/80 hover:bg-white'
+              }`}
             onClick={toggleFavorite}
             aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
           >
-            {isFavorite ? (
-              <BookmarkCheck className="h-5 w-5 text-primary" />
-            ) : (
-              <Bookmark className="h-5 w-5 text-gray-500" />
-            )}
+            <Bookmark 
+              className={`h-5 w-5 ${isFavorite 
+                ? 'text-yellow-400 fill-yellow-400' 
+                : 'text-gray-500'
+              }`} 
+            />
           </button>
           
           <img 

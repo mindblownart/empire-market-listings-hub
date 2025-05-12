@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -5,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import BusinessCard from '@/components/BusinessCard';
 import Navbar from '@/components/Navbar';
 import HomeFooter from '@/components/HomeFooter';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { BusinessListing } from '@/types/supabase';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -72,9 +73,12 @@ const sortOptions = [{
 }];
 
 const Listings = () => {
+  const location = useLocation();
+  const { toast } = useToast();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('all');
-  const [location, setLocation] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('all');
   const [priceRange, setPriceRange] = useState([0, 2000000]);
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
@@ -83,9 +87,37 @@ const Listings = () => {
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userSession, setUserSession] = useState(null);
-  const { toast } = useToast();
+  
   const itemsPerPage = 9;
   const maxPrice = 2000000;
+
+  // Parse query parameters from the URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryParam = params.get('category');
+    const locationParam = params.get('location');
+    const minRevenueParam = params.get('minRevenue');
+    const maxRevenueParam = params.get('maxRevenue');
+    
+    // Check if we should reset filters based on location state
+    const resetFilters = location.state?.resetFilters;
+    
+    if (!resetFilters) {
+      // Apply URL parameters as filters if they exist
+      if (categoryParam) setCategory(categoryParam);
+      if (locationParam) setLocationFilter(locationParam);
+      // Handle min/max revenue if needed
+    } else {
+      // Reset all filters
+      setSearchTerm('');
+      setCategory('all');
+      setLocationFilter('all');
+      setPriceRange([0, maxPrice]);
+      setSortBy('newest');
+      // Clear location state to prevent repeated resets
+      window.history.replaceState({}, document.title, location.pathname);
+    }
+  }, [location]);
 
   // Check user authentication status
   useEffect(() => {
@@ -167,9 +199,10 @@ const Listings = () => {
     }
   };
 
+  // Refresh listings when component mounts, user session changes, or location changes
   useEffect(() => {
     fetchBusinesses();
-  }, [userSession]); // Re-fetch when user session changes
+  }, [userSession, location.pathname, location.search]); // Re-fetch when location or user session changes
 
   // Format price display for the slider
   const formatPriceDisplay = (price: number) => {
@@ -196,9 +229,9 @@ const Listings = () => {
     }
 
     // Filter by location
-    if (location !== 'all') {
+    if (locationFilter !== 'all') {
       results = results.filter(business => 
-        business.location?.toLowerCase().includes(location.toLowerCase())
+        business.location?.toLowerCase().includes(locationFilter.toLowerCase())
       );
     }
 
@@ -240,7 +273,7 @@ const Listings = () => {
     }
     setFilteredBusinesses(results);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [searchTerm, category, location, priceRange, sortBy, businesses]);
+  }, [searchTerm, category, locationFilter, priceRange, sortBy, businesses]);
 
   // Get current page items
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -380,7 +413,7 @@ const Listings = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                      <Select value={location} onValueChange={setLocation}>
+                      <Select value={locationFilter} onValueChange={setLocationFilter}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select location" />
                         </SelectTrigger>
