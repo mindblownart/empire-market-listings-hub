@@ -102,12 +102,7 @@ const Listings = () => {
     // Check if we should reset filters based on location state
     const resetFilters = location.state?.resetFilters;
     
-    if (!resetFilters) {
-      // Apply URL parameters as filters if they exist
-      if (categoryParam) setCategory(categoryParam);
-      if (locationParam) setLocationFilter(locationParam);
-      // Handle min/max revenue if needed
-    } else {
+    if (resetFilters) {
       // Reset all filters
       setSearchTerm('');
       setCategory('all');
@@ -116,6 +111,16 @@ const Listings = () => {
       setSortBy('newest');
       // Clear location state to prevent repeated resets
       window.history.replaceState({}, document.title, location.pathname);
+    } else {
+      // Apply URL parameters as filters if they exist
+      if (categoryParam) setCategory(categoryParam);
+      if (locationParam) setLocationFilter(locationParam);
+      // Handle min/max revenue if needed
+      if (minRevenueParam) {
+        const min = parseInt(minRevenueParam);
+        const max = maxRevenueParam ? parseInt(maxRevenueParam) : maxPrice;
+        setPriceRange([min, max]);
+      }
     }
   }, [location]);
 
@@ -137,6 +142,34 @@ const Listings = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Enable real-time updates for business listings
+  useEffect(() => {
+    // Set up real-time listener for business_listings table
+    const channel = supabase
+      .channel('public:business_listings')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'business_listings' 
+        },
+        (payload) => {
+          console.log('Real-time update received:', payload);
+          // Refresh listings when any change happens
+          fetchBusinesses();
+        }
+      )
+      .subscribe();
+
+    // Fetch initial data
+    fetchBusinesses();
+
+    // Clean up subscription on component unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userSession]);
 
   // Fetch businesses from Supabase
   const fetchBusinesses = async () => {
@@ -198,11 +231,6 @@ const Listings = () => {
       setIsLoading(false);
     }
   };
-
-  // Refresh listings when component mounts, user session changes, or location changes
-  useEffect(() => {
-    fetchBusinesses();
-  }, [userSession, location.pathname, location.search]); // Re-fetch when location or user session changes
 
   // Format price display for the slider
   const formatPriceDisplay = (price: number) => {

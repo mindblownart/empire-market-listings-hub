@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Bookmark, Edit, Trash2 } from 'lucide-react';
+import { BookmarkCheck, Bookmark, Edit, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -58,10 +58,82 @@ const BusinessCard = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const toggleFavorite = (e: React.MouseEvent) => {
+  // Check if this listing is in user's favorites when component mounts
+  useEffect(() => {
+    const checkIfFavorite = async () => {
+      const { data: session } = await supabase.auth.getSession();
+      if (session?.session?.user) {
+        const { data } = await supabase
+          .from('favorites')
+          .select('*')
+          .eq('user_id', session.session.user.id)
+          .eq('listing_id', id)
+          .maybeSingle();
+          
+        setIsFavorite(!!data);
+      }
+    };
+    
+    checkIfFavorite();
+  }, [id]);
+
+  const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorite(!isFavorite);
+    
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save listings",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const userId = session.session.user.id;
+    
+    try {
+      if (isFavorite) {
+        // Remove from favorites
+        const { error } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', userId)
+          .eq('listing_id', id);
+          
+        if (error) throw error;
+        
+        setIsFavorite(false);
+        toast({
+          title: "Removed from favorites",
+          description: "Listing removed from your saved items",
+        });
+      } else {
+        // Add to favorites
+        const { error } = await supabase
+          .from('favorites')
+          .insert({
+            user_id: userId,
+            listing_id: id
+          });
+          
+        if (error) throw error;
+        
+        setIsFavorite(true);
+        toast({
+          title: "Added to favorites",
+          description: "Listing saved to your favorites",
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDelete = async () => {
@@ -126,7 +198,7 @@ const BusinessCard = ({
             )}
           </div>
           
-          {/* Favorite button with updated styling */}
+          {/* Favorite button with bookmark icon */}
           <button 
             className={`absolute top-2 right-2 z-10 p-1.5 rounded-full shadow-sm 
               ${isFavorite 
@@ -136,12 +208,15 @@ const BusinessCard = ({
             onClick={toggleFavorite}
             aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
           >
-            <Bookmark 
-              className={`h-5 w-5 ${isFavorite 
-                ? 'text-yellow-400 fill-yellow-400' 
-                : 'text-gray-500'
-              }`} 
-            />
+            {isFavorite ? (
+              <Bookmark 
+                className="h-5 w-5 text-yellow-400 fill-yellow-400" 
+              />
+            ) : (
+              <Bookmark 
+                className="h-5 w-5 text-gray-500" 
+              />
+            )}
           </button>
           
           <img 
