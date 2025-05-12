@@ -154,7 +154,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
               aria-label={`Go to image ${index + 1}`}
               aria-current={index === currentIndex ? 'true' : 'false'}
               className={cn(
-                "w-3 h-3 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-white",
+                "w-3 h-3 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-white pointer-events-auto",
                 index === currentIndex 
                   ? "bg-white w-8" 
                   : "bg-white/50 hover:bg-white/70"

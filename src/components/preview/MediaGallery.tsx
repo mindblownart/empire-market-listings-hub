@@ -1,11 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
-import { getVideoEmbedUrl } from '@/components/media-uploader/video-utils';
 import { VideoPlayer } from '@/components/carousel';
 
 interface MediaGalleryProps {
@@ -22,8 +21,6 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   skipPrimaryImage = false,
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = useState(true);
   const carouselRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -73,17 +70,34 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, [mediaItems]);
 
-  // Handle mute toggle for video with proper event stopping
-  const toggleMute = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  // Enhanced keyboard navigation support
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!containerRef.current) return;
+      
+      // Only process keyboard events when our container has focus or is active in the DOM
+      if (document.activeElement === containerRef.current || 
+          containerRef.current.contains(document.activeElement) || 
+          event.target === document.body) {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          handlePrev();
+        } else if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          handleNext();
+        }
+      }
+    };
     
-    if (videoRef.current) {
-      const newMutedState = !isMuted;
-      videoRef.current.muted = newMutedState;
-      setIsMuted(newMutedState);
+    // Only add listener if we have multiple items
+    if (mediaItems.length > 1) {
+      window.addEventListener('keydown', handleKeyDown);
     }
-  };
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mediaItems.length, activeIndex]);
 
   // Improved navigation handlers with proper event stopping
   const handlePrev = (e?: React.MouseEvent) => {
@@ -115,29 +129,6 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       carouselRef.current.scrollTo(newIndex);
     }
   };
-  
-  // Enhanced keyboard navigation support
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Process keyboard events for this carousel
-      if (event.key === 'ArrowLeft') {
-        event.preventDefault();
-        handlePrev();
-      } else if (event.key === 'ArrowRight') {
-        event.preventDefault();
-        handleNext();
-      }
-    };
-    
-    // Only add listener if we have multiple items
-    if (mediaItems.length > 1) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [mediaItems.length, activeIndex]);
 
   // Fallback placeholder when no media is available
   if (!hasMedia) {
