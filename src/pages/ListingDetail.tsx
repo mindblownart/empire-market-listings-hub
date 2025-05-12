@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { BusinessHeader, BusinessOverview, BusinessDetails, MediaGallery, ContactInformation } from '@/components/preview';
-import { ChevronLeft, Edit, Trash2 } from 'lucide-react';
+import { ChevronLeft, Edit, Trash2, Briefcase } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessListing } from '@/types/supabase';
 import { useToast } from '@/components/ui/use-toast';
@@ -167,6 +167,12 @@ const ListingDetail = () => {
             <ChevronLeft className="h-4 w-4 mr-1" />
             <span>Back to Listings</span>
           </Link>
+          
+          {/* Business Overview Heading */}
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-5 flex items-center">
+            <Briefcase className="h-6 w-6 mr-2 text-primary" />
+            Business Overview
+          </h1>
           
           {/* Owner Actions */}
           {isCurrentUserOwner && (
