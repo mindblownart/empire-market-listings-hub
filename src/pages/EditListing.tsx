@@ -20,7 +20,7 @@ import DragContext from '@/components/media-uploader/DragContext';
 import { MediaFile } from '@/components/media-uploader/types';
 import { uploadBusinessMedia } from '@/utils/businessMediaUpload';
 
-// Define interface for the listing data to handle primary_image_index
+// Define interface for the listing data
 interface ListingData {
   business_name: string;
   category: string;
@@ -39,7 +39,7 @@ interface ListingData {
   contact_role?: string;
   gallery_images?: string[];
   video_url?: string;
-  primary_image_index?: number;
+  primary_image_url?: string;
   user_id: string;
   id?: string;
   created_at?: string;
@@ -300,6 +300,9 @@ const EditListing = () => {
         }
       }
       
+      // Set primary image URL to first image in the array if available
+      const primaryImageUrl = updatedImageUrls.length > 0 ? updatedImageUrls[0] : null;
+      
       // Prepare the update data
       const updateData = {
         business_name: formData.businessName,
@@ -321,8 +324,8 @@ const EditListing = () => {
         // Use the updated image URLs
         gallery_images: updatedImageUrls,
         video_url: formData.businessVideoUrl || null,
-        // Primary image is always first
-        primary_image_index: 0
+        // Set primary image URL directly instead of using an index
+        primary_image_url: primaryImageUrl
       };
       
       console.log("Updating listing with data:", updateData);
