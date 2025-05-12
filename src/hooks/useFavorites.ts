@@ -13,8 +13,7 @@ export const useFavorites = (userId?: string) => {
     const fetchFavorites = async () => {
       setIsLoading(true);
       try {
-        // Using any here to bypass TypeScript limitations since our database
-        // tables might not be fully typed in the generated types
+        // Using type assertion to bypass TypeScript limitations
         const { data, error } = await supabase
           .from('favorites')
           .select('listing_id')
@@ -22,7 +21,8 @@ export const useFavorites = (userId?: string) => {
           
         if (error) throw error;
         
-        setFavorites(data.map((item: any) => item.listing_id));
+        // Ensure we have an array of listing_ids
+        setFavorites(Array.isArray(data) ? data.map((item: any) => item.listing_id) : []);
       } catch (error) {
         console.error('Error fetching favorites:', error);
       } finally {
@@ -75,7 +75,7 @@ export const useFavorites = (userId?: string) => {
           .insert({
             user_id: userId,
             listing_id: listingId
-          } as any) as any;
+          }) as any;
           
         setFavorites([...favorites, listingId]);
       }
