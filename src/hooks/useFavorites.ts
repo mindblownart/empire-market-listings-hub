@@ -13,7 +13,7 @@ export const useFavorites = (userId?: string) => {
     const fetchFavorites = async () => {
       setIsLoading(true);
       try {
-        // Use the supabase client with type casting to handle favorites table
+        // Use type assertion to bypass TypeScript limitations
         const { data, error } = await (supabase as any)
           .from('favorites')
           .select('listing_id')

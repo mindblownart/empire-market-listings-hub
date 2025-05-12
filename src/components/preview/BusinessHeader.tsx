@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, LaptopIcon, UtensilsIcon, ShoppingBagIcon, FactoryIcon, HeartPulseIcon, BriefcaseIcon, ImageOff } from 'lucide-react';
+import { MapPin, LaptopIcon, UtensilsIcon, ShoppingBagIcon, FactoryIcon, HeartPulseIcon, BriefcaseIcon } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { getCountryNameFromCode } from '@/components/submit/countries';
 
@@ -61,11 +62,8 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
     return iconMapping[industryCode.toLowerCase()] || <BriefcaseIcon className="h-4 w-4" />;
   };
 
-  // Check if primary image is available and valid
-  const hasValidImage = primaryImage && primaryImage.trim() !== '';
-
-  // Render hero banner with image or placeholder
-  if (hasValidImage) {
+  // Render hero banner with image or fallback card
+  if (primaryImage) {
     return (
       <div className="w-full overflow-hidden rounded-lg shadow-md relative">
         <AspectRatio ratio={21/9} className="bg-gradient-to-b from-gray-700 to-gray-900">
@@ -127,7 +125,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
     );
   }
 
-  // If no image is available, show a placeholder or just a header card
+  // Fallback card header when no image is available
   return (
     <Card className="mb-8 shadow-md">
       <CardHeader className="relative">

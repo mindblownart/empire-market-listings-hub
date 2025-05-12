@@ -53,9 +53,5 @@ export interface CustomDatabase extends SupabaseDatabase {
         Update: Partial<Favorite>;
       };
     } & SupabaseDatabase['public']['Tables'];
-    Views: SupabaseDatabase['public']['Views'];
-    Functions: SupabaseDatabase['public']['Functions'];
-    Enums: SupabaseDatabase['public']['Enums'];
-    CompositeTypes: SupabaseDatabase['public']['CompositeTypes'];
   };
 }
