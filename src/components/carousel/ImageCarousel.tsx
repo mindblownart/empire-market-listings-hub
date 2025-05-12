@@ -57,7 +57,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   // Add keyboard navigation with improved event handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Process for any focused or non-focused state
+      // Process keyboard events globally
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         if (currentIndex > 0) {
@@ -110,12 +110,12 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
       </AspectRatio>
       
       {/* Navigation Controls - improved positioning, size and z-index */}
-      <div className="absolute inset-0 flex items-center justify-between z-20 pointer-events-none">
+      <div className="absolute inset-0 flex items-center justify-between z-40 pointer-events-none">
         <Button
           variant="ghost"
           size="icon"
           className={cn(
-            "h-14 w-14 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 ml-2 sm:ml-4 pointer-events-auto transition-opacity",
+            "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 ml-2 sm:ml-4 pointer-events-auto transition-opacity",
             isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
           )}
           onClick={handlePrev}
@@ -129,7 +129,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
           variant="ghost"
           size="icon"
           className={cn(
-            "h-14 w-14 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 mr-2 sm:mr-4 pointer-events-auto transition-opacity",
+            "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 mr-2 sm:mr-4 pointer-events-auto transition-opacity",
             isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
           )}
           onClick={handleNext}
@@ -142,7 +142,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
       
       {/* Navigation Indicators - improved styling and interaction */}
       {images.length > 1 && (
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-40">
           {images.map((_, index) => (
             <button
               key={index}
@@ -154,9 +154,9 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
               aria-label={`Go to image ${index + 1}`}
               aria-current={index === currentIndex ? 'true' : 'false'}
               className={cn(
-                "w-2 h-2 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-white",
+                "w-3 h-3 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-white",
                 index === currentIndex 
-                  ? "bg-white w-6" 
+                  ? "bg-white w-8" 
                   : "bg-white/50 hover:bg-white/70"
               )}
             />

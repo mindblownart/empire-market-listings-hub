@@ -205,12 +205,12 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       {mediaItems.length > 1 && (
         <>
           {/* Left arrow - increased size, padding and z-index */}
-          <div className="absolute left-0 top-0 bottom-0 flex items-center z-30 p-2">
+          <div className="absolute left-0 top-0 bottom-0 flex items-center justify-center z-50 px-2 sm:px-4 py-2 pointer-events-none">
             <Button
               variant="ghost"
               size="icon"
               className={cn(
-                "h-14 w-14 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md focus-visible:ring-2 transition-opacity",
+                "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md focus-visible:ring-2 transition-opacity pointer-events-auto",
                 isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
               )}
               onClick={handlePrev}
@@ -222,12 +222,12 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
           </div>
           
           {/* Right arrow - increased size, padding and z-index */}
-          <div className="absolute right-0 top-0 bottom-0 flex items-center z-30 p-2">
+          <div className="absolute right-0 top-0 bottom-0 flex items-center justify-center z-50 px-2 sm:px-4 py-2 pointer-events-none">
             <Button
               variant="ghost"
               size="icon"
               className={cn(
-                "h-14 w-14 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md focus-visible:ring-2 transition-opacity",
+                "h-16 w-16 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md focus-visible:ring-2 transition-opacity pointer-events-auto",
                 isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
               )}
               onClick={handleNext}
@@ -242,7 +242,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       
       {/* Improved thumbnail navigation indicators with better visibility */}
       {mediaItems.length > 1 && (
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-30">
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-50">
           {mediaItems.map((_, index) => (
             <button
               key={`indicator-${index}`}
@@ -255,10 +255,10 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                 }
               }}
               className={cn(
-                "min-w-6 h-2 rounded-full transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary",
+                "h-3 rounded-full transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pointer-events-auto",
                 activeIndex === index 
-                  ? "bg-primary w-10" 
-                  : "bg-gray-300 w-6 opacity-50 hover:opacity-75"
+                  ? "bg-primary w-8" 
+                  : "bg-gray-300 w-3 opacity-70 hover:opacity-100"
               )}
               aria-label={`Go to slide ${index + 1}`}
               aria-current={activeIndex === index ? 'true' : 'false'}
