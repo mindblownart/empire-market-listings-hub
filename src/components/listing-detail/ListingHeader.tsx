@@ -5,6 +5,12 @@ import { ChevronLeft, Edit, Trash2, Briefcase, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFavorites } from '@/hooks/useFavorites';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ListingHeaderProps {
   id: string;
@@ -59,21 +65,28 @@ export const ListingHeader: React.FC<ListingHeaderProps> = ({
         <div className="flex gap-3 w-full sm:w-auto">
           {/* Favorite Button for non-owners */}
           {!isCurrentUserOwner && (
-            <Button
-              variant="outline"
-              className={`flex items-center gap-2 ${
-                isFavorited 
-                  ? 'bg-yellow-400 border-yellow-400 text-white hover:bg-yellow-500 hover:border-yellow-500' 
-                  : 'hover:bg-gray-100'
-              }`}
-              onClick={handleFavoriteToggle}
-              disabled={isProcessingFavorite}
-            >
-              <Bookmark className={`h-4 w-4 ${
-                isFavorited ? 'text-white' : 'text-gray-500'
-              } ${isProcessingFavorite ? 'opacity-50' : ''}`} />
-              {isFavorited ? 'Saved' : 'Save'}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2 hover:bg-gray-100"
+                    onClick={handleFavoriteToggle}
+                    disabled={isProcessingFavorite}
+                  >
+                    <Bookmark 
+                      className={`h-4 w-4 text-gray-500 ${
+                        isFavorited ? 'fill-[#F4C542] text-[#F4C542]' : ''
+                      } ${isProcessingFavorite ? 'opacity-50' : ''}`} 
+                    />
+                    {isFavorited ? 'Saved' : 'Save'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isFavorited ? "Saved to favorites" : "Save to favorites"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           
           {/* Owner Actions */}
