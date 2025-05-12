@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -52,14 +53,15 @@ const Index = () => {
     fetchFeaturedListings();
 
     // Set up realtime subscription for business_listings
-    const channel = supabase.channel('public:business_listings')
+    const channel = supabase
+      .channel('public:business_listings')
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
           table: 'business_listings' 
         },
-        (payload) => {
+        () => {
           // Refresh the listings when there's a change
           fetchFeaturedListings();
         }

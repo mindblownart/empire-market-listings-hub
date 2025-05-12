@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { CustomDatabase } from '@/types/supabase';
 
 export const useFavorites = (userId?: string) => {
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -12,11 +13,11 @@ export const useFavorites = (userId?: string) => {
     const fetchFavorites = async () => {
       setIsLoading(true);
       try {
-        // Using any type to bypass TypeScript limitations since "favorites" is not in the generated types
-        const { data, error } = await supabase
+        // Use type assertion to bypass TypeScript limitations
+        const { data, error } = await (supabase as any)
           .from('favorites')
           .select('listing_id')
-          .eq('user_id', userId) as any;
+          .eq('user_id', userId);
           
         if (error) throw error;
         
@@ -60,11 +61,11 @@ export const useFavorites = (userId?: string) => {
     try {
       if (isFavorite) {
         // Remove from favorites
-        await supabase
+        await (supabase as any)
           .from('favorites')
           .delete()
           .eq('user_id', userId)
-          .eq('listing_id', listingId) as any;
+          .eq('listing_id', listingId);
           
         setFavorites(favorites.filter(id => id !== listingId));
       } else {
@@ -74,9 +75,9 @@ export const useFavorites = (userId?: string) => {
           listing_id: listingId
         };
         
-        await supabase
+        await (supabase as any)
           .from('favorites')
-          .insert(favoriteData) as any;
+          .insert(favoriteData);
           
         setFavorites([...favorites, listingId]);
       }
