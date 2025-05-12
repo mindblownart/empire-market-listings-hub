@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import type { Favorite } from '@/types/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useFavorites = (userId?: string) => {
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -13,7 +12,6 @@ export const useFavorites = (userId?: string) => {
     const fetchFavorites = async () => {
       setIsLoading(true);
       try {
-        // Using a properly typed query approach
         const { data, error } = await supabase
           .from('favorites')
           .select('listing_id')
