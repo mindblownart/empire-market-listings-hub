@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +30,11 @@ const FormContainer: React.FC<FormContainerProps> = ({
   const { formData } = useFormData();
   const { handleSubmit, isSubmitting: defaultIsSubmitting, validateAllFields } = useBusinessSubmission();
   const [isValidating, setIsValidating] = useState(false);
+  
+  // Memoize validation check to prevent re-renders
+  const canPreview = useCallback(() => {
+    return !previewDisabled && !isValidating;
+  }, [previewDisabled, isValidating]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,7 +147,7 @@ const FormContainer: React.FC<FormContainerProps> = ({
           variant="outline" 
           className="px-10 py-6 text-lg flex items-center gap-2 transition-all hover:bg-gray-100" 
           onClick={handlePreview}
-          disabled={previewDisabled || (isValidating && !validateAllFields(formData))}
+          disabled={!canPreview()}
         >
           <Eye className="h-5 w-5" /> 
           {isValidating ? 'Validating...' : 'Preview'}

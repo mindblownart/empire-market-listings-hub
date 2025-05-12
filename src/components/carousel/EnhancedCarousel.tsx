@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Set up media items to display (primary image first, then video, then other images)
+  // Use useMemo to prevent unnecessary recalculations
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
     
@@ -40,7 +41,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       items.push({ type: 'image', url: validImages[0] });
     }
     
-    // ALWAYS add video as second item if available - this is the key fix
+    // ALWAYS add video as second item if available
     if (videoURL) {
       items.push({ type: 'video', url: videoURL });
     }
@@ -59,11 +60,15 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
     setActiveIndex(0);
   }, [images, videoURL, skipPrimaryImage]);
 
-  // Calculate display states
-  const hasMedia = mediaItems.length > 0;
-  const hasMultipleItems = mediaItems.length > 1;
-  const isAtStart = activeIndex === 0;
-  const isAtEnd = activeIndex === mediaItems.length - 1;
+  // Memoize display states to prevent unnecessary re-renders
+  const displayState = useMemo(() => {
+    const hasMedia = mediaItems.length > 0;
+    const hasMultipleItems = mediaItems.length > 1;
+    const isAtStart = activeIndex === 0;
+    const isAtEnd = activeIndex === mediaItems.length - 1;
+    
+    return { hasMedia, hasMultipleItems, isAtStart, isAtEnd };
+  }, [mediaItems, activeIndex]);
   
   // Event handlers for navigation
   const handlePrev = (e?: React.MouseEvent) => {
@@ -105,17 +110,17 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       }
     };
     
-    if (hasMultipleItems) {
+    if (displayState.hasMultipleItems) {
       window.addEventListener('keydown', handleKeyDown);
     }
     
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [activeIndex, hasMultipleItems]);
+  }, [activeIndex, displayState.hasMultipleItems]);
 
   // Fallback when no media is available
-  if (!hasMedia) {
+  if (!displayState.hasMedia) {
     return (
       <div className="w-full rounded-lg overflow-hidden">
         <AspectRatio ratio={16 / 9} className="bg-gray-100">
@@ -154,19 +159,19 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       </div>
       
       {/* Navigation arrows - only shown if multiple items */}
-      {hasMultipleItems && (
+      {displayState.hasMultipleItems && (
         <>
           {/* Left navigation arrow */}
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={handlePrev}
-            disabled={isAtStart}
+            disabled={displayState.isAtStart}
             className={cn(
               "absolute left-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
               "bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800",
               "shadow-md z-20 transition-opacity",
-              isAtStart ? "opacity-60" : "opacity-100"
+              displayState.isAtStart ? "opacity-60" : "opacity-100"
             )}
             aria-label="Previous item"
           >
@@ -178,12 +183,12 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
             variant="ghost" 
             size="icon" 
             onClick={handleNext}
-            disabled={isAtEnd}
+            disabled={displayState.isAtEnd}
             className={cn(
               "absolute right-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
               "bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800",
               "shadow-md z-20 transition-opacity",
-              isAtEnd ? "opacity-60" : "opacity-100"
+              displayState.isAtEnd ? "opacity-60" : "opacity-100"
             )}
             aria-label="Next item"
           >
@@ -193,7 +198,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       )}
       
       {/* Pagination indicators - only shown if multiple items */}
-      {hasMultipleItems && (
+      {displayState.hasMultipleItems && (
         <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
           {mediaItems.map((_, index) => (
             <button

@@ -1,5 +1,5 @@
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ interface VideoPlayerProps {
   autoplay?: boolean;
 }
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({
+const VideoPlayerComponent: React.FC<VideoPlayerProps> = ({
   url,
   autoplay = false
 }) => {
@@ -23,56 +23,68 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       
       // Play video with a short delay to ensure DOM is ready
       const timer = setTimeout(() => {
-        const playPromise = videoRef.current?.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            console.log('Autoplay prevented:', error);
-          });
+        if (videoRef.current) {
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(error => {
+              console.log('Autoplay prevented:', error);
+            });
+          }
         }
       }, 300); // Increased delay for better reliability
       
       return () => clearTimeout(timer);
     }
-  }, [autoplay, isMuted, url]);
+  }, [autoplay, url]);
+  
+  // Update mute state when it changes
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
   
   // Toggle mute state with improved event handling
-  const toggleMute = (e: React.MouseEvent) => {
+  const toggleMute = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent click from bubbling to parent elements
+    setIsMuted(prevState => !prevState);
+  }, []);
+
+  // Memoize URL processing to reduce render cycles
+  const videoUrls = useMemo(() => {
+    // Determine video type (YouTube, Vimeo, or direct file)
+    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+    const isVimeo = url.includes('vimeo.com');
     
-    if (videoRef.current) {
-      const newMutedState = !isMuted;
-      videoRef.current.muted = newMutedState;
-      setIsMuted(newMutedState);
-    }
-  };
+    // Create embed URL for YouTube videos
+    const getYoutubeEmbedUrl = () => {
+      let videoId = '';
+      if (url.includes('v=')) {
+        videoId = url.split('v=')[1].split('&')[0];
+      } else if (url.includes('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1].split('?')[0];
+      }
+      return `https://www.youtube.com/embed/${videoId}?autoplay=${autoplay ? '1' : '0'}&mute=${isMuted ? '1' : '0'}&loop=1&playlist=${videoId}`;
+    };
 
-  // Determine video type (YouTube, Vimeo, or direct file)
-  const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
-  const isVimeo = url.includes('vimeo.com');
+    // Create embed URL for Vimeo videos
+    const getVimeoEmbedUrl = () => {
+      const videoId = url.split('/').pop() || '';
+      return `https://player.vimeo.com/video/${videoId}?autoplay=${autoplay ? '1' : '0'}&muted=${isMuted ? '1' : '0'}&loop=1&background=1`;
+    };
+    
+    return { isYouTube, isVimeo, youtubeUrl: getYoutubeEmbedUrl(), vimeoUrl: getVimeoEmbedUrl() };
+  }, [url, autoplay, isMuted]);
   
-  // Create embed URL for YouTube videos
-  const getYoutubeEmbedUrl = () => {
-    let videoId = '';
-    if (url.includes('v=')) {
-      videoId = url.split('v=')[1].split('&')[0];
-    } else if (url.includes('youtu.be/')) {
-      videoId = url.split('youtu.be/')[1].split('?')[0];
-    }
-    return `https://www.youtube.com/embed/${videoId}?autoplay=${autoplay ? '1' : '0'}&mute=${isMuted ? '1' : '0'}&loop=1&playlist=${videoId}`;
-  };
-
-  // Create embed URL for Vimeo videos
-  const getVimeoEmbedUrl = () => {
-    const videoId = url.split('/').pop() || '';
-    return `https://player.vimeo.com/video/${videoId}?autoplay=${autoplay ? '1' : '0'}&muted=${isMuted ? '1' : '0'}&loop=1&background=1`;
-  };
+  // Fix rendering to prevent infinite loops
+  const { isYouTube, isVimeo, youtubeUrl, vimeoUrl } = videoUrls;
   
   return (
     <AspectRatio ratio={16 / 9} className="bg-transparent overflow-hidden rounded-lg">
       {isYouTube ? (
         <iframe 
-          src={getYoutubeEmbedUrl()}
+          src={youtubeUrl}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
           allowFullScreen
           className="w-full h-full"
@@ -80,7 +92,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         />
       ) : isVimeo ? (
         <iframe 
-          src={getVimeoEmbedUrl()}
+          src={vimeoUrl}
           allow="autoplay; fullscreen; picture-in-picture"
           allowFullScreen
           className="w-full h-full"
@@ -115,3 +127,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     </AspectRatio>
   );
 };
+
+// Prevent unnecessary re-renders with memo
+export const VideoPlayer = React.memo(VideoPlayerComponent);
