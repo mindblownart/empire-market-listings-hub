@@ -10,7 +10,7 @@ import { BusinessFormData } from '@/contexts/FormDataContext';
 export const useBusinessSubmission = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { validationErrors, validateField, validateAllFields } = useFormValidation();
+  const { validationErrors, validateField, validateAllFields, clearValidationErrors } = useFormValidation();
   
   // Handle form submission
   const handleSubmit = async (formData: BusinessFormData) => {
@@ -137,18 +137,34 @@ export const useBusinessSubmission = () => {
         setIsSubmitting(false);
       }
     } else {
-      toast.error("Please fix the errors in the form before submitting.");
+      toast.error("Please fix the errors in the form before submitting.", {
+        style: {
+          border: '1px solid #f87171',
+          borderRadius: '0.375rem',
+          background: '#fff',
+          color: '#ef4444',
+        },
+      });
+      
       // Focus on the first field with an error
       const firstErrorField = Object.keys(validationErrors).find(
         field => validationErrors[field]
       );
+      
       if (firstErrorField) {
-        const element = document.getElementById(`business-${firstErrorField}`);
-        if (element) element.focus();
+        const elementId = firstErrorField === 'businessName' ? 'business-name' : 
+                          `business-${firstErrorField.toLowerCase().replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+        const element = document.getElementById(elementId);
+        if (element) {
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.focus();
+          }, 100);
+        }
       }
       return false;
     }
   };
   
-  return { handleSubmit, isSubmitting, validationErrors, validateField };
+  return { handleSubmit, isSubmitting, validationErrors, validateField, clearValidationErrors };
 };

@@ -14,6 +14,7 @@ interface FormContainerProps {
   isSubmitting?: boolean;
   onPreview?: () => void; // Custom preview handler
   previewDisabled?: boolean; // New prop to disable preview button
+  onValidate?: () => boolean; // New prop for custom validation
 }
 
 const FormContainer: React.FC<FormContainerProps> = ({ 
@@ -22,15 +23,21 @@ const FormContainer: React.FC<FormContainerProps> = ({
   submitLabel,
   isSubmitting,
   onPreview,
-  previewDisabled = false
+  previewDisabled = false,
+  onValidate
 }) => {
   const navigate = useNavigate();
   const { formData } = useFormData();
-  const { handleSubmit, isSubmitting: defaultIsSubmitting } = useBusinessSubmission();
+  const { handleSubmit, isSubmitting: defaultIsSubmitting, validateAllFields } = useBusinessSubmission();
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Run custom validation if provided
+      if (onValidate && !onValidate()) {
+        return;
+      }
+      
       if (onSubmit) {
         await onSubmit();
         // The navigation will now be handled in the onSubmit function itself
@@ -47,13 +54,38 @@ const FormContainer: React.FC<FormContainerProps> = ({
       }
     } catch (error) {
       console.error("Form submission error:", error);
-      toast.error("Failed to save changes. Please try again.");
+      toast.error("Failed to save changes. Please try again.", {
+        style: {
+          border: '1px solid #f87171',
+          borderRadius: '0.375rem',
+          background: '#fff',
+          color: '#ef4444',
+        },
+      });
     }
   };
 
   // Handle preview click - ensure all form data is captured before navigating
   const handlePreview = (e: React.MouseEvent) => {
     e.preventDefault();
+    
+    // Run validation if onValidate is provided
+    if (onValidate && !onValidate()) {
+      return;
+    }
+    
+    // Run default validation for required fields
+    if (!validateAllFields(formData)) {
+      toast.error("Please complete all required fields before previewing.", {
+        style: {
+          border: '1px solid #f87171',
+          borderRadius: '0.375rem',
+          background: '#fff',
+          color: '#ef4444',
+        },
+      });
+      return;
+    }
     
     // Store current form data in sessionStorage to preserve across navigation
     sessionStorage.setItem('previewFormData', JSON.stringify(formData));

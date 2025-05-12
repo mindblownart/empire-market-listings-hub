@@ -24,6 +24,7 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({
         onValueChange={onChange}
         placeholder="Select your country"
         required
+        className={error ? "border-red-500" : ""}
       />
       {error && (
         <p className="text-sm font-medium text-red-500">{error}</p>

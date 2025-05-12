@@ -15,11 +15,15 @@ import PhoneInput from '@/components/submit/PhoneInput';
 interface ContactInformationProps {
   formData: BusinessFormData;
   updateFormData: (data: Partial<BusinessFormData>) => void;
+  validationErrors?: Record<string, string>;
+  validateField?: (field: string, value: any) => boolean;
 }
 
 const ContactInformation: React.FC<ContactInformationProps> = ({
   formData,
-  updateFormData
+  updateFormData,
+  validationErrors = {},
+  validateField
 }) => {
   // Handle key press in fields to enable tabbing in the proper order
   const handleKeyDown = (e: React.KeyboardEvent, nextFieldId: string) => {
@@ -30,9 +34,32 @@ const ContactInformation: React.FC<ContactInformationProps> = ({
     }
   };
 
+  // Handle input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    updateFormData({ [name]: value });
+    
+    if (validateField) {
+      validateField(name, value);
+    }
+  };
+
   // Handle select changes
   const handleSelectChange = (id: string, value: string) => {
     updateFormData({ [id]: value });
+    
+    if (validateField) {
+      validateField(id, value);
+    }
+  };
+
+  // Handle phone changes
+  const handlePhoneChange = (value: string) => {
+    updateFormData({ phone: value });
+    
+    if (validateField) {
+      validateField('phone', value);
+    }
   };
   
   return (
@@ -43,31 +70,42 @@ const ContactInformation: React.FC<ContactInformationProps> = ({
           <Label htmlFor="full-name">Full Name</Label>
           <Input 
             id="full-name" 
+            name="fullName"
             placeholder="Enter your full name"
             value={formData.fullName}
-            onChange={(e) => updateFormData({ fullName: e.target.value })}
+            onChange={handleInputChange}
             onKeyDown={(e) => handleKeyDown(e, 'email')}
+            className={validationErrors.fullName ? "border-red-500 focus-visible:ring-red-500" : ""}
           />
+          {validationErrors.fullName && (
+            <p className="text-sm font-medium text-red-500">{validationErrors.fullName}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input 
             id="email" 
+            name="email"
             type="email" 
             placeholder="Enter your email"
             value={formData.email}
-            onChange={(e) => updateFormData({ email: e.target.value })}
+            onChange={handleInputChange}
             onKeyDown={(e) => handleKeyDown(e, 'phone')}
+            className={validationErrors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
           />
+          {validationErrors.email && (
+            <p className="text-sm font-medium text-red-500">{validationErrors.email}</p>
+          )}
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div>
+        <div className="space-y-2">
           <PhoneInput
             id="phone"
             value={formData.phone}
-            onChange={(value) => updateFormData({ phone: value })}
+            onChange={handlePhoneChange}
+            error={validationErrors.phone}
           />
         </div>
         <div className="space-y-2">
@@ -76,7 +114,10 @@ const ContactInformation: React.FC<ContactInformationProps> = ({
             value={formData.role}
             onValueChange={(value) => handleSelectChange('role', value)}
           >
-            <SelectTrigger id="role">
+            <SelectTrigger 
+              id="role"
+              className={validationErrors.role ? "border-red-500 focus-visible:ring-red-500" : ""}
+            >
               <SelectValue placeholder="Select your role" />
             </SelectTrigger>
             <SelectContent>
@@ -86,6 +127,9 @@ const ContactInformation: React.FC<ContactInformationProps> = ({
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
+          {validationErrors.role && (
+            <p className="text-sm font-medium text-red-500">{validationErrors.role}</p>
+          )}
         </div>
       </div>
     </>

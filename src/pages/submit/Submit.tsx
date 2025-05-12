@@ -17,7 +17,7 @@ import { MediaFile } from '@/components/media-uploader/types';
 
 const Submit = () => {
   const { formData, updateFormData } = useFormData();
-  const { validationErrors, validateField } = useBusinessSubmission();
+  const { validationErrors, validateField, validateAllFields } = useBusinessSubmission();
   
   // Handler for reordering images
   const handleImagesReorder = (reorderedImages: string[]) => {
@@ -27,6 +27,11 @@ const Submit = () => {
     // Also store for returning to form after preview
     sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(reorderedImages));
     console.log("Images reordered in Submit component:", reorderedImages);
+  };
+  
+  // Custom validation function for the form
+  const validateForm = () => {
+    return validateAllFields(formData);
   };
   
   return (
@@ -42,7 +47,7 @@ const Submit = () => {
             </p>
             
             <div className="bg-white rounded-xl shadow-md p-8">
-              <FormContainer>
+              <FormContainer onValidate={validateForm}>
                 <BusinessDetails 
                   formData={formData}
                   updateFormData={updateFormData}
@@ -89,6 +94,8 @@ const Submit = () => {
                 <ContactInformation 
                   formData={formData}
                   updateFormData={updateFormData}
+                  validationErrors={validationErrors}
+                  validateField={validateField}
                 />
               </FormContainer>
             </div>

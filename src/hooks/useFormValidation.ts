@@ -21,10 +21,16 @@ export const useFormValidation = () => {
         if (!value) error = 'Location is required';
         break;
       case 'askingPrice':
+        if (!value) {
+          error = 'Asking price is required';
+        } else if (value && !/^[0-9]+(\.[0-9]{1,2})?$/.test(value)) {
+          error = 'Please enter a valid number';
+        }
+        break;
       case 'annualRevenue':
       case 'annualProfit':
         if (value && !/^[0-9]+(\.[0-9]{1,2})?$/.test(value)) {
-          error = 'Please enter a valid number (e.g., 1000 or 1000.50)';
+          error = 'Please enter a valid number';
         }
         break;
       case 'yearEstablished':
@@ -41,6 +47,22 @@ export const useFormValidation = () => {
         if (value && value.trim().length < 10) {
           error = 'Description must be at least 10 characters long';
         }
+        break;
+      case 'fullName':
+        if (!value.trim()) error = 'Full name is required';
+        break;
+      case 'email':
+        if (!value.trim()) {
+          error = 'Email is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          error = 'Please enter a valid email address';
+        }
+        break;
+      case 'phone':
+        if (!value.trim()) error = 'Phone number is required';
+        break;
+      case 'role':
+        if (!value) error = 'Role is required';
         break;
       default:
         break;
@@ -65,7 +87,11 @@ export const useFormValidation = () => {
       { name: 'annualProfit', value: formData.annualProfit },
       { name: 'description', value: formData.description },
       { name: 'yearEstablished', value: formData.yearEstablished },
-      { name: 'employees', value: formData.employees }
+      { name: 'employees', value: formData.employees },
+      { name: 'fullName', value: formData.fullName },
+      { name: 'email', value: formData.email },
+      { name: 'phone', value: formData.phone },
+      { name: 'role', value: formData.role }
     ];
     
     let isValid = true;
@@ -79,5 +105,10 @@ export const useFormValidation = () => {
     return isValid;
   };
 
-  return { validationErrors, validateField, validateAllFields };
+  // Clear all validation errors
+  const clearValidationErrors = () => {
+    setValidationErrors({});
+  };
+
+  return { validationErrors, validateField, validateAllFields, clearValidationErrors };
 };
