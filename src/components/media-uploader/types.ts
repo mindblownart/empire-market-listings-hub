@@ -51,4 +51,6 @@ export interface BusinessMediaUploaderProps {
   onVideoChange?: (video: File | null) => void;
   onVideoUrlChange?: (url: string) => void;
   onSetPrimaryImage?: (index: number) => void;
+  onImagesReorder?: (reorderedImages: string[]) => void;
 }
+
