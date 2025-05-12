@@ -59,7 +59,24 @@ export const useFormValidation = () => {
         }
         break;
       case 'phone':
-        if (!value.trim()) error = 'Phone number is required';
+        if (!value.trim()) {
+          error = 'Phone number is required';
+        } else if (!value.startsWith('+')) {
+          error = 'Phone number must include country code (e.g., +1)';
+        } else {
+          // Remove the country code part (everything after the +)
+          const nationalNumber = value.replace(/^\+\d+\s*/, '');
+          // Remove all non-digit characters
+          const digitsOnly = nationalNumber.replace(/\D/g, '');
+          
+          // Basic validation: make sure there are at least 5 digits after the country code
+          if (digitsOnly.length < 5) {
+            error = 'Phone number is too short';
+          } else if (digitsOnly.length > 15) {
+            // International standard: phone numbers should be 15 digits or less
+            error = 'Phone number is too long';
+          }
+        }
         break;
       case 'role':
         if (!value) error = 'Role is required';
