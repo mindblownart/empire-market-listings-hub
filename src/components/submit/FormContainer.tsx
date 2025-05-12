@@ -94,17 +94,12 @@ const FormContainer: React.FC<FormContainerProps> = ({
       }
       
       // Run default validation for required fields only if custom validation passed
-      // And only if there's no custom validation or it passed
-      if (isValid) {
-        const requiredFieldsValid = validateAllFields(formData);
-        
-        if (!requiredFieldsValid) {
-          toast.error("Please complete all required fields before previewing.", {
-            description: "Check for highlighted fields that need attention."
-          });
-          setIsValidating(false);
-          return;
-        }
+      const requiredFieldsValid = validateAllFields(formData);
+      
+      if (!requiredFieldsValid) {
+        // Validation error is shown by validateAllFields
+        setIsValidating(false);
+        return;
       }
       
       // Store current form data in sessionStorage to preserve across navigation
@@ -147,7 +142,7 @@ const FormContainer: React.FC<FormContainerProps> = ({
           variant="outline" 
           className="px-10 py-6 text-lg flex items-center gap-2 transition-all hover:bg-gray-100" 
           onClick={handlePreview}
-          disabled={!canPreview()}
+          disabled={isValidating}
         >
           <Eye className="h-5 w-5" /> 
           {isValidating ? 'Validating...' : 'Preview'}

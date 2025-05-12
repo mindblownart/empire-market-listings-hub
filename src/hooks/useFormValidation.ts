@@ -47,7 +47,9 @@ export const useFormValidation = () => {
         }
         break; 
       case 'description':
-        if (value && value.trim().length < 10) {
+        if (!value || value.trim() === '') {
+          error = 'Description is required';
+        } else if (value && value.trim().length < 10) {
           error = 'Description must be at least 10 characters long';
         }
         break;
@@ -107,6 +109,7 @@ export const useFormValidation = () => {
       { name: 'askingPrice', value: formData.askingPrice, label: 'Asking price' },
       { name: 'annualRevenue', value: formData.annualRevenue, label: 'Annual revenue' },
       { name: 'annualProfit', value: formData.annualProfit, label: 'Annual profit' },
+      { name: 'description', value: formData.description, label: 'Business description' },
       { name: 'yearEstablished', value: formData.yearEstablished, label: 'Year established' },
       { name: 'employees', value: formData.employees, label: 'Employee count' },
       { name: 'fullName', value: formData.fullName, label: 'Full name' },
@@ -117,6 +120,17 @@ export const useFormValidation = () => {
     
     // Track missing fields for the toast message
     const missingFields: string[] = [];
+    
+    // Check if we have at least one image
+    const hasAtLeastOneImage = 
+      (formData.businessImages && formData.businessImages.length > 0) || 
+      (sessionStorage.getItem('imageOrder') && JSON.parse(sessionStorage.getItem('imageOrder') || '[]').length > 0);
+      
+    if (!hasAtLeastOneImage) {
+      missingFields.push('Primary image');
+      allErrors['businessImages'] = 'At least one image is required';
+      isValid = false;
+    }
     
     requiredFields.forEach(field => {
       // Check if the field actually has a value before validation
@@ -148,6 +162,21 @@ export const useFormValidation = () => {
       toast.error(`Please complete all required fields`, {
         description: `Missing information: ${missingFieldsList}`
       });
+      
+      // Find the first element with an error and scroll to it
+      setTimeout(() => {
+        const firstErrorField = Object.keys(allErrors)[0];
+        if (firstErrorField) {
+          const elementId = firstErrorField === 'businessName' ? 'business-name' : 
+                          firstErrorField === 'businessImages' ? 'media-upload' :
+                          `business-${firstErrorField.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+          const element = document.getElementById(elementId);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.focus();
+          }
+        }
+      }, 100);
     }
     
     return isValid;
