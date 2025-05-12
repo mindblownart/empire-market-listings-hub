@@ -12,10 +12,21 @@ export type MediaItem = {
   file?: MediaFile | File;
   isPrimary?: boolean;
   isEmpty?: boolean;
-  videoInfo?: {
-    platform: 'youtube' | 'vimeo' | 'file';
-    id?: string;
-  };
+  isNew?: boolean; // Add this property to fix the TypeScript errors
+  videoInfo?: VideoInfo;
+};
+
+// Add the VideoInfo type
+export type VideoInfo = {
+  platform: 'youtube' | 'vimeo' | 'file';
+  id?: string;
+};
+
+// Add the DragItem type
+export type DragItem = {
+  id: string;
+  index: number;
+  type: string;
 };
 
 export interface BusinessMediaUploaderProps {
