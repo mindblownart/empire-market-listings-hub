@@ -34,11 +34,20 @@ export const ListingContent: React.FC<ListingContentProps> = ({ business }) => {
   // Ensure location is properly formatted for flag display
   const flagCode = business.location ? business.location.toLowerCase() : "gl";
   
+  // Create an array of all images for the gallery, making sure primary is first and videoURL is validated
+  const allGalleryImages = business.primary_image_url 
+    ? [business.primary_image_url, ...(business.gallery_images || [])]
+    : business.gallery_images || [];
+  
+  const validVideoUrl = business.video_url && business.video_url.trim() !== ''
+    ? business.video_url
+    : null;
+  
   // Log business media data for debugging
-  console.log("ListingContent received business media:", {
+  console.log("ListingContent prepared media:", {
     primaryImage: heroImage,
-    galleryImages: business.gallery_images,
-    videoUrl: business.video_url
+    allGalleryImages,
+    videoUrl: validVideoUrl
   });
 
   return (
@@ -60,10 +69,10 @@ export const ListingContent: React.FC<ListingContentProps> = ({ business }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Media Gallery and Business Overview */}
         <div className="lg:col-span-2 space-y-6">
-          {/* FIXED: Ensure video is properly passed to MediaGallery */}
+          {/* Pass all media to the gallery */}
           <MediaGallery 
-            galleryImages={business.gallery_images || []} 
-            videoURL={business.video_url} 
+            galleryImages={allGalleryImages}
+            videoURL={validVideoUrl}
             autoplayVideo={true} 
             skipPrimaryImage={true} // Skip primary image since it's shown in hero
           />

@@ -28,13 +28,10 @@ const BusinessContentPreview: React.FC<BusinessContentPreviewProps> = ({
     console.log("BusinessContentPreview rendered with props:", {
       formDataKeys: Object.keys(formData),
       imageUrlsCount: imageUrls.length,
-      videoURL,
+      imageUrls: imageUrls,
+      videoURL: videoURL,
       flagCode
     });
-    
-    // Add console log to debug the video URL right before rendering
-    console.log("BusinessContentPreview with videoURL:", videoURL);
-    console.log("Images to display:", imageUrls);
   }, [formData, imageUrls, videoURL, flagCode]);
   
   // Ensure we have a valid primary image for the hero section
@@ -59,7 +56,7 @@ const BusinessContentPreview: React.FC<BusinessContentPreviewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Media Gallery and Business Overview */}
         <div className="lg:col-span-2 space-y-6">
-          {/* FIXED: Pass video URL correctly to MediaGallery */}
+          {/* Pass video URL correctly to MediaGallery */}
           <MediaGallery 
             galleryImages={imageUrls} 
             videoURL={videoURL}

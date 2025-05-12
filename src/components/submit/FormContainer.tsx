@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
@@ -99,10 +100,11 @@ const FormContainer: React.FC<FormContainerProps> = ({
         return;
       }
       
-      // FIXED: JSON serialization issue with File objects
+      // FIXED: Clean file objects properly to avoid circular references
       // Create a safe version of form data without circular references
       const safeFormData = {
         ...formData,
+        // Remove the raw file objects
         businessImages: undefined,
         businessVideo: null,
         // Keep other properties intact
@@ -148,9 +150,26 @@ const FormContainer: React.FC<FormContainerProps> = ({
         console.log("Image ordering saved for preview:", imageOrdering);
       }
       
-      // FIXED: Ensure video URL is properly handled
-      // Critical fix: Ensure video URL always gets saved to session storage for preview
-      if (formData.businessVideoUrl && formData.businessVideoUrl.trim() !== '') {
+      // CRITICAL FIX: Handle video files - create a cleaned version without circular refs
+      if (formData.businessVideo instanceof File) {
+        try {
+          // Create a cleaned version of the File object
+          const cleanedFile = {
+            name: formData.businessVideo.name,
+            size: formData.businessVideo.size,
+            type: formData.businessVideo.type,
+            lastModified: formData.businessVideo.lastModified,
+            previewUrl: URL.createObjectURL(formData.businessVideo)
+          };
+          
+          console.log("Storing cleaned video file metadata:", cleanedFile);
+          sessionStorage.setItem('previewVideoFile', JSON.stringify(cleanedFile));
+          console.log("Video file info saved for preview");
+        } catch (videoError) {
+          console.error("Error storing video file info:", videoError);
+        }
+      } else if (formData.businessVideoUrl && formData.businessVideoUrl.trim() !== '') {
+        // Handle video URL
         try {
           console.log("Storing video URL in session storage:", formData.businessVideoUrl);
           sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
@@ -159,9 +178,10 @@ const FormContainer: React.FC<FormContainerProps> = ({
           console.error("Error storing video URL:", videoError);
         }
       } else {
-        // Ensure we clear any previous video URL if none exists now
-        console.log("No video URL found, clearing from session storage");
+        // Ensure we clear any previous video data if none exists now
+        console.log("No video found, clearing from session storage");
         sessionStorage.removeItem('previewVideoUrl');
+        sessionStorage.removeItem('previewVideoFile');
       }
       
       // Use custom preview handler if provided, otherwise use default behavior
