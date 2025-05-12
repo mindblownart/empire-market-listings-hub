@@ -15,13 +15,12 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   autoplayVideo = true,
   skipPrimaryImage = true,
 }) => {
-  // Enhanced debugging
+  // Log incoming props for debugging
   console.log("MediaGallery received props:", { 
     galleryImagesCount: galleryImages.length, 
     videoURL, 
     autoplayVideo, 
-    skipPrimaryImage,
-    firstImage: galleryImages.length > 0 ? galleryImages[0] : 'none' 
+    skipPrimaryImage 
   });
   
   // Skip the first image when skipPrimaryImage is true and there's at least one image
@@ -29,8 +28,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     ? galleryImages.slice(1)
     : [...galleryImages];
   
-  console.log("MediaGallery - Images to display:", displayImages);
-  console.log("MediaGallery - Video URL to display:", videoURL);
+  console.log("Displaying images:", displayImages);
   
   return (
     <EnhancedCarousel
