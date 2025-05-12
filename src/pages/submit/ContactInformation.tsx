@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { BusinessFormData } from '@/contexts/FormDataContext';
+import PhoneInput from '@/components/submit/PhoneInput';
 
 interface ContactInformationProps {
   formData: BusinessFormData;
@@ -62,14 +63,11 @@ const ContactInformation: React.FC<ContactInformationProps> = ({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number</Label>
-          <Input 
-            id="phone" 
-            placeholder="Enter your phone number"
+        <div>
+          <PhoneInput
+            id="phone"
             value={formData.phone}
-            onChange={(e) => updateFormData({ phone: e.target.value })}
-            onKeyDown={(e) => handleKeyDown(e, 'role')}
+            onChange={(value) => updateFormData({ phone: value })}
           />
         </div>
         <div className="space-y-2">

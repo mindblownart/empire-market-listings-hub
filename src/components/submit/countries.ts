@@ -43,6 +43,17 @@ export const countries: CountryData[] = [
   { name: "Turkey", flagCode: "tr", currencyCode: "TRY" }
 ];
 
+// Map of country dial codes
+export const countryDialCodes: Record<string, string> = {
+  us: "+1", gb: "+44", sg: "+65", au: "+61", ca: "+1",
+  de: "+49", fr: "+33", jp: "+81", in: "+91", my: "+60",
+  cn: "+86", id: "+62", th: "+66", vn: "+84", ph: "+63",
+  hk: "+852", kr: "+82", br: "+55", mx: "+52", es: "+34",
+  it: "+39", nl: "+31", be: "+32", ch: "+41", se: "+46",
+  no: "+47", dk: "+45", ie: "+353", nz: "+64", ae: "+971",
+  sa: "+966", za: "+27", ru: "+7", tr: "+90"
+};
+
 // Convert countries to options format for SearchableSelect
 export const countryOptions = countries.map(country => ({
   value: country.flagCode,
@@ -53,6 +64,24 @@ export const countryOptions = countries.map(country => ({
 // Find country by flag code
 export const findCountryByFlagCode = (flagCode: string): CountryData | undefined => {
   return countries.find(country => country.flagCode === flagCode);
+};
+
+// Format phone number with international format
+export const formatPhoneNumber = (phoneNumber: string): string => {
+  if (!phoneNumber) return 'Not provided';
+  
+  // If already in international format (starts with +), return as is
+  if (phoneNumber.startsWith('+')) return phoneNumber;
+  
+  // Try to detect country code from the beginning of the number
+  for (const [code, dialCode] of Object.entries(countryDialCodes)) {
+    if (phoneNumber.startsWith(dialCode)) {
+      return phoneNumber;
+    }
+  }
+  
+  // Default to US format if no country code detected
+  return `+1 ${phoneNumber}`;
 };
 
 // Get full country name from country code

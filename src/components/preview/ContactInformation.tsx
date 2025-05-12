@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Mail, Phone, AtSign, Contact } from 'lucide-react';
+import { formatPhoneNumber } from '@/components/submit/countries';
 
 interface ContactInformationProps {
   contactName?: string;
@@ -48,14 +49,14 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
             </div>
           </div>
           
-          {/* Phone Number row */}
+          {/* Phone Number row - now using formatPhoneNumber */}
           <div className="flex items-start">
             <div className="w-[40%] flex items-center">
               <Phone className="h-4 w-4 mr-2 text-gray-500 flex-shrink-0" />
               <span className="text-gray-500">Phone Number</span>
             </div>
             <div className="w-[60%] text-right font-medium break-words">
-              {contactPhone || 'Not provided'}
+              {formatPhoneNumber(contactPhone || '')}
             </div>
           </div>
           
