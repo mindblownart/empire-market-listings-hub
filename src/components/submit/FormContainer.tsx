@@ -67,6 +67,7 @@ const FormContainer: React.FC<FormContainerProps> = ({
     
     // Store current form data in sessionStorage to preserve across navigation
     sessionStorage.setItem('previewFormData', JSON.stringify(formData));
+    sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
     
     // We'll allow preview without validation
     // but let's show a toast if there are major issues
@@ -78,6 +79,7 @@ const FormContainer: React.FC<FormContainerProps> = ({
     const imageOrdering = sessionStorage.getItem('imageOrder');
     if (imageOrdering) {
       sessionStorage.setItem('previewImageOrdering', imageOrdering);
+      sessionStorage.setItem('lastSavedImageOrdering', imageOrdering);
     }
     
     // Use custom preview handler if provided, otherwise use default behavior

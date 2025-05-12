@@ -59,9 +59,12 @@ const EditListing = () => {
   const [error, setError] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [originalListing, setOriginalListing] = useState<ListingData | null>(null);
+  const [dataLoaded, setDataLoaded] = useState(false); // Add flag to track if data has been loaded
   
   // Check for returning from preview
   useEffect(() => {
+    if (isLoading || !id || dataLoaded) return;
+    
     // When returning from preview, check if we have last saved form data
     const checkForReturningFromPreview = () => {
       const lastSavedFormData = sessionStorage.getItem('lastSavedFormData');
@@ -98,15 +101,11 @@ const EditListing = () => {
       return false;
     };
     
-    // Only apply this logic if the component is already loaded
-    // and we're likely returning from preview
-    if (!isLoading && id) {
-      const wasReturningFromPreview = checkForReturningFromPreview();
-      if (wasReturningFromPreview) {
-        console.log("Successfully restored form state from preview return");
-      }
+    const wasReturningFromPreview = checkForReturningFromPreview();
+    if (wasReturningFromPreview) {
+      console.log("Successfully restored form state from preview return");
     }
-  }, [isLoading, id, updateFormData]);
+  }, [isLoading, id, updateFormData, dataLoaded]);
 
   // Fetch the listing data
   const fetchListing = async () => {
@@ -137,7 +136,6 @@ const EditListing = () => {
           if (Array.isArray(orderedImages) && orderedImages.length > 0) {
             setImageUrls(orderedImages);
             console.log("Loaded image ordering from session:", orderedImages);
-            // Continue fetching to get other listing data
           }
         } catch (error) {
           console.error("Error parsing saved data:", error);
@@ -192,8 +190,9 @@ const EditListing = () => {
       const typedListing = listing as unknown as ListingData;
       setOriginalListing(typedListing);
 
-      // Only set image URLs if we didn't already load them from session storage
-      if (!lastSavedImageOrdering || !lastSavedFormData) {
+      // Only set image URLs and form data if we didn't already load them from session storage
+      // This prevents overwriting user edits when the component reloads
+      if (!lastSavedFormData || !lastSavedImageOrdering) {
         // Store image URLs separately and process primary image
         if (typedListing.gallery_images && Array.isArray(typedListing.gallery_images)) {
           let imageArray = [...typedListing.gallery_images];
@@ -243,6 +242,7 @@ const EditListing = () => {
         }
       }
       
+      setDataLoaded(true); // Mark data as loaded to prevent future overwrites
       setIsLoading(false);
       
     } catch (error) {
