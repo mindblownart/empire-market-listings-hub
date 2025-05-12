@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabase';
+import { useFavorites } from '@/hooks/useFavorites';
 
 interface BusinessCardProps {
   id: string;
@@ -52,32 +53,15 @@ const BusinessCard = ({
   userId,
   onDelete
 }: BusinessCardProps) => {
-  const [isFavorite, setIsFavorite] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Check if this listing is in user's favorites when component mounts
-  useEffect(() => {
-    const checkIfFavorite = async () => {
-      const { data: session } = await supabase.auth.getSession();
-      if (session?.session?.user) {
-        const { data } = await supabase
-          .from('favorites')
-          .select('*')
-          .eq('user_id', session.session.user.id)
-          .eq('listing_id', id)
-          .maybeSingle();
-          
-        setIsFavorite(!!data);
-      }
-    };
-    
-    checkIfFavorite();
-  }, [id]);
-
-  const toggleFavorite = async (e: React.MouseEvent) => {
+  // Use our custom hook to handle favorites
+  const { isFavorite, toggleFavorite } = useFavorites(userId);
+  
+  const handleFavoriteToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -91,43 +75,14 @@ const BusinessCard = ({
       return;
     }
     
-    const userId = session.session.user.id;
+    const success = await toggleFavorite(id);
     
-    try {
-      if (isFavorite) {
-        // Remove from favorites
-        const { error } = await supabase
-          .from('favorites')
-          .delete()
-          .eq('user_id', userId)
-          .eq('listing_id', id);
-          
-        if (error) throw error;
-        
-        setIsFavorite(false);
-        toast({
-          title: "Removed from favorites",
-          description: "Listing removed from your saved items",
-        });
-      } else {
-        // Add to favorites
-        const { error } = await supabase
-          .from('favorites')
-          .insert({
-            user_id: userId,
-            listing_id: id
-          });
-          
-        if (error) throw error;
-        
-        setIsFavorite(true);
-        toast({
-          title: "Added to favorites",
-          description: "Listing saved to your favorites",
-        });
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
+    if (success) {
+      toast({
+        title: isFavorite(id) ? "Removed from favorites" : "Added to favorites",
+        description: isFavorite(id) ? "Listing removed from your saved items" : "Listing saved to your favorites",
+      });
+    } else {
       toast({
         title: "Error",
         description: "Failed to update favorites. Please try again.",
@@ -175,6 +130,9 @@ const BusinessCard = ({
     }
   };
 
+  // Check if this listing is in favorites
+  const favoriteStatus = userId ? isFavorite(id) : false;
+
   return (
     <>
       <Card className="overflow-hidden transition-all hover:shadow-lg h-full flex flex-col">
@@ -201,14 +159,14 @@ const BusinessCard = ({
           {/* Favorite button with bookmark icon */}
           <button 
             className={`absolute top-2 right-2 z-10 p-1.5 rounded-full shadow-sm 
-              ${isFavorite 
+              ${favoriteStatus 
                 ? 'bg-white' 
                 : 'bg-white/80 hover:bg-white'
               }`}
-            onClick={toggleFavorite}
-            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            onClick={handleFavoriteToggle}
+            aria-label={favoriteStatus ? "Remove from favorites" : "Add to favorites"}
           >
-            {isFavorite ? (
+            {favoriteStatus ? (
               <Bookmark 
                 className="h-5 w-5 text-yellow-400 fill-yellow-400" 
               />

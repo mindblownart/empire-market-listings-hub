@@ -32,7 +32,15 @@ export interface BusinessListing {
   primary_image_index?: number;
 }
 
-// Extend the existing Database type to include our business_listings table
+// Define our favorites table structure
+export interface Favorite {
+  id: string;
+  user_id: string;
+  listing_id: string;
+  created_at: string;
+}
+
+// Extend the existing Database type to include our tables
 export type ExtendedDatabase = Database & {
   public: {
     Tables: {
@@ -40,6 +48,11 @@ export type ExtendedDatabase = Database & {
         Row: BusinessListing;
         Insert: Partial<BusinessListing>;
         Update: Partial<BusinessListing>;
+      };
+      favorites: {
+        Row: Favorite;
+        Insert: Omit<Favorite, 'id' | 'created_at'>;
+        Update: Partial<Favorite>;
       };
     } & Database['public']['Tables'];
   };
