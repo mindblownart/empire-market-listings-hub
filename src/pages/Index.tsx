@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -36,6 +37,7 @@ const Index = () => {
   const [minRevenue, setMinRevenue] = useState<string>('');
   const [maxRevenue, setMaxRevenue] = useState<string>('');
   const [businesses, setBusinesses] = useState<any[]>([]);
+  const [featuredBusinesses, setFeaturedBusinesses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch businesses from Supabase
@@ -54,6 +56,7 @@ const Index = () => {
         if (error) {
           console.error('Error fetching business listings:', error);
           setBusinesses([]);
+          setFeaturedBusinesses([]);
         } else if (data && data.length > 0) {
           // Map the business listings to match the BusinessCard component props
           const mappedBusinesses = data.map(listing => ({
@@ -70,13 +73,29 @@ const Index = () => {
             isHot: listing.is_hot
           }));
           
-          setBusinesses(mappedBusinesses);
+          // Separate featured and regular businesses
+          const featured = mappedBusinesses.filter(business => {
+            // Find the original listing to check if it's featured
+            const originalListing = data.find(listing => listing.id === business.id);
+            return originalListing && originalListing.is_featured;
+          });
+          
+          const regular = mappedBusinesses.filter(business => {
+            // Find the original listing to check if it's not featured
+            const originalListing = data.find(listing => listing.id === business.id);
+            return originalListing && !originalListing.is_featured;
+          });
+          
+          setFeaturedBusinesses(featured);
+          setBusinesses(regular);
         } else {
           setBusinesses([]);
+          setFeaturedBusinesses([]);
         }
       } catch (error) {
         console.error('Error fetching business listings:', error);
         setBusinesses([]);
+        setFeaturedBusinesses([]);
       } finally {
         setIsLoading(false);
       }
@@ -280,16 +299,46 @@ const Index = () => {
             <div className="text-center py-10">
               <p className="text-gray-600">Loading listings...</p>
             </div>
-          ) : businesses.length > 0 ? (
+          ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {businesses.map(business => (
-                  <BusinessCard
-                    key={business.id}
-                    {...business}
-                  />
-                ))}
-              </div>
+              {/* Featured Listings Section - Only show if there are featured listings */}
+              {featuredBusinesses.length > 0 && (
+                <div className="mb-16">
+                  <h3 className="text-2xl font-bold text-[#111827] mb-6">Featured Listings</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {featuredBusinesses.map(business => (
+                      <BusinessCard
+                        key={business.id}
+                        {...business}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Regular Listings */}
+              {businesses.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {businesses.map(business => (
+                    <BusinessCard
+                      key={business.id}
+                      {...business}
+                    />
+                  ))}
+                </div>
+              ) : (
+                !featuredBusinesses.length && (
+                  <div className="text-center py-20 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+                    <h3 className="text-xl font-medium text-gray-900 mb-4">No businesses have been listed yet. Be the first to submit yours!</h3>
+                    <p className="text-gray-600 mb-6 max-w-lg mx-auto">
+                      Our marketplace is ready for your business listing. Submit your business details to find the right buyer.
+                    </p>
+                    <Button asChild className="px-6 py-6 text-lg">
+                      <Link to="/submit">Submit a Business</Link>
+                    </Button>
+                  </div>
+                )
+              )}
               
               <div className="mt-12 text-center">
                 <Link to="/listings" state={{ resetFilters: true }}>
@@ -299,16 +348,6 @@ const Index = () => {
                 </Link>
               </div>
             </>
-          ) : (
-            <div className="text-center py-20 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-xl font-medium text-gray-900 mb-4">No businesses have been listed yet. Be the first to submit yours!</h3>
-              <p className="text-gray-600 mb-6 max-w-lg mx-auto">
-                Our marketplace is ready for your business listing. Submit your business details to find the right buyer.
-              </p>
-              <Button asChild className="px-6 py-6 text-lg">
-                <Link to="/submit">Submit a Business</Link>
-              </Button>
-            </div>
           )}
         </div>
       </section>
