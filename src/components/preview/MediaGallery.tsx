@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { getVideoEmbedUrl } from '@/components/media-uploader/video-utils';
 
@@ -10,14 +11,14 @@ interface MediaGalleryProps {
   galleryImages: string[];
   videoURL?: string | null;
   autoplayVideo?: boolean;
-  skipPrimaryImage?: boolean; // If true, primary image is shown elsewhere and shouldn't be included in carousel
+  skipPrimaryImage?: boolean;
 }
 
 export const MediaGallery: React.FC<MediaGalleryProps> = ({
   galleryImages = [],
   videoURL,
   autoplayVideo = false,
-  skipPrimaryImage = false, // Default to showing primary image in carousel
+  skipPrimaryImage = false,
 }) => {
   const [isMuted, setIsMuted] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -28,27 +29,6 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const hasVideo = !!videoURL;
   const hasImages = Array.isArray(galleryImages) && galleryImages.length > 0;
   const hasMedia = hasVideo || hasImages;
-  
-  // Handle mute toggle
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(!isMuted);
-    }
-  };
-
-  // Set up autoplay when component mounts
-  useEffect(() => {
-    if (videoRef.current && autoplayVideo) {
-      videoRef.current.muted = isMuted;
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.log('Autoplay prevented. Requires user interaction:', error);
-        });
-      }
-    }
-  }, [autoplayVideo, isMuted]);
   
   // Organize media items to ensure correct order based on settings
   const mediaItems = React.useMemo(() => {
@@ -91,11 +71,18 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     }
   }, [mediaItems]);
 
+  // Handle mute toggle for video
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(!isMuted);
+    }
+  };
+
   // Handle previous and next navigation with proper boundary checks
   const handlePrev = () => {
     if (!carouselRef.current) return;
     
-    // Make sure we don't go below 0
     if (activeIndex > 0) {
       carouselRef.current.scrollPrev();
     }
@@ -104,7 +91,6 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const handleNext = () => {
     if (!carouselRef.current) return;
     
-    // Make sure we don't go beyond the last item
     if (activeIndex < mediaItems.length - 1) {
       carouselRef.current.scrollNext();
     }
@@ -130,8 +116,8 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     };
   }, [mediaItems.length, activeIndex]);
 
+  // Fallback placeholder when no media is available
   if (!hasMedia) {
-    // Fallback placeholder when no media is available
     return (
       <div className="w-full rounded-lg overflow-hidden shadow-md">
         <AspectRatio ratio={16 / 9} className="bg-gradient-to-r from-gray-200 to-gray-300">
@@ -238,30 +224,38 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
           ))}
         </CarouselContent>
         
-        {/* Only show navigation controls if there's more than one item */}
+        {/* Custom navigation arrows - always visible, properly positioned */}
         {mediaItems.length > 1 && (
           <>
-            {/* Custom navigation arrows that stay visible */}
+            {/* Left arrow */}
             <div className="absolute left-0 top-0 bottom-0 flex items-center z-10 pointer-events-none">
               <Button
                 variant="ghost"
                 size="icon"
-                className={`h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md ml-2 sm:ml-4 lg:ml-2 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto ${isAtStart ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'}`}
+                className={cn(
+                  "h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md ml-2 sm:ml-4 lg:ml-2 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto",
+                  isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
+                )}
                 onClick={handlePrev}
                 aria-label="Previous slide"
-                disabled={isAtStart} // Disable when at the first slide
+                disabled={isAtStart}
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
             </div>
+            
+            {/* Right arrow */}
             <div className="absolute right-0 top-0 bottom-0 flex items-center z-10 pointer-events-none">
               <Button
                 variant="ghost"
                 size="icon"
-                className={`h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md mr-2 sm:mr-4 lg:mr-2 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto ${isAtEnd ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'}`}
+                className={cn(
+                  "h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md mr-2 sm:mr-4 lg:mr-2 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto",
+                  isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
+                )}
                 onClick={handleNext}
                 aria-label="Next slide"
-                disabled={isAtEnd} // Disable when at the last slide
+                disabled={isAtEnd}
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -270,7 +264,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
         )}
       </Carousel>
       
-      {/* Thumbnail navigation indicators */}
+      {/* Improved thumbnail navigation indicators */}
       {mediaItems.length > 1 && (
         <div className="flex items-center justify-center gap-1 mt-2 pb-2 px-4 overflow-x-auto">
           {mediaItems.map((_, index) => (
@@ -281,12 +275,12 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                   carouselRef.current.scrollTo(index);
                 }
               }}
-              className={`
-                min-w-6 h-2 rounded-full transition-all cursor-pointer
-                ${activeIndex === index 
-                  ? 'bg-primary w-10' 
-                  : 'bg-gray-300 w-6 opacity-50 hover:opacity-75'}
-              `}
+              className={cn(
+                "min-w-6 h-2 rounded-full transition-all cursor-pointer",
+                activeIndex === index 
+                  ? "bg-primary w-10" 
+                  : "bg-gray-300 w-6 opacity-50 hover:opacity-75"
+              )}
               aria-label={`Go to slide ${index + 1}`}
               aria-current={activeIndex === index ? 'true' : 'false'}
             />
