@@ -132,12 +132,14 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
           />
         ) : (
           <AspectRatio ratio={16 / 9} className="bg-black">
-            <img 
-              src={mediaItems[activeIndex]?.url} 
-              alt={`Media ${activeIndex + 1}`}
-              className="w-full h-full object-contain"
-              loading={activeIndex === 0 ? "eager" : "lazy"}
-            />
+            <div className="w-full h-full flex items-center justify-center">
+              <img 
+                src={mediaItems[activeIndex]?.url} 
+                alt={`Media ${activeIndex + 1}`}
+                className="max-w-full max-h-full w-auto h-auto object-contain"
+                loading={activeIndex === 0 ? "eager" : "lazy"}
+              />
+            </div>
           </AspectRatio>
         )}
       </div>
@@ -154,7 +156,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
             className={cn(
               "absolute left-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
               "bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800",
-              "shadow-md z-10 transition-opacity",
+              "shadow-md z-20 transition-opacity",
               isAtStart ? "opacity-60" : "opacity-100"
             )}
             aria-label="Previous item"
@@ -171,7 +173,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
             className={cn(
               "absolute right-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
               "bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800",
-              "shadow-md z-10 transition-opacity",
+              "shadow-md z-20 transition-opacity",
               isAtEnd ? "opacity-60" : "opacity-100"
             )}
             aria-label="Next item"
@@ -183,7 +185,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       
       {/* Pagination indicators - only shown if multiple items */}
       {hasMultipleItems && (
-        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
           {mediaItems.map((_, index) => (
             <button
               key={`indicator-${index}`}

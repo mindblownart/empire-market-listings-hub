@@ -51,16 +51,29 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
   const isVimeo = url.includes('vimeo.com');
   
+  // Create embed URL for YouTube videos
+  const getYoutubeEmbedUrl = () => {
+    let videoId = '';
+    if (url.includes('v=')) {
+      videoId = url.split('v=')[1].split('&')[0];
+    } else if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1].split('?')[0];
+    }
+    return `https://www.youtube.com/embed/${videoId}?autoplay=${autoplay ? '1' : '0'}&mute=${isMuted ? '1' : '0'}&loop=1&playlist=${videoId}`;
+  };
+
+  // Create embed URL for Vimeo videos
+  const getVimeoEmbedUrl = () => {
+    const videoId = url.split('/').pop() || '';
+    return `https://player.vimeo.com/video/${videoId}?autoplay=${autoplay ? '1' : '0'}&muted=${isMuted ? '1' : '0'}&loop=1`;
+  };
+  
   return (
     <AspectRatio ratio={16 / 9} className="bg-black overflow-hidden rounded-lg">
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full flex items-center justify-center">
         {isYouTube ? (
           <iframe 
-            src={`https://www.youtube.com/embed/${
-              url.includes('v=') 
-              ? url.split('v=')[1].split('&')[0] 
-              : url.split('/').pop() || ''
-            }?autoplay=${autoplay ? '1' : '0'}&mute=${isMuted ? '1' : '0'}`}
+            src={getYoutubeEmbedUrl()}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
             allowFullScreen
             className="w-full h-full"
@@ -68,7 +81,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           />
         ) : isVimeo ? (
           <iframe 
-            src={`https://player.vimeo.com/video/${url.split('/').pop()}?autoplay=${autoplay ? '1' : '0'}&muted=${isMuted ? '1' : '0'}`}
+            src={getVimeoEmbedUrl()}
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
             className="w-full h-full"
@@ -84,7 +97,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               loop
               muted={isMuted}
               playsInline
-              className="w-full h-full object-contain"
+              className="max-width-full max-h-full w-auto h-auto object-contain"
             />
             
             {/* Video Controls - increase z-index to ensure it's above navigation arrows */}
