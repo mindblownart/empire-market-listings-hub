@@ -56,7 +56,7 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
               <span className="text-gray-500">Phone Number</span>
             </div>
             <div className="w-[60%] text-right font-medium break-words">
-              {formatPhoneNumber(contactPhone || '')}
+              {contactPhone ? formatPhoneNumber(contactPhone) : 'Not provided'}
             </div>
           </div>
           

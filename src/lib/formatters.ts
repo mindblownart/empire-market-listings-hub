@@ -1,4 +1,3 @@
-
 /**
  * Formats a number with thousands separators and currency symbol
  * @param value - The number to format
@@ -143,4 +142,28 @@ export function formatLiveCurrency(value: string, currencyCode: string, locale: 
     console.error('Error formatting live currency:', error);
     return value;
   }
+}
+
+/**
+ * Formats a phone number in US format: (123) 456-7890
+ * @param phoneNumberString - The phone number string to format
+ * @returns Formatted phone number string
+ */
+export function formatPhoneNumber(phoneNumberString: string): string {
+  const cleaned = phoneNumberString.replace(/\D/g, '');
+  
+  // Handle empty input
+  if (!cleaned) return '';
+  
+  let formatted = '';
+  
+  if (cleaned.length <= 3) {
+    return cleaned;
+  } else if (cleaned.length <= 6) {
+    formatted = `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
+  } else {
+    formatted = `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
+  }
+  
+  return formatted;
 }

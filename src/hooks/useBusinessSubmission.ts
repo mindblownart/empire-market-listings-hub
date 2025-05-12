@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -24,7 +23,7 @@ export const useBusinessSubmission = () => {
         if (!session) {
           toast.error("You must be logged in to submit a business listing");
           navigate('/login', { state: { redirect: '/submit' } });
-          return;
+          return false;
         }
         
         // Get image ordering from session storage if available
@@ -166,5 +165,5 @@ export const useBusinessSubmission = () => {
     }
   };
   
-  return { handleSubmit, isSubmitting, validationErrors, validateField, clearValidationErrors };
+  return { handleSubmit, isSubmitting, validationErrors, validateField, validateAllFields, clearValidationErrors };
 };

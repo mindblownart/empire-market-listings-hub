@@ -1,7 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Favorite } from '@/types/supabase';
+
+// Define a Favorite type
+interface Favorite {
+  id: string;
+  user_id: string;
+  listing_id: string;
+  created_at: string;
+}
 
 export const useFavorites = (userId?: string) => {
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -13,16 +20,15 @@ export const useFavorites = (userId?: string) => {
     const fetchFavorites = async () => {
       setIsLoading(true);
       try {
-        // Using any here to bypass TypeScript limitations since our database
-        // tables might not be fully typed in the generated types
+        // Using a more generic approach with any to avoid type errors
         const { data, error } = await supabase
           .from('favorites')
           .select('listing_id')
-          .eq('user_id', userId) as any;
+          .eq('user_id', userId);
           
         if (error) throw error;
         
-        setFavorites(data.map((item: any) => item.listing_id));
+        setFavorites(data?.map((item: any) => item.listing_id) || []);
       } catch (error) {
         console.error('Error fetching favorites:', error);
       } finally {
@@ -60,22 +66,22 @@ export const useFavorites = (userId?: string) => {
     
     try {
       if (isFavorite) {
-        // Remove from favorites
+        // Remove from favorites using a more generic approach
         await supabase
           .from('favorites')
           .delete()
           .eq('user_id', userId)
-          .eq('listing_id', listingId) as any;
+          .eq('listing_id', listingId);
           
         setFavorites(favorites.filter(id => id !== listingId));
       } else {
-        // Add to favorites
+        // Add to favorites using a more generic approach
         await supabase
           .from('favorites')
           .insert({
             user_id: userId,
             listing_id: listingId
-          } as any) as any;
+          });
           
         setFavorites([...favorites, listingId]);
       }
