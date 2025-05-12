@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -70,6 +69,7 @@ const BusinessCard = ({
   // Use our custom hook to handle favorites
   const { isFavorite, toggleFavorite, isProcessing } = useFavorites(userId);
   
+  // Calculate if the current listing is favorited - only declare this variable once
   const isFavorited = userId ? isFavorite(id) : false;
   const isProcessingFavorite = isProcessing?.[id] || false;
 
@@ -122,9 +122,6 @@ const BusinessCard = ({
       setIsDeleteDialogOpen(false);
     }
   };
-
-  // Check if this listing is in favorites
-  const isFavorited = userId ? isFavorite(id) : false;
 
   return (
     <>
