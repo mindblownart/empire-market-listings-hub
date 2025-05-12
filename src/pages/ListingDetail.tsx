@@ -155,13 +155,10 @@ const ListingDetail = () => {
     );
   }
 
-  // Media priority logic:
-  // 1. Use video as hero if available
-  // 2. Otherwise use explicit primaryImage if set
-  // 3. Otherwise use first gallery image
-  // 4. If no media at all, undefined will trigger fallback
+  // Use primary_image_url as the hero image
+  // If it's not available, don't try to use the first gallery image
+  const heroImage = business.primary_image_url;
   const hasVideo = !!business.video_url;
-  const heroImage = business.primary_image_url || (business.gallery_images && business.gallery_images.length > 0 ? business.gallery_images[0] : undefined);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -230,10 +227,18 @@ const ListingDetail = () => {
                 galleryImages={business.gallery_images || []} 
                 videoURL={business.video_url || undefined} 
                 autoplayVideo={true} 
+                skipPrimaryImage={true} // Skip primary image since it's shown in hero
               />
               
               {/* Business Overview & Highlights */}
-              <BusinessOverview description={business.description || ''} highlights={business.highlights || []} />
+              <BusinessOverview 
+                askingPrice={business.asking_price}
+                annualRevenue={business.annual_revenue}
+                annualProfit={business.annual_profit}
+                currencyCode={business.currency_code}
+                description={business.description || ''} 
+                highlights={business.highlights || []} 
+              />
             </div>
             
             {/* Right Column - Business Details & Contact Information */}

@@ -10,7 +10,7 @@ interface MediaGalleryProps {
   galleryImages: string[];
   videoURL?: string | null;
   autoplayVideo?: boolean;
-  skipPrimaryImage?: boolean; // If true, primary image is shown elsewhere and shouldn't be included in gallery
+  skipPrimaryImage?: boolean; // If true, primary image is shown elsewhere and shouldn't be included in carousel
 }
 
 export const MediaGallery: React.FC<MediaGalleryProps> = ({
