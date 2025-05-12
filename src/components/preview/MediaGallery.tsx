@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { EnhancedCarousel } from '@/components/carousel';
+import { EnhancedCarousel } from '@/components/carousel/EnhancedCarousel';
 
 interface MediaGalleryProps {
   galleryImages: string[];
@@ -12,8 +12,8 @@ interface MediaGalleryProps {
 export const MediaGallery: React.FC<MediaGalleryProps> = ({
   galleryImages = [],
   videoURL,
-  autoplayVideo = false,
-  skipPrimaryImage = false,
+  autoplayVideo = true,
+  skipPrimaryImage = true,
 }) => {
   return (
     <EnhancedCarousel

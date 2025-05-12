@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
@@ -45,8 +46,18 @@ const FormContainer: React.FC<FormContainerProps> = ({
         const result = await handleSubmit(formData);
         if (result) {
           // Store data for preview if submission is successful
-          sessionStorage.setItem('previewFormData', JSON.stringify(formData));
-          sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
+          sessionStorage.setItem('previewFormData', JSON.stringify({
+            ...formData,
+            // Remove circular references that can't be serialized
+            businessImages: undefined,
+            businessVideo: null
+          }));
+          sessionStorage.setItem('lastSavedFormData', JSON.stringify({
+            ...formData,
+            // Remove circular references that can't be serialized
+            businessImages: undefined,
+            businessVideo: null
+          }));
           
           // Navigation to preview is now handled in useBusinessSubmission
         }
@@ -86,28 +97,42 @@ const FormContainer: React.FC<FormContainerProps> = ({
       return;
     }
     
-    // Store current form data in sessionStorage to preserve across navigation
-    sessionStorage.setItem('previewFormData', JSON.stringify(formData));
-    sessionStorage.setItem('lastSavedFormData', JSON.stringify(formData));
-    
-    // We'll allow preview without validation
-    // but let's show a toast if there are major issues
-    if (!formData.businessName || !formData.industry || !formData.location) {
-      toast.warning("Your preview is missing important information. Consider adding more details.");
-    }
-    
-    // Save current image ordering for preview consistency
-    const imageOrdering = sessionStorage.getItem('imageOrder');
-    if (imageOrdering) {
-      sessionStorage.setItem('previewImageOrdering', imageOrdering);
-      sessionStorage.setItem('lastSavedImageOrdering', imageOrdering);
-    }
-    
-    // Use custom preview handler if provided, otherwise use default behavior
-    if (onPreview) {
-      onPreview();
-    } else {
-      navigate('/preview-listing');
+    try {
+      // Store current form data in sessionStorage to preserve across navigation
+      // Remove circular references that can't be serialized
+      const safeFormData = {
+        ...formData,
+        businessImages: undefined,
+        businessVideo: null
+      };
+      
+      sessionStorage.setItem('previewFormData', JSON.stringify(safeFormData));
+      sessionStorage.setItem('lastSavedFormData', JSON.stringify(safeFormData));
+      
+      // We'll allow preview without validation
+      // but let's show a toast if there are major issues
+      if (!formData.businessName || !formData.industry || !formData.location) {
+        toast.warning("Your preview is missing important information. Consider adding more details.");
+      }
+      
+      // Save current image ordering for preview consistency
+      const imageOrdering = sessionStorage.getItem('imageOrder');
+      if (imageOrdering) {
+        sessionStorage.setItem('previewImageOrdering', imageOrdering);
+        sessionStorage.setItem('lastSavedImageOrdering', imageOrdering);
+      }
+      
+      // Use custom preview handler if provided, otherwise use default behavior
+      if (onPreview) {
+        onPreview();
+      } else {
+        navigate('/preview-listing');
+      }
+    } catch (error) {
+      console.error("Error preparing preview data:", error);
+      toast.error("Unable to create preview. Please try again.", {
+        description: "There was an error processing your form data for preview."
+      });
     }
   };
 
