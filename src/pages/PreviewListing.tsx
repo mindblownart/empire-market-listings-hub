@@ -275,7 +275,7 @@ const PreviewListing = () => {
               businessName={previewData.businessName}
               industry={previewData.industry}
               location={previewData.location}
-              flagCode={previewData.location === "sg" ? "SG" : (previewData.location || "us").toUpperCase().substring(0, 2)}
+              flagCode={previewData.location || "us"}
               primaryImage={primaryImage}
               askingPrice={previewData.askingPrice}
               currencyCode={previewData.currencyCode}

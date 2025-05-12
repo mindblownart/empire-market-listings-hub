@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
+import { getCountryNameFromCode } from '@/components/submit/countries';
 
 interface BusinessHeaderProps {
   businessName: string;
@@ -29,28 +30,6 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   askingPrice,
   currencyCode = 'USD',
 }) => {
-  // Helper function to format country name
-  const formatCountryName = (code?: string): string => {
-    if (!code) return 'Global';
-    
-    const countryMapping: Record<string, string> = {
-      'us': 'United States',
-      'uk': 'United Kingdom',
-      'gb': 'United Kingdom',
-      'ca': 'Canada',
-      'au': 'Australia',
-      'sg': 'Singapore',
-      'hk': 'Hong Kong',
-      'jp': 'Japan',
-      'my': 'Malaysia',
-      'id': 'Indonesia',
-      'in': 'India',
-      'cn': 'China',
-    };
-    
-    return countryMapping[code.toLowerCase()] || code;
-  };
-  
   // Helper function to format industry name
   const formatIndustryName = (industryCode?: string): string => {
     if (!industryCode) return 'Business';
@@ -113,7 +92,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
                       )}
                     </span>
                   )}
-                  {formatCountryName(location)}
+                  {getCountryNameFromCode(location)}
                 </span>
               </div>
             )}
@@ -148,7 +127,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
                   )}
                 </span>
               )}
-              {formatCountryName(location)}
+              {getCountryNameFromCode(location)}
             </span>
           </div>
         )}

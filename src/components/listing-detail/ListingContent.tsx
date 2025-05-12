@@ -18,6 +18,9 @@ export const ListingContent: React.FC<ListingContentProps> = ({ business }) => {
   // Use primary_image_url as the hero image
   // If it's not available, don't try to use the first gallery image
   const heroImage = business.primary_image_url;
+  
+  // Ensure location is properly formatted for flag display
+  const flagCode = business.location ? business.location.toLowerCase() : "gl";
 
   return (
     <>
@@ -27,7 +30,7 @@ export const ListingContent: React.FC<ListingContentProps> = ({ business }) => {
           businessName={business.business_name} 
           industry={business.category} 
           location={business.location} 
-          flagCode={business.location === "Singapore" ? "SG" : "GL"} 
+          flagCode={flagCode} 
           primaryImage={heroImage} 
           askingPrice={business.asking_price} 
           currencyCode={business.currency_code} 

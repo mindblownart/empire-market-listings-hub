@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Building2, CalendarDays, Users } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
+import { getCountryNameFromCode } from '@/components/submit/countries';
 
 interface BusinessDetailsProps {
   annualRevenue?: string;
@@ -27,28 +28,6 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
   description,
   highlights = [],
 }) => {
-  // Helper function to format country name
-  const formatCountryName = (code?: string): string => {
-    if (!code) return 'Global';
-    
-    const countryMapping: Record<string, string> = {
-      'us': 'United States',
-      'uk': 'United Kingdom',
-      'gb': 'United Kingdom',
-      'ca': 'Canada',
-      'au': 'Australia',
-      'sg': 'Singapore',
-      'hk': 'Hong Kong',
-      'jp': 'Japan',
-      'my': 'Malaysia',
-      'id': 'Indonesia',
-      'in': 'India',
-      'cn': 'China',
-    };
-    
-    return countryMapping[code.toLowerCase()] || code;
-  };
-  
   // Helper function to format industry name
   const formatIndustry = (industryCode?: string): string => {
     if (!industryCode) return 'Not specified';
@@ -77,7 +56,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
               <MapPin className="h-4 w-4 mr-2 flex-shrink-0" /> Country
             </dt>
             <dd className="w-1/2 font-medium">
-              {formatCountryName(location)}
+              {getCountryNameFromCode(location)}
             </dd>
           </div>
           <div className="flex items-center">
