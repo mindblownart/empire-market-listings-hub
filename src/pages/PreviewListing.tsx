@@ -66,12 +66,19 @@ const PreviewListing = () => {
         
         // Load video URL from session storage
         const sessionVideo = sessionStorage.getItem('previewVideoUrl');
+        console.log("Retrieved video URL from session:", sessionVideo);
         
         if (sessionVideo) {
           setVideoURL(sessionVideo);
+          console.log("Set video URL from session:", sessionVideo);
         } else if (parsedData.businessVideoUrl) {
           // Fallback to businessVideoUrl from form data if sessionVideo is not available
           setVideoURL(parsedData.businessVideoUrl);
+          console.log("Set video URL from form data:", parsedData.businessVideoUrl);
+        } else {
+          // Ensure video URL is null if none exists
+          setVideoURL(null);
+          console.log("No video URL found, set to null");
         }
         
         setIsLoading(false);
@@ -127,6 +134,10 @@ const PreviewListing = () => {
   
   // Parse the location for the flag code
   const flagCode = formData.location ? formData.location.toLowerCase() : "gl";
+  
+  // Add console log to debug the video URL right before rendering
+  console.log("Rendering preview with videoURL:", videoURL);
+  console.log("Images to display:", imageUrls);
   
   return (
     <div className="min-h-screen flex flex-col">

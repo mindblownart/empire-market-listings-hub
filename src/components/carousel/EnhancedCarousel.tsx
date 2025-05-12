@@ -24,6 +24,14 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   const [mediaItems, setMediaItems] = useState<Array<{type: 'image' | 'video', url: string}>>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   
+  // Log incoming props for debugging
+  console.log("EnhancedCarousel received props:", { 
+    imagesCount: images.length, 
+    videoURL, 
+    autoplayVideo, 
+    skipPrimaryImage 
+  });
+  
   // Set up media items to display with video always in slot 2 (index 0 in carousel)
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
@@ -31,6 +39,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
     // If we have a video, insert it at position 0 (slot 2 in the UI after the hero image)
     if (videoURL) {
       items.push({ type: 'video', url: videoURL });
+      console.log("Added video to carousel:", videoURL);
     }
     
     // Add all the images after the video
@@ -39,6 +48,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       items.push({ type: 'image', url });
     });
     
+    console.log("Final media items for carousel:", items);
     setMediaItems(items);
     
     // Reset active index when media items change
@@ -112,6 +122,9 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       </div>
     );
   }
+  
+  // Log the current active item for debugging
+  console.log("Current active media item:", mediaItems[activeIndex]);
   
   // Return the complete carousel component
   return (

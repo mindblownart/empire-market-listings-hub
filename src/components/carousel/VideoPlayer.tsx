@@ -1,117 +1,133 @@
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Volume2, VolumeX } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface VideoPlayerProps {
   url: string;
   autoplay?: boolean;
+  loop?: boolean;
+  muted?: boolean;
+  controls?: boolean;
+  className?: string;
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   url,
-  autoplay = false
+  autoplay = true,
+  loop = true,
+  muted = true,
+  controls = true,
+  className = '',
 }) => {
-  const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  // Set up video autoplay when component mounts or updates
+  // Log video player props for debugging
+  console.log("VideoPlayer props:", { url, autoplay, loop, muted, controls });
+  
   useEffect(() => {
-    if (videoRef.current && autoplay) {
-      videoRef.current.muted = isMuted;
+    // Try to play video automatically if autoplay is enabled
+    if (autoplay && videoRef.current) {
+      console.log("Attempting to autoplay video:", url);
       
-      // Make sure to play the video after a short delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        const playPromise = videoRef.current?.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            console.log('Autoplay prevented:', error);
+      const playPromise = videoRef.current.play();
+      
+      // Handle autoplay restrictions
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log("Video autoplay successful");
+          })
+          .catch(error => {
+            console.warn("Autoplay prevented:", error);
+            // For debugging only - in production you might want to show a play button overlay
           });
-        }
-      }, 200);
-      
-      return () => clearTimeout(timer);
+      }
     }
-  }, [autoplay, isMuted, url]);
+  }, [url, autoplay]);
   
-  // Toggle mute state with improved event handling
-  const toggleMute = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation(); // Prevent click from bubbling to parent elements
+  // Determine if it's a YouTube/Vimeo URL
+  const isYouTube = url && typeof url === 'string' && 
+    (url.includes('youtube.com') || url.includes('youtu.be'));
+  const isVimeo = url && typeof url === 'string' && url.includes('vimeo.com');
+  
+  // Extract YouTube video ID
+  const getYoutubeId = (youtubeUrl: string) => {
+    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    const match = youtubeUrl.match(regExp);
+    return (match && match[7].length === 11) ? match[7] : null;
+  };
+  
+  // Extract Vimeo video ID
+  const getVimeoId = (vimeoUrl: string) => {
+    const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
+    const match = vimeoUrl.match(regExp);
+    return match ? match[5] : null;
+  };
+  
+  // Handle different video sources
+  if (isYouTube) {
+    const videoId = getYoutubeId(url);
+    if (!videoId) return null;
     
-    if (videoRef.current) {
-      const newMutedState = !isMuted;
-      videoRef.current.muted = newMutedState;
-      setIsMuted(newMutedState);
-    }
-  };
-
-  // Determine video type (YouTube, Vimeo, or direct file)
-  const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
-  const isVimeo = url.includes('vimeo.com');
-  
-  // Create embed URL for YouTube videos
-  const getYoutubeEmbedUrl = () => {
-    let videoId = '';
-    if (url.includes('v=')) {
-      videoId = url.split('v=')[1].split('&')[0];
-    } else if (url.includes('youtu.be/')) {
-      videoId = url.split('youtu.be/')[1].split('?')[0];
-    }
-    return `https://www.youtube.com/embed/${videoId}?autoplay=${autoplay ? '1' : '0'}&mute=${isMuted ? '1' : '0'}&loop=1&playlist=${videoId}&controls=0`;
-  };
-
-  // Create embed URL for Vimeo videos
-  const getVimeoEmbedUrl = () => {
-    const videoId = url.split('/').pop() || '';
-    return `https://player.vimeo.com/video/${videoId}?autoplay=${autoplay ? '1' : '0'}&muted=${isMuted ? '1' : '0'}&loop=1&controls=0`;
-  };
-  
-  return (
-    <AspectRatio ratio={16 / 9} className="bg-transparent overflow-hidden rounded-lg">
-      {isYouTube ? (
-        <iframe 
-          src={getYoutubeEmbedUrl()}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowFullScreen
+    // Create YouTube embed URL with autoplay and loop parameters
+    let embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`;
+    if (autoplay) embedUrl += '&autoplay=1';
+    if (loop) embedUrl += '&loop=1&playlist=' + videoId;
+    if (muted) embedUrl += '&mute=1';
+    
+    return (
+      <AspectRatio ratio={16 / 9} className="bg-black">
+        <iframe
+          src={embedUrl}
           className="w-full h-full"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
           title="YouTube video"
         />
-      ) : isVimeo ? (
-        <iframe 
-          src={getVimeoEmbedUrl()}
-          allow="autoplay; fullscreen; picture-in-picture"
-          allowFullScreen
+      </AspectRatio>
+    );
+  }
+  
+  if (isVimeo) {
+    const videoId = getVimeoId(url);
+    if (!videoId) return null;
+    
+    // Create Vimeo embed URL with parameters
+    let embedUrl = `https://player.vimeo.com/video/${videoId}?background=1`;
+    if (autoplay) embedUrl += '&autoplay=1';
+    if (loop) embedUrl += '&loop=1';
+    if (muted) embedUrl += '&muted=1';
+    
+    return (
+      <AspectRatio ratio={16 / 9} className="bg-black">
+        <iframe
+          src={embedUrl}
           className="w-full h-full"
+          frameBorder="0"
+          allow="autoplay; fullscreen"
+          allowFullScreen
           title="Vimeo video"
         />
-      ) : (
-        // Direct video file container
-        <div className="relative w-full h-full">
-          <video 
-            ref={videoRef}
-            src={url}
-            controls={false}
-            loop
-            muted={isMuted}
-            playsInline
-            className="w-full h-full object-cover object-center"
-          />
-          
-          {/* Video Controls - high z-index to ensure visibility */}
-          <div className="absolute bottom-4 right-4 z-[100]">
-            <Button
-              variant="outline"
-              size="icon"
-              className="bg-white/80 backdrop-blur-sm hover:bg-white rounded-full pointer-events-auto"
-              onClick={toggleMute}
-            >
-              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-            </Button>
-          </div>
-        </div>
-      )}
+      </AspectRatio>
+    );
+  }
+  
+  // For regular video files
+  return (
+    <AspectRatio ratio={16 / 9} className="bg-black">
+      <video
+        ref={videoRef}
+        className={`w-full h-full object-contain ${className}`}
+        autoPlay={autoplay}
+        loop={loop}
+        muted={muted}
+        controls={controls}
+        playsInline
+      >
+        <source src={url} />
+        Your browser does not support the video tag.
+      </video>
     </AspectRatio>
   );
 };
