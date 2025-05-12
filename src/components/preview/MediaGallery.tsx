@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { getVideoEmbedUrl } from '@/components/media-uploader/video-utils';
+import { VideoPlayer } from '@/components/carousel';
 
 interface MediaGalleryProps {
   galleryImages: string[];
@@ -84,7 +85,9 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     if (!carouselRef.current) return;
     
     if (activeIndex > 0) {
-      carouselRef.current.scrollPrev();
+      const newIndex = activeIndex - 1;
+      setActiveIndex(newIndex);
+      carouselRef.current.scrollTo(newIndex);
     }
   };
   
@@ -92,7 +95,9 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
     if (!carouselRef.current) return;
     
     if (activeIndex < mediaItems.length - 1) {
-      carouselRef.current.scrollNext();
+      const newIndex = activeIndex + 1;
+      setActiveIndex(newIndex);
+      carouselRef.current.scrollTo(newIndex);
     }
   };
   
@@ -185,7 +190,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                     ) : item.url && item.url.includes('vimeo.com') ? (
                       // Vimeo embed
                       <iframe 
-                        src={`https://player.vimeo.com/video/${item.url.split('/').pop()}`}
+                        src={`https://player.vimeo.com/video/${item.url.split('/').pop()}?autoplay=1`}
                         allow="autoplay; fullscreen; picture-in-picture"
                         allowFullScreen
                         className="w-full h-full"
@@ -200,7 +205,8 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                           controls={false} 
                           loop 
                           muted={isMuted} 
-                          playsInline 
+                          playsInline
+                          autoPlay={autoplayVideo}
                           className="w-full h-full object-cover" 
                         />
                         
@@ -233,14 +239,14 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md ml-2 sm:ml-4 lg:ml-2 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto",
+                  "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md ml-2 sm:ml-4 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto",
                   isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
                 )}
                 onClick={handlePrev}
                 aria-label="Previous slide"
                 disabled={isAtStart}
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-6 w-6" />
               </Button>
             </div>
             
@@ -250,14 +256,14 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md mr-2 sm:mr-4 lg:mr-2 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto",
+                  "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800 shadow-md mr-2 sm:mr-4 focus-visible:ring-2 z-10 transition-opacity pointer-events-auto",
                   isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
                 )}
                 onClick={handleNext}
                 aria-label="Next slide"
                 disabled={isAtEnd}
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-6 w-6" />
               </Button>
             </div>
           </>
@@ -266,12 +272,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       
       {/* Improved thumbnail navigation indicators */}
       {mediaItems.length > 1 && (
-        <div className="flex items-center justify-center gap-1 mt-2 pb-2 px-4 overflow-x-auto">
+        <div className="flex items-center justify-center gap-2 mt-2 pb-2 px-4 overflow-x-auto">
           {mediaItems.map((_, index) => (
             <button
               key={`indicator-${index}`}
               onClick={() => {
                 if (carouselRef.current) {
+                  setActiveIndex(index);
                   carouselRef.current.scrollTo(index);
                 }
               }}

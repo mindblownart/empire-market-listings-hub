@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -99,34 +99,34 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
           variant="ghost"
           size="icon"
           className={cn(
-            "h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 ml-2 sm:ml-4 pointer-events-auto transition-opacity",
+            "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 ml-2 sm:ml-4 pointer-events-auto transition-opacity",
             isAtStart ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
           )}
           onClick={handlePrev}
           disabled={isAtStart}
           aria-label="Previous image"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-6 w-6" />
         </Button>
         
         <Button
           variant="ghost"
           size="icon"
           className={cn(
-            "h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 mr-2 sm:mr-4 pointer-events-auto transition-opacity",
+            "h-12 w-12 rounded-full bg-white/70 hover:bg-white/90 shadow-md backdrop-blur-sm text-gray-800 mr-2 sm:mr-4 pointer-events-auto transition-opacity",
             isAtEnd ? "opacity-50 cursor-not-allowed" : "opacity-100 cursor-pointer"
           )}
           onClick={handleNext}
           disabled={isAtEnd}
           aria-label="Next image"
         >
-          <ChevronRight className="h-5 w-5" />
+          <ChevronRight className="h-6 w-6" />
         </Button>
       </div>
       
       {/* Navigation Indicators */}
       {images.length > 1 && (
-        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
           {images.map((_, index) => (
             <button
               key={index}
@@ -135,7 +135,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
               className={cn(
                 "w-2 h-2 rounded-full transition-all",
                 index === currentIndex 
-                  ? "bg-white w-4" 
+                  ? "bg-white w-6" 
                   : "bg-white/50 hover:bg-white/70"
               )}
             />

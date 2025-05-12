@@ -29,12 +29,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         });
       }
     }
-  }, [autoplay, isMuted]);
+  }, [autoplay]);
   
   // Toggle mute state
   const toggleMute = () => {
     if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
+      videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
   };
@@ -58,7 +58,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           />
         ) : isVimeo ? (
           <iframe 
-            src={`https://player.vimeo.com/video/${url.split('/').pop()}`}
+            src={`https://player.vimeo.com/video/${url.split('/').pop()}?autoplay=${autoplay ? '1' : '0'}`}
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
             className="w-full h-full"
