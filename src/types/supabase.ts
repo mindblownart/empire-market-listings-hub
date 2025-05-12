@@ -1,5 +1,5 @@
 
-import { Database as SupabaseDatabase } from '@/integrations/supabase/types';
+import { Database } from '@/integrations/supabase/types';
 
 // Define our business_listings table structure
 export interface BusinessListing {
@@ -40,18 +40,20 @@ export interface Favorite {
   created_at: string;
 }
 
-// Re-export the Database type from Supabase, using type augmentation
-export type { SupabaseDatabase as Database };
-
-// Define our custom tables for type checking
-export interface CustomDatabase extends SupabaseDatabase {
+// Extend the existing Database type to include our tables
+export type ExtendedDatabase = Database & {
   public: {
     Tables: {
+      business_listings: {
+        Row: BusinessListing;
+        Insert: Partial<BusinessListing>;
+        Update: Partial<BusinessListing>;
+      };
       favorites: {
         Row: Favorite;
         Insert: Omit<Favorite, 'id' | 'created_at'>;
         Update: Partial<Favorite>;
       };
-    } & SupabaseDatabase['public']['Tables'];
+    } & Database['public']['Tables'];
   };
-}
+};

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { CustomDatabase } from '@/types/supabase';
+import { Favorite } from '@/types/supabase';
 
 export const useFavorites = (userId?: string) => {
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -13,16 +13,16 @@ export const useFavorites = (userId?: string) => {
     const fetchFavorites = async () => {
       setIsLoading(true);
       try {
-        // Use type assertion to bypass TypeScript limitations
-        const { data, error } = await (supabase as any)
+        // Using any here to bypass TypeScript limitations since our database
+        // tables might not be fully typed in the generated types
+        const { data, error } = await supabase
           .from('favorites')
           .select('listing_id')
-          .eq('user_id', userId);
+          .eq('user_id', userId) as any;
           
         if (error) throw error;
         
-        // Ensure we have an array of listing_ids
-        setFavorites(Array.isArray(data) ? data.map((item: any) => item.listing_id) : []);
+        setFavorites(data.map((item: any) => item.listing_id));
       } catch (error) {
         console.error('Error fetching favorites:', error);
       } finally {
@@ -34,7 +34,7 @@ export const useFavorites = (userId?: string) => {
     
     // Set up realtime subscription for favorites
     const channel = supabase
-      .channel('favorites')
+      .channel('public:favorites')
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -61,23 +61,21 @@ export const useFavorites = (userId?: string) => {
     try {
       if (isFavorite) {
         // Remove from favorites
-        await (supabase as any)
+        await supabase
           .from('favorites')
           .delete()
           .eq('user_id', userId)
-          .eq('listing_id', listingId);
+          .eq('listing_id', listingId) as any;
           
         setFavorites(favorites.filter(id => id !== listingId));
       } else {
         // Add to favorites
-        const favoriteData = {
-          user_id: userId,
-          listing_id: listingId
-        };
-        
-        await (supabase as any)
+        await supabase
           .from('favorites')
-          .insert(favoriteData);
+          .insert({
+            user_id: userId,
+            listing_id: listingId
+          } as any) as any;
           
         setFavorites([...favorites, listingId]);
       }

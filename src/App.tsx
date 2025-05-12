@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
@@ -16,7 +15,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import SignupConfirmation from "./pages/SignupConfirmation";
 import Submit from "./pages/submit/Submit";
-import EditListing from "./pages/EditListing";
+import EditListing from "./pages/EditListing"; // Import the new EditListing page
 import Pricing from "./pages/Pricing";
 import ForgotPassword from "./pages/ForgotPassword";
 import PrivacyTerms from "./pages/PrivacyTerms";
@@ -30,32 +29,30 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <DndProvider backend={HTML5Backend}>
-        <HelmetProvider>
-          <BrowserRouter>
-            <TooltipProvider>
-              <FormDataProvider>
-                <Toaster />
-                <Sonner />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/listings" element={<Listings />} />
-                  <Route path="/listing/:id" element={<ListingDetail />} />
-                  <Route path="/business/:id" element={<ListingDetail />} />
-                  <Route path="/edit-listing/:id" element={<EditListing />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/signup-confirmation" element={<SignupConfirmation />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/submit" element={<Submit />} />
-                  <Route path="/preview-listing" element={<PreviewListing />} />
-                  <Route path="/pricing" element={<Pricing />} />
-                  <Route path="/privacy" element={<PrivacyTerms />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </FormDataProvider>
-            </TooltipProvider>
-          </BrowserRouter>
-        </HelmetProvider>
+        <BrowserRouter>
+          <TooltipProvider>
+            <FormDataProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/listings" element={<Listings />} />
+                <Route path="/listing/:id" element={<ListingDetail />} />
+                <Route path="/business/:id" element={<ListingDetail />} />
+                <Route path="/edit-listing/:id" element={<EditListing />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/signup-confirmation" element={<SignupConfirmation />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/submit" element={<Submit />} />
+                <Route path="/preview-listing" element={<PreviewListing />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/privacy" element={<PrivacyTerms />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </FormDataProvider>
+          </TooltipProvider>
+        </BrowserRouter>
       </DndProvider>
     </QueryClientProvider>
   );

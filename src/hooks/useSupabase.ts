@@ -1,7 +1,7 @@
 
 // Importing from the integrations directory instead of using a duplicate client
 import { supabase } from '@/integrations/supabase/client';
-import { CustomDatabase } from '@/types/supabase';
+import { ExtendedDatabase } from '@/types/supabase';
 
 // Using the existing client instance
 export const useSupabase = () => {
