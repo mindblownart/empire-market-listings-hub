@@ -2,7 +2,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Mail, Phone, AtSign, Contact } from 'lucide-react';
-import { formatPhoneNumber } from '@/components/submit/countries';
 
 interface ContactInformationProps {
   contactName?: string;
@@ -56,7 +55,7 @@ export const ContactInformation: React.FC<ContactInformationProps> = ({
               <span className="text-gray-500">Phone Number</span>
             </div>
             <div className="w-[60%] text-right font-medium break-words">
-              {contactPhone ? formatPhoneNumber(contactPhone) : 'Not provided'}
+              {contactPhone || 'Not provided'}
             </div>
           </div>
           
