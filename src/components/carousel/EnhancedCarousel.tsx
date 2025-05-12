@@ -131,15 +131,13 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
             autoplay={autoplayVideo}
           />
         ) : (
-          <AspectRatio ratio={16 / 9} className="bg-black">
-            <div className="w-full h-full flex items-center justify-center">
-              <img 
-                src={mediaItems[activeIndex]?.url} 
-                alt={`Media ${activeIndex + 1}`}
-                className="max-w-full max-h-full w-auto h-auto object-contain"
-                loading={activeIndex === 0 ? "eager" : "lazy"}
-              />
-            </div>
+          <AspectRatio ratio={16 / 9} className="bg-transparent">
+            <img 
+              src={mediaItems[activeIndex]?.url} 
+              alt={`Media ${activeIndex + 1}`}
+              className="w-full h-full object-cover object-center"
+              loading={activeIndex === 0 ? "eager" : "lazy"}
+            />
           </AspectRatio>
         )}
       </div>

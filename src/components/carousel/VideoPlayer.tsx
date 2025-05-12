@@ -69,51 +69,49 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
   
   return (
-    <AspectRatio ratio={16 / 9} className="bg-black overflow-hidden rounded-lg">
-      <div className="relative w-full h-full flex items-center justify-center">
-        {isYouTube ? (
-          <iframe 
-            src={getYoutubeEmbedUrl()}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowFullScreen
-            className="w-full h-full"
-            title="YouTube video"
+    <AspectRatio ratio={16 / 9} className="bg-transparent overflow-hidden rounded-lg">
+      {isYouTube ? (
+        <iframe 
+          src={getYoutubeEmbedUrl()}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowFullScreen
+          className="w-full h-full"
+          title="YouTube video"
+        />
+      ) : isVimeo ? (
+        <iframe 
+          src={getVimeoEmbedUrl()}
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+          className="w-full h-full"
+          title="Vimeo video"
+        />
+      ) : (
+        // Direct video file container
+        <div className="relative w-full h-full">
+          <video 
+            ref={videoRef}
+            src={url}
+            controls={false}
+            loop
+            muted={isMuted}
+            playsInline
+            className="w-full h-full object-cover object-center"
           />
-        ) : isVimeo ? (
-          <iframe 
-            src={getVimeoEmbedUrl()}
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowFullScreen
-            className="w-full h-full"
-            title="Vimeo video"
-          />
-        ) : (
-          // Direct video file
-          <>
-            <video 
-              ref={videoRef}
-              src={url}
-              controls={false}
-              loop
-              muted={isMuted}
-              playsInline
-              className="max-width-full max-h-full w-auto h-auto object-contain"
-            />
-            
-            {/* Video Controls - increase z-index to ensure it's above navigation arrows */}
-            <div className="absolute bottom-4 right-4 z-[100]">
-              <Button
-                variant="outline"
-                size="icon"
-                className="bg-white/80 backdrop-blur-sm hover:bg-white rounded-full pointer-events-auto"
-                onClick={toggleMute}
-              >
-                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
+          
+          {/* Video Controls - high z-index to ensure visibility */}
+          <div className="absolute bottom-4 right-4 z-[100]">
+            <Button
+              variant="outline"
+              size="icon"
+              className="bg-white/80 backdrop-blur-sm hover:bg-white rounded-full pointer-events-auto"
+              onClick={toggleMute}
+            >
+              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+      )}
     </AspectRatio>
   );
 };
