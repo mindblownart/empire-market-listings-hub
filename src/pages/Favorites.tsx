@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
-import BusinessCard from '@/components/BusinessCard';
-import { BusinessListing } from '@/types/supabase';
-import { useFavorites } from '@/hooks/useFavorites';
-import Navbar from '@/components/Navbar';
-import HomeFooter from '@/components/HomeFooter';
+import { supabase } from '../lib/supabase';
+import BusinessCard from '../components/BusinessCard';
+import { BusinessListing } from '../types/supabase';
+import { useFavorites } from '../hooks/useFavorites';
+import Navbar from '../components/Navbar';
+import HomeFooter from '../components/HomeFooter';
 import { Heart } from 'lucide-react';
 
 const Favorites = () => {
