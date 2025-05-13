@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Link, useLocation } from 'react-router-dom';
 import BusinessCard from '@/components/BusinessCard';
@@ -12,11 +13,14 @@ import HomeFooter from '@/components/HomeFooter';
 import { supabase } from '@/lib/supabase';
 import { BusinessListing } from '@/types/supabase';
 import { useToast } from '@/components/ui/use-toast';
+import CountryDropdown from '@/components/CountryDropdown';
+import PriceRangeDropdowns, { priceRangePresets } from '@/components/PriceRangeDropdowns';
+import SearchControls from '@/components/ui/search-controls';
 
-// Categories and locations for filtering
+// Categories for filtering
 const categories = [{
   value: 'all',
-  label: 'All Categories'
+  label: 'All Industries'
 }, {
   value: 'tech',
   label: 'Technology'
@@ -43,20 +47,6 @@ const categories = [{
   label: 'Fitness'
 }];
 
-const locations = [{
-  value: 'all',
-  label: 'All Locations'
-}, {
-  value: 'sg',
-  label: 'Singapore'
-}, {
-  value: 'global',
-  label: 'Global'
-}, {
-  value: 'regional',
-  label: 'Regional'
-}];
-
 const sortOptions = [{
   value: 'newest',
   label: 'Newest'
@@ -77,26 +67,29 @@ const Listings = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('all');
-  const [locationFilter, setLocationFilter] = useState('all');
-  const [priceRange, setPriceRange] = useState([0, 2000000]);
+  const [country, setCountry] = useState('all');
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(2000000);
   const [sortBy, setSortBy] = useState('newest');
+  const [newListingsOnly, setNewListingsOnly] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [businesses, setBusinesses] = useState([]);
   const [filteredBusinesses, setFilteredBusinesses] = useState([]);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userSession, setUserSession] = useState(null);
+  const [filtersApplied, setFiltersApplied] = useState(false);
   
   const itemsPerPage = 9;
-  const maxPrice = 2000000;
 
   // Parse query parameters from the URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const categoryParam = params.get('category');
-    const locationParam = params.get('location');
-    const minRevenueParam = params.get('minRevenue');
-    const maxRevenueParam = params.get('maxRevenue');
+    const countryParam = params.get('country');
+    const minPriceParam = params.get('minPrice');
+    const maxPriceParam = params.get('maxPrice');
+    const newOnlyParam = params.get('newOnly');
     
     // Check if we should reset filters based on location state
     const resetFilters = location.state?.resetFilters;
@@ -105,20 +98,25 @@ const Listings = () => {
       // Reset all filters
       setSearchTerm('');
       setCategory('all');
-      setLocationFilter('all');
-      setPriceRange([0, maxPrice]);
+      setCountry('all');
+      setMinPrice(0);
+      setMaxPrice(2000000);
       setSortBy('newest');
+      setNewListingsOnly(false);
+      setFiltersApplied(false);
       // Clear location state to prevent repeated resets
       window.history.replaceState({}, document.title, location.pathname);
     } else {
       // Apply URL parameters as filters if they exist
       if (categoryParam) setCategory(categoryParam);
-      if (locationParam) setLocationFilter(locationParam);
-      // Handle min/max revenue if needed
-      if (minRevenueParam) {
-        const min = parseInt(minRevenueParam);
-        const max = maxRevenueParam ? parseInt(maxRevenueParam) : maxPrice;
-        setPriceRange([min, max]);
+      if (countryParam) setCountry(countryParam);
+      if (minPriceParam) setMinPrice(parseInt(minPriceParam));
+      if (maxPriceParam) setMaxPrice(parseInt(maxPriceParam));
+      if (newOnlyParam) setNewListingsOnly(newOnlyParam === 'true');
+      
+      // Set filtersApplied if any filters are set
+      if (categoryParam || countryParam || minPriceParam || maxPriceParam || newOnlyParam) {
+        setFiltersApplied(true);
       }
     }
   }, [location]);
@@ -255,10 +253,10 @@ const Listings = () => {
       );
     }
 
-    // Filter by location
-    if (locationFilter !== 'all') {
+    // Filter by country
+    if (country !== 'all') {
       results = results.filter(business => 
-        business.location?.toLowerCase().includes(locationFilter.toLowerCase())
+        business.location?.toLowerCase().includes(country.toLowerCase())
       );
     }
 
@@ -266,8 +264,13 @@ const Listings = () => {
     results = results.filter(business => {
       if (!business.price) return true;
       const businessPrice = parseInt(business.price.replace(/[^0-9]/g, ''));
-      return businessPrice >= priceRange[0] && businessPrice <= priceRange[1];
+      return businessPrice >= minPrice && businessPrice <= maxPrice;
     });
+
+    // Filter by new listings only
+    if (newListingsOnly) {
+      results = results.filter(business => business.isNew === true);
+    }
 
     // Apply sorting
     switch (sortBy) {
@@ -300,13 +303,40 @@ const Listings = () => {
     }
     setFilteredBusinesses(results);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [searchTerm, category, locationFilter, priceRange, sortBy, businesses]);
+  }, [searchTerm, category, country, minPrice, maxPrice, sortBy, newListingsOnly, businesses]);
 
   // Get current page items
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredBusinesses.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage);
+
+  // Apply filters function
+  const handleApplyFilters = () => {
+    setFiltersApplied(true);
+    // In a real application, you might want to update the URL with filter params
+    const params = new URLSearchParams();
+    if (category !== 'all') params.append('category', category);
+    if (country !== 'all') params.append('country', country);
+    if (minPrice > 0) params.append('minPrice', minPrice.toString());
+    if (maxPrice < 2000000) params.append('maxPrice', maxPrice.toString());
+    if (newListingsOnly) params.append('newOnly', 'true');
+    
+    window.history.pushState({}, '', `${location.pathname}?${params.toString()}`);
+  };
+
+  // Clear all filters function
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setCategory('all');
+    setCountry('all');
+    setMinPrice(0);
+    setMaxPrice(2000000);
+    setNewListingsOnly(false);
+    setFiltersApplied(false);
+    // Clear URL parameters
+    window.history.pushState({}, '', location.pathname);
+  };
 
   // Calculate pagination items
   const getPaginationItems = () => {
@@ -375,6 +405,20 @@ const Listings = () => {
     setIsFilterVisible(!isFilterVisible);
   };
 
+  // Set price range from preset
+  const handlePresetPriceRange = (preset: string) => {
+    const selectedPreset = priceRangePresets.find(p => p.value === preset);
+    if (selectedPreset) {
+      setMinPrice(selectedPreset.min);
+      setMaxPrice(selectedPreset.max);
+    }
+  };
+
+  // Clear search term
+  const handleClearSearch = () => {
+    setSearchTerm('');
+  };
+
   // Check if there are any listings available
   const hasListings = businesses.length > 0;
 
@@ -386,82 +430,114 @@ const Listings = () => {
       <main className="flex-grow pb-12 pt-24 md:pt-28">
         <div className="container mx-auto px-4">
           <div className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">Available Businesses</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">Find Your Ideal Business</h1>
             <p className="text-gray-600 mb-8">Browse our curated selection of high-potential businesses for sale.</p>
             
             {/* Only show search and filters if we have listings */}
-            {hasListings && !isLoading && (
-              <div className="bg-white mb-10">
-                <div className="p-4 flex flex-wrap items-center gap-4 px-0">
-                  <div className="relative w-full md:w-auto flex-grow">
-                    <Input type="search" placeholder="Search listings..." className="pl-10" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            {(hasListings || filtersApplied) && !isLoading && (
+              <div className="bg-white shadow-sm border border-gray-100 rounded-lg mb-10">
+                {/* Search Bar */}
+                <div className="p-4 border-b border-gray-100">
+                  <SearchControls 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onClearSearch={handleClearSearch}
+                    placeholder="Search businesses by name or description..."
+                  />
+                </div>
+
+                {/* Filter Controls */}
+                <div className="p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {/* Price Range */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Price Range</label>
+                    <PriceRangeDropdowns
+                      minPrice={minPrice}
+                      maxPrice={maxPrice}
+                      onMinChange={setMinPrice}
+                      onMaxChange={setMaxPrice}
+                    />
                   </div>
 
-                  <div className="w-full md:w-auto flex flex-wrap gap-2 md:ml-auto">
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Sort by" />
+                  {/* Industry */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Industry</label>
+                    <Select value={category} onValueChange={setCategory}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="All Industries" />
                       </SelectTrigger>
                       <SelectContent>
-                        {sortOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
+                        {categories.map(cat => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
 
-                    <Button variant="outline" onClick={toggleFilters} className="flex items-center gap-2">
-                      <SlidersHorizontal className="h-4 w-4" />
-                      Filters
-                    </Button>
+                  {/* Country */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Country</label>
+                    <CountryDropdown
+                      value={country}
+                      onChange={setCountry}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Listing Status */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Listing Status</label>
+                    <div className="flex items-center space-x-2 mt-1.5">
+                      <Checkbox
+                        id="newListings"
+                        checked={newListingsOnly}
+                        onCheckedChange={(checked) => setNewListingsOnly(checked === true)}
+                      />
+                      <label
+                        htmlFor="newListings"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        New Listings Only
+                      </label>
+                    </div>
                   </div>
                 </div>
 
-                {/* Advanced Filters - Collapsible */}
-                {isFilterVisible && (
-                  <div className="border-t border-gray-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                      <Select value={category} onValueChange={setCategory}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map(cat => (
-                            <SelectItem key={cat.value} value={cat.value}>
-                              {cat.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                {/* Filter Actions */}
+                <div className="p-4 border-t border-gray-100 flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleClearFilters}
+                    className="flex items-center gap-1"
+                  >
+                    <X className="h-4 w-4" /> Clear All
+                  </Button>
+                  <Button onClick={handleApplyFilters}>
+                    Apply Filters
+                  </Button>
+                </div>
+              </div>
+            )}
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                      <Select value={locationFilter} onValueChange={setLocationFilter}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select location" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {locations.map(loc => (
-                            <SelectItem key={loc.value} value={loc.value}>
-                              {loc.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Price Range: {formatPriceDisplay(priceRange[0])} - {formatPriceDisplay(priceRange[1])}
-                      </label>
-                      <Slider defaultValue={[0, maxPrice]} min={0} max={maxPrice} step={50000} value={priceRange} onValueChange={setPriceRange} className="py-4" />
-                    </div>
-                  </div>
-                )}
+            {/* Sort Controls */}
+            {hasListings && !isLoading && (
+              <div className="flex flex-wrap items-center gap-4 mb-6">
+                <div className="ml-auto">
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sortOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             )}
 
