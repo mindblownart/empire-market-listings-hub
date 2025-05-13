@@ -42,8 +42,8 @@ const Favorites = () => {
         return;
       }
 
-      // If favorites array is empty, reset listings and stop loading
-      if (favorites.length === 0) {
+      // If favorites array is empty, reset listings and stop loading immediately
+      if (!favorites || favorites.length === 0) {
         console.log('No favorites found, showing empty state');
         setFavoriteListings([]);
         setIsLoading(false);
@@ -72,7 +72,7 @@ const Favorites = () => {
       }
     };
     
-    if (user && favorites) {
+    if (user) {
       fetchFavoriteListings();
     }
   }, [favorites, user]);
