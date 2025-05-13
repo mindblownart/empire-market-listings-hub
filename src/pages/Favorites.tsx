@@ -70,8 +70,9 @@ const Favorites = () => {
 
   // Handle listing refresh after removing a favorite
   const handleListingUpdate = () => {
-    // The useFavorites hook will handle the state update automatically
-    // through the realtime subscription, so we don't need to do anything here
+    // This function now exists for compatibility, but we don't need to do anything here
+    // as the favorites state will be updated by the useFavorites hook through the realtime subscription
+    console.log("Listing update triggered");
   };
 
   // Empty state message when no favorites
