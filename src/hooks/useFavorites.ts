@@ -9,28 +9,31 @@ export const useFavorites = (userId?: string) => {
   const [isProcessing, setIsProcessing] = useState<{[key: string]: boolean}>({});
   const { toast } = useToast();
 
+  // Function to fetch favorites that can be called from multiple places
+  const fetchFavorites = useCallback(async () => {
+    if (!userId) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('listing_id')
+        .eq('user_id', userId);
+        
+      if (error) throw error;
+      
+      console.log('Fetched favorites:', data);
+      setFavorites(data?.map((item: any) => item.listing_id) || []);
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId]);
+
   // Fetch user's favorites when component mounts or userId changes
   useEffect(() => {
     if (!userId) return;
-    
-    const fetchFavorites = async () => {
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('favorites')
-          .select('listing_id')
-          .eq('user_id', userId);
-          
-        if (error) throw error;
-        
-        console.log('Fetched favorites:', data);
-        setFavorites(data?.map((item: any) => item.listing_id) || []);
-      } catch (error) {
-        console.error('Error fetching favorites:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     
     fetchFavorites();
     
@@ -82,7 +85,7 @@ export const useFavorites = (userId?: string) => {
       console.log('Cleaning up favorites subscription');
       supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, [userId, fetchFavorites]);
   
   const toggleFavorite = useCallback(async (listingId: string) => {
     // Check if user is authenticated
