@@ -18,6 +18,9 @@ const Favorites = () => {
   // Use our custom hook to get and manage favorites
   const { favorites, isLoading: favoritesLoading } = useFavorites(user?.id);
 
+  // Debug output for favorites state
+  console.log(`Favorites component rendering. Favorites length: ${favorites?.length}, Listings length: ${favoriteListings.length}`);
+
   // Check if user is authenticated
   useEffect(() => {
     const checkUser = async () => {
@@ -85,9 +88,6 @@ const Favorites = () => {
       <p className="text-gray-600">Click the ♡ icon to favorite listings!</p>
     </div>
   );
-
-  // Debug output for favorites state
-  console.log(`Favorites component rendering. Favorites length: ${favorites?.length}, Listings length: ${favoriteListings.length}`);
 
   return (
     <div className="min-h-screen flex flex-col">
