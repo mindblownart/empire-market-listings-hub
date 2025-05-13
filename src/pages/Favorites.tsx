@@ -33,6 +33,15 @@ const Favorites = () => {
     checkUser();
   }, [navigate]);
 
+  // Immediately clear favoriteListings when favorites array becomes empty
+  useEffect(() => {
+    if (favorites && favorites.length === 0) {
+      console.log('Favorites array is empty, clearing listings');
+      setFavoriteListings([]);
+      setIsLoading(false);
+    }
+  }, [favorites]);
+
   // Fetch favorite listings whenever favorites list changes
   useEffect(() => {
     const fetchFavoriteListings = async () => {
