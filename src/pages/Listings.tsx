@@ -1,64 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Link, useLocation } from 'react-router-dom';
-import BusinessCard from '@/components/BusinessCard';
+import { useLocation } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/lib/supabase';
 import Navbar from '@/components/Navbar';
 import HomeFooter from '@/components/HomeFooter';
-import { supabase } from '@/lib/supabase';
-import { BusinessListing } from '@/types/supabase';
-import { useToast } from '@/components/ui/use-toast';
-import CountryDropdown from '@/components/CountryDropdown';
-import PriceRangeDropdowns, { priceRangePresets } from '@/components/PriceRangeDropdowns';
-import SearchControls from '@/components/ui/search-controls';
-
-// Categories for filtering
-const categories = [{
-  value: 'all',
-  label: 'All Industries'
-}, {
-  value: 'tech',
-  label: 'Technology'
-}, {
-  value: 'retail',
-  label: 'Retail'
-}, {
-  value: 'food',
-  label: 'Food & Beverage'
-}, {
-  value: 'health',
-  label: 'Health & Wellness'
-}, {
-  value: 'manufacturing',
-  label: 'Manufacturing'
-}, {
-  value: 'service',
-  label: 'Service'
-}, {
-  value: 'travel',
-  label: 'Travel'
-}, {
-  value: 'fitness',
-  label: 'Fitness'
-}];
-
-const sortOptions = [{
-  value: 'newest',
-  label: 'Newest'
-}, {
-  value: 'price-high',
-  label: 'Price High to Low'
-}, {
-  value: 'price-low',
-  label: 'Price Low to High'
-}, {
-  value: 'revenue-high',
-  label: 'Revenue High to Low'
-}];
+import { priceRangePresets } from '@/components/PriceRangeDropdowns';
+import SearchFilters from '@/components/listings/SearchFilters';
+import SortControls from '@/components/listings/SortControls';
+import ListingResults from '@/components/listings/ListingResults';
+import ListingPagination from '@/components/listings/ListingPagination';
 
 const Listings = () => {
   const location = useLocation();
@@ -228,16 +179,6 @@ const Listings = () => {
     }
   };
 
-  // Format price display for the slider
-  const formatPriceDisplay = (price: number) => {
-    if (price >= 1000000) {
-      return `$${(price / 1000000).toFixed(1)}M`;
-    } else if (price >= 1000) {
-      return `$${(price / 1000).toFixed(0)}K`;
-    }
-    return `$${price}`;
-  };
-
   // Apply filters and sorting
   useEffect(() => {
     let results = [...businesses];
@@ -305,6 +246,7 @@ const Listings = () => {
       default:
         break;
     }
+    
     setFilteredBusinesses(results);
     setCurrentPage(1); // Reset to first page when filters change
   }, [searchTerm, category, country, minPrice, maxPrice, sortBy, newListingsOnly, businesses]);
@@ -342,71 +284,14 @@ const Listings = () => {
     window.history.pushState({}, '', location.pathname);
   };
 
-  // Calculate pagination items
-  const getPaginationItems = () => {
-    const items = [];
-
-    // Always show first page
-    items.push(<PaginationItem key="first">
-        <PaginationLink onClick={() => setCurrentPage(1)} isActive={currentPage === 1}>
-          1
-        </PaginationLink>
-      </PaginationItem>);
-
-    // Show ellipsis if needed
-    if (currentPage > 3) {
-      items.push(<PaginationItem key="ellipsis-1">
-          <PaginationEllipsis />
-        </PaginationItem>);
-    }
-
-    // Add pages before current
-    for (let i = Math.max(2, currentPage - 1); i < currentPage; i++) {
-      items.push(<PaginationItem key={i}>
-          <PaginationLink onClick={() => setCurrentPage(i)}>
-            {i}
-          </PaginationLink>
-        </PaginationItem>);
-    }
-
-    // Add current page if not first or last
-    if (currentPage !== 1 && currentPage !== totalPages) {
-      items.push(<PaginationItem key={currentPage}>
-          <PaginationLink isActive>
-            {currentPage}
-          </PaginationLink>
-        </PaginationItem>);
-    }
-
-    // Add pages after current
-    for (let i = currentPage + 1; i < Math.min(totalPages, currentPage + 2); i++) {
-      items.push(<PaginationItem key={i}>
-          <PaginationLink onClick={() => setCurrentPage(i)}>
-            {i}
-          </PaginationLink>
-        </PaginationItem>);
-    }
-
-    // Show ellipsis if needed
-    if (currentPage < totalPages - 2) {
-      items.push(<PaginationItem key="ellipsis-2">
-          <PaginationEllipsis />
-        </PaginationItem>);
-    }
-
-    // Always show last page if there is more than one page
-    if (totalPages > 1) {
-      items.push(<PaginationItem key="last">
-          <PaginationLink onClick={() => setCurrentPage(totalPages)} isActive={currentPage === totalPages}>
-            {totalPages}
-          </PaginationLink>
-        </PaginationItem>);
-    }
-    return items;
+  // Handle search term change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
-  
-  const toggleFilters = () => {
-    setIsFilterVisible(!isFilterVisible);
+
+  // Clear search term
+  const handleClearSearch = () => {
+    setSearchTerm('');
   };
 
   // Set price range from preset
@@ -418,9 +303,14 @@ const Listings = () => {
     }
   };
 
-  // Clear search term
-  const handleClearSearch = () => {
-    setSearchTerm('');
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Toggle filters visibility
+  const toggleFilters = () => {
+    setIsFilterVisible(!isFilterVisible);
   };
 
   // Check if there are any listings available
@@ -439,173 +329,49 @@ const Listings = () => {
             
             {/* Only show search and filters if we have listings */}
             {(hasListings || filtersApplied) && !isLoading && (
-              <div className="bg-white shadow-sm border border-gray-100 rounded-lg mb-10">
-                {/* Search Bar */}
-                <div className="p-4 border-b border-gray-100">
-                  <SearchControls 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onClearSearch={handleClearSearch}
-                    placeholder="Search businesses by name or description..."
-                  />
-                </div>
-
-                {/* Filter Controls */}
-                <div className="p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {/* Price Range */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Price Range</label>
-                    <PriceRangeDropdowns
-                      minPrice={minPrice}
-                      maxPrice={maxPrice}
-                      onMinChange={setMinPrice}
-                      onMaxChange={setMaxPrice}
-                    />
-                  </div>
-
-                  {/* Industry */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Industry</label>
-                    <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="All Industries" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map(cat => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Country */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Country</label>
-                    <CountryDropdown
-                      value={country}
-                      onChange={setCountry}
-                      className="w-full"
-                    />
-                  </div>
-
-                  {/* Listing Status */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Listing Status</label>
-                    <div className="flex items-center space-x-2 mt-1.5">
-                      <Checkbox
-                        id="newListings"
-                        checked={newListingsOnly}
-                        onCheckedChange={(checked) => setNewListingsOnly(checked === true)}
-                      />
-                      <label
-                        htmlFor="newListings"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        New Listings Only
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Filter Actions */}
-                <div className="p-4 border-t border-gray-100 flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={handleClearFilters}
-                    className="flex items-center gap-1"
-                  >
-                    <X className="h-4 w-4" /> Clear All
-                  </Button>
-                  <Button onClick={handleApplyFilters}>
-                    Apply Filters
-                  </Button>
-                </div>
-              </div>
+              <SearchFilters
+                searchTerm={searchTerm}
+                onSearchChange={handleSearchChange}
+                onClearSearch={handleClearSearch}
+                category={category}
+                onCategoryChange={setCategory}
+                country={country}
+                onCountryChange={setCountry}
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                onMinPriceChange={setMinPrice}
+                onMaxPriceChange={setMaxPrice}
+                newListingsOnly={newListingsOnly}
+                onNewListingsChange={setNewListingsOnly}
+                onApplyFilters={handleApplyFilters}
+                onClearFilters={handleClearFilters}
+              />
             )}
 
             {/* Sort Controls */}
             {hasListings && !isLoading && (
-              <div className="flex flex-wrap items-center gap-4 mb-6">
-                <div className="ml-auto">
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sortOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <SortControls 
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+              />
             )}
 
-            {/* Loading state */}
-            {isLoading ? (
-              <div className="text-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading listings...</p>
-              </div>
-            ) : (
-              <>
-                {/* Empty state when no listings are available */}
-                {!hasListings ? (
-                  <div className="text-center py-20 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
-                    <h3 className="text-xl font-medium text-gray-900 mb-4">No businesses have been listed yet. Be the first to submit yours!</h3>
-                    <p className="text-gray-600 mb-6 max-w-lg mx-auto">
-                      Our marketplace is ready for your business listing. Submit your business details to find the right buyer.
-                    </p>
-                    <Button asChild className="px-6 py-6 text-lg">
-                      <Link to="/submit">Submit a Business</Link>
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    {/* Listings Grid */}
-                    {currentItems.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {currentItems.map(business => (
-                          <BusinessCard 
-                            key={business.id} 
-                            {...business} 
-                            onDelete={fetchBusinesses} 
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-16 bg-gray-50 rounded-lg">
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No listings found</h3>
-                        <p className="text-gray-600">
-                          No listings match your search. Try adjusting filters or check back later.
-                        </p>
-                      </div>
-                    )}
+            {/* Listings Results */}
+            <ListingResults 
+              isLoading={isLoading}
+              businesses={businesses}
+              filteredBusinesses={filteredBusinesses}
+              currentItems={currentItems}
+              onDeleteBusiness={fetchBusinesses}
+            />
 
-                    {/* Pagination - only show if we have listings */}
-                    {filteredBusinesses.length > 0 && (
-                      <Pagination className="mt-8">
-                        <PaginationContent>
-                          <PaginationItem>
-                            <PaginationPrevious onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} className={currentPage === 1 ? "pointer-events-none opacity-50" : ""} />
-                          </PaginationItem>
-                          
-                          {getPaginationItems()}
-                          
-                          <PaginationItem>
-                            <PaginationNext onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""} />
-                          </PaginationItem>
-                        </PaginationContent>
-                      </Pagination>
-                    )}
-                  </>
-                )}
-              </>
-            )}
+            {/* Pagination */}
+            <ListingPagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              filteredBusinessesCount={filteredBusinesses.length}
+            />
           </div>
         </div>
       </main>
