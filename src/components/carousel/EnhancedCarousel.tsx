@@ -24,36 +24,21 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   const [mediaItems, setMediaItems] = useState<Array<{type: 'image' | 'video', url: string}>>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Enhanced debugging for video issues
-  console.log("EnhancedCarousel received props:", { 
-    imagesCount: images.length, 
-    videoURL, 
-    autoplayVideo, 
-    skipPrimaryImage,
-    imagesList: images 
-  });
-  
-  // Set up media items to display with video always in slot 0 (first in carousel)
+  // Set up media items to display with video always in slot 2 (index 0 in carousel)
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
     
-    // If we have a video, insert it at position 0 (first slot in the carousel)
+    // If we have a video, insert it at position 0 (slot 2 in the UI after the hero image)
     if (videoURL) {
       items.push({ type: 'video', url: videoURL });
-      console.log("Added video to carousel at position 0:", videoURL);
     }
     
     // Add all the images after the video
     // We're using the images directly since skipPrimaryImage is handled in MediaGallery
-    if (images && images.length > 0) {
-      images.forEach(url => {
-        if (url) {
-          items.push({ type: 'image', url });
-        }
-      });
-    }
+    images.forEach(url => {
+      items.push({ type: 'image', url });
+    });
     
-    console.log("Final media items for carousel:", items);
     setMediaItems(items);
     
     // Reset active index when media items change
@@ -127,9 +112,6 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       </div>
     );
   }
-  
-  // Log the current active item for debugging
-  console.log("Current active media item:", mediaItems[activeIndex]);
   
   // Return the complete carousel component
   return (

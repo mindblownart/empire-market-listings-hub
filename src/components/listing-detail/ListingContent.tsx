@@ -21,13 +21,6 @@ export const ListingContent: React.FC<ListingContentProps> = ({ business }) => {
   
   // Ensure location is properly formatted for flag display
   const flagCode = business.location ? business.location.toLowerCase() : "gl";
-  
-  // Log business media data for debugging
-  console.log("ListingContent received business media:", {
-    primaryImage: heroImage,
-    galleryImages: business.gallery_images,
-    videoUrl: business.video_url
-  });
 
   return (
     <>
