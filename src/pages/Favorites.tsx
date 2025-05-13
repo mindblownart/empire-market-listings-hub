@@ -37,7 +37,7 @@ const Favorites = () => {
   // Fetch favorite listings whenever favorites list changes
   useEffect(() => {
     const fetchFavoriteListings = async () => {
-      if (!user || !favorites.length) {
+      if (!user || favorites.length === 0) {
         setFavoriteListings([]);
         setIsLoading(false);
         return;
@@ -100,7 +100,9 @@ const Favorites = () => {
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
-          ) : favoriteListings.length > 0 ? (
+          ) : favoriteListings.length === 0 ? (
+            renderEmptyState()
+          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {favoriteListings.map((listing) => (
                 <BusinessCard
@@ -122,8 +124,6 @@ const Favorites = () => {
                 />
               ))}
             </div>
-          ) : (
-            renderEmptyState()
           )}
         </div>
       </main>
