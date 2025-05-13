@@ -63,9 +63,6 @@ export const useFavorites = (userId?: string) => {
               setFavorites(prev => [...prev, addedListingId]);
             }
           }
-          
-          // Then also fetch from database to ensure consistency
-          fetchFavorites();
         }
       )
       .subscribe();
