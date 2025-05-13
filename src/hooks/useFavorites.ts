@@ -53,14 +53,22 @@ export const useFavorites = (userId?: string) => {
             const removedListingId = payload.old?.listing_id;
             if (removedListingId) {
               console.log('Removing listing from favorites:', removedListingId);
-              setFavorites(prev => prev.filter(id => id !== removedListingId));
+              setFavorites(prev => {
+                const updated = prev.filter(id => id !== removedListingId);
+                console.log(`Updated favorites array length: ${updated.length}`);
+                return updated;
+              });
             }
           } else if (payload.eventType === 'INSERT') {
             // If a favorite was added, add it to the favorites array immediately
             const addedListingId = payload.new?.listing_id;
             if (addedListingId) {
               console.log('Adding listing to favorites:', addedListingId);
-              setFavorites(prev => [...prev, addedListingId]);
+              setFavorites(prev => {
+                const updated = [...prev, addedListingId];
+                console.log(`Updated favorites array length: ${updated.length}`);
+                return updated;
+              });
             }
           }
         }
@@ -88,10 +96,18 @@ export const useFavorites = (userId?: string) => {
       // Optimistically update the UI immediately before the request completes
       if (isFavorited) {
         // Remove from favorites UI immediately
-        setFavorites(favorites.filter(id => id !== listingId));
+        setFavorites(prev => {
+          const updated = prev.filter(id => id !== listingId);
+          console.log(`Optimistically removed favorite. New length: ${updated.length}`);
+          return updated;
+        });
       } else {
         // Add to favorites UI immediately
-        setFavorites([...favorites, listingId]);
+        setFavorites(prev => {
+          const updated = [...prev, listingId];
+          console.log(`Optimistically added favorite. New length: ${updated.length}`);
+          return updated;
+        });
       }
       
       // Then perform the actual database operation

@@ -44,7 +44,7 @@ const Favorites = () => {
       }
 
       // If favorites array is empty, reset listings and stop loading
-      if (favorites.length === 0) {
+      if (!favorites || favorites.length === 0) {
         console.log('No favorites found, showing empty state');
         setFavoriteListings([]);
         setIsLoading(false);
@@ -94,6 +94,9 @@ const Favorites = () => {
     </div>
   );
 
+  // Debug output for favorites state
+  console.log(`Favorites component rendering. Favorites length: ${favorites?.length}, Listings length: ${favoriteListings.length}`);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -111,7 +114,7 @@ const Favorites = () => {
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
-          ) : favoriteListings.length === 0 ? (
+          ) : (!favorites || favorites.length === 0) ? (
             renderEmptyState()
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
