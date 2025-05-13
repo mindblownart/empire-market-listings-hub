@@ -80,7 +80,7 @@ const BusinessCard = ({
     
     const result = await toggleFavorite(id);
     
-    if (!result.success && result.needsLogin) {
+    if (!result?.success && result?.needsLogin) {
       setIsLoginDialogOpen(true);
     }
   };
@@ -147,19 +147,21 @@ const BusinessCard = ({
             )}
           </div>
           
-          {/* Favorite button with bookmark icon */}
-          <button 
-            className={`absolute top-2 right-2 z-20 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm cursor-pointer transition-colors`}
-            onClick={handleFavoriteToggle}
-            disabled={isProcessingFavorite}
-            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-          >
-            {isFavorited ? (
-              <BookmarkCheck className="h-5 w-5 text-yellow-400" />
-            ) : (
-              <Bookmark className="h-5 w-5 text-gray-500" />
-            )}
-          </button>
+          {/* Favorite button with bookmark icon - only show for listings that aren't owned by the current user */}
+          {!isOwnListing && userId && (
+            <button 
+              className={`absolute top-2 right-2 z-20 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm cursor-pointer transition-colors`}
+              onClick={handleFavoriteToggle}
+              disabled={isProcessingFavorite}
+              aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+            >
+              {isFavorited ? (
+                <BookmarkCheck className="h-5 w-5 text-yellow-400" />
+              ) : (
+                <Bookmark className="h-5 w-5 text-gray-500" />
+              )}
+            </button>
+          )}
           
           <img 
             src={imageUrl} 

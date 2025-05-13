@@ -58,7 +58,7 @@ export const useFavorites = (userId?: string) => {
           } else if (payload.eventType === 'INSERT') {
             // If a favorite was added, add it to the favorites array immediately
             const addedListingId = payload.new?.listing_id;
-            if (addedListingId) {
+            if (addedListingId && !favorites.includes(addedListingId)) {
               console.log('Adding listing to favorites:', addedListingId);
               setFavorites(prev => [...prev, addedListingId]);
             }
@@ -72,11 +72,45 @@ export const useFavorites = (userId?: string) => {
     };
   }, [userId]);
   
+  // Check if listing belongs to current user (prevent self-favoriting)
+  const isOwnListing = async (listingId: string): Promise<boolean> => {
+    if (!userId) return false;
+    
+    try {
+      const { data, error } = await supabase
+        .from('business_listings')
+        .select('user_id')
+        .eq('id', listingId)
+        .single();
+      
+      if (error) {
+        console.error('Error checking listing ownership:', error);
+        return false;
+      }
+      
+      return data.user_id === userId;
+    } catch (error) {
+      console.error('Error in isOwnListing check:', error);
+      return false;
+    }
+  };
+  
   const toggleFavorite = async (listingId: string) => {
     // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return { success: false, needsLogin: true };
+    }
+    
+    // Check if this is the user's own listing
+    const ownListing = await isOwnListing(listingId);
+    if (ownListing) {
+      toast({
+        title: "Cannot favorite your own listing",
+        description: "You cannot add your own business listings to favorites",
+        variant: "destructive",
+      });
+      return { success: false, needsLogin: false, isOwnListing: true };
     }
     
     // Set processing state for this specific listing
