@@ -95,6 +95,18 @@ const Favorites = () => {
     }
   }, [favorites, user]);
 
+  // Add new effect to sync favoriteListings with favorites array
+  useEffect(() => {
+    const updatedListings = favoriteListings.filter(listing =>
+      favorites.includes(listing.id)
+    );
+
+    if (updatedListings.length !== favoriteListings.length) {
+      console.log("Syncing UI with updated favorites...");
+      setFavoriteListings(updatedListings);
+    }
+  }, [favorites, favoriteListings]);
+
   // Handle listing refresh after removing a favorite
   const handleListingUpdate = () => {
     console.log("Listing update triggered - UI should update via useFavorites hook");
