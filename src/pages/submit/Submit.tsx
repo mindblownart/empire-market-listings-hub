@@ -1,21 +1,20 @@
-
 import React, { useState, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { useFormData } from '@/contexts/FormDataContext';
-import AuthCheck from '@/components/auth/AuthCheck';
-import FormContainer from '@/components/submit/FormContainer';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
+import { useFormData } from '../../contexts/FormDataContext';
+import AuthCheck from '../../components/auth/AuthCheck';
+import FormContainer from '../../components/submit/FormContainer';
 import BusinessDetails from './BusinessDetails';
 import FinancialDetails from './FinancialDetails';
 import BusinessDescription from './BusinessDescription';
 import BusinessHighlights from './BusinessHighlights';
 import ContactInformation from './ContactInformation';
-import { useBusinessSubmission } from '@/hooks/useBusinessSubmission';
-import { MediaUpload } from '@/components/media-uploader';
-import DragContext from '@/components/media-uploader/DragContext';
-import { MediaFile } from '@/components/media-uploader/types';
+import { useBusinessSubmission } from '../../hooks/useBusinessSubmission';
+import { MediaUpload } from '../../components/media-uploader';
+import DragContext from '../../components/media-uploader/DragContext';
+import { MediaFile } from '../../components/media-uploader/types';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 const Submit = () => {
   const { formData, updateFormData } = useFormData();

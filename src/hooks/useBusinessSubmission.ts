@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../lib/supabase';
 import { useFormValidation } from './useFormValidation';
-import { uploadBusinessMedia } from '@/utils/businessMediaUpload';
-import { BusinessFormData } from '@/contexts/FormDataContext';
+import { uploadBusinessMedia } from '../utils/businessMediaUpload';
+import { BusinessFormData } from '../contexts/FormDataContext';
 
 export const useBusinessSubmission = () => {
   const navigate = useNavigate();

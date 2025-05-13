@@ -1,9 +1,8 @@
-
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '../button';
+import { Input } from '../input';
 import { Search, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../../../lib/utils';
 
 interface SearchControlsProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onClearSearch?: () => void;

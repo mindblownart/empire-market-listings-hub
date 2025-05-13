@@ -1,8 +1,7 @@
-
 import React from 'react';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { BusinessFormData } from '@/contexts/FormDataContext';
+import { Label } from '../../components/ui/label';
+import { Textarea } from '../../components/ui/textarea';
+import { BusinessFormData } from '../../contexts/FormDataContext';
 
 interface BusinessDescriptionProps {
   formData: BusinessFormData;

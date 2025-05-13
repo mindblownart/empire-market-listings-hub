@@ -1,9 +1,8 @@
-
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '../components/ui/button';
 import { Check } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 const PricingTier = ({ 
   name, 

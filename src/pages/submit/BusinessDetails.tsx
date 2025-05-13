@@ -1,8 +1,7 @@
-
 import React from 'react';
-import { BusinessFormData } from '@/contexts/FormDataContext';
-import { BusinessNameField, IndustryField, CountrySelector } from '@/components/submit';
-import { findCountryByFlagCode } from '@/components/submit/countries';
+import { BusinessFormData } from '../../contexts/FormDataContext';
+import { BusinessNameField, IndustryField, CountrySelector } from '../../components/submit';
+import { findCountryByFlagCode } from '../../components/submit/countries';
 
 interface BusinessDetailsProps {
   formData: BusinessFormData;

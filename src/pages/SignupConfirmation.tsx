@@ -1,11 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Button } from '../components/ui/button';
 import { CheckCircle, Loader2 } from 'lucide-react';
-import { useSignup } from '@/hooks/useSignup';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useSignup } from '../hooks/useSignup';
+import { Alert, AlertDescription } from '../components/ui/alert';
 
 const SignupConfirmation = () => {
   const location = useLocation();

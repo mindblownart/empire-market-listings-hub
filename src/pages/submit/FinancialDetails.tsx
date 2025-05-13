@@ -1,8 +1,7 @@
-
 import React from 'react';
-import { BusinessFormData } from '@/contexts/FormDataContext';
-import CurrencyField from '@/components/submit/CurrencyField';
-import SelectField from '@/components/submit/SelectField';
+import { BusinessFormData } from '../../contexts/FormDataContext';
+import CurrencyField from '../../components/submit/CurrencyField';
+import SelectField from '../../components/submit/SelectField';
 
 interface FinancialDetailsProps {
   formData: BusinessFormData;

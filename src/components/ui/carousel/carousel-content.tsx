@@ -1,6 +1,6 @@
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../../lib/utils";
 import { useCarousel } from "./carousel-context";
 
 const CarouselContent = React.forwardRef<

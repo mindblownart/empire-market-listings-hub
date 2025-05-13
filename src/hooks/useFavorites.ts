@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '../lib/supabase';
+import { useToast } from '../components/ui/use-toast';
 
 export const useFavorites = (userId?: string) => {
   const [favorites, setFavorites] = useState<string[]>([]);
