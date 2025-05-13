@@ -17,51 +17,40 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   images = [],
   videoURL,
   autoplayVideo = true,
-  skipPrimaryImage = false,
+  skipPrimaryImage = false, // Default changed to false as we handle this in MediaGallery
 }) => {
   // Media state management
   const [activeIndex, setActiveIndex] = useState(0);
   const [mediaItems, setMediaItems] = useState<Array<{type: 'image' | 'video', url: string}>>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Log incoming props for debugging
+  // Enhanced debugging for video issues
   console.log("EnhancedCarousel received props:", { 
     imagesCount: images.length, 
     videoURL, 
     autoplayVideo, 
-    skipPrimaryImage 
+    skipPrimaryImage,
+    imagesList: images 
   });
   
-  // Set up media items to display with video always in slot 2 (index 1 in carousel)
+  // Set up media items to display with video always in slot 0 (first in carousel)
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
     
-    // Add images and video in the correct order
-    // We want the video to always be in slot 2 (index 1)
-    if (images.length > 0) {
-      // First add the first image
-      items.push({ type: 'image', url: images[0] });
-      console.log("Added first image to carousel:", images[0]);
-      
-      // Then add the video as the second item
-      if (videoURL && videoURL.trim() !== '') {
-        items.push({ type: 'video', url: videoURL });
-        console.log("Added video to carousel at index 1:", videoURL);
-      }
-      
-      // Then add the rest of the images
-      if (images.length > 1) {
-        for (let i = 1; i < images.length; i++) {
-          items.push({ type: 'image', url: images[i] });
+    // If we have a video, insert it at position 0 (first slot in the carousel)
+    if (videoURL) {
+      items.push({ type: 'video', url: videoURL });
+      console.log("Added video to carousel at position 0:", videoURL);
+    }
+    
+    // Add all the images after the video
+    // We're using the images directly since skipPrimaryImage is handled in MediaGallery
+    if (images && images.length > 0) {
+      images.forEach(url => {
+        if (url) {
+          items.push({ type: 'image', url });
         }
-        console.log(`Added ${images.length - 1} more images to carousel`);
-      }
-    } else {
-      // If there are no images, just add the video
-      if (videoURL && videoURL.trim() !== '') {
-        items.push({ type: 'video', url: videoURL });
-        console.log("Only adding video to carousel:", videoURL);
-      }
+      });
     }
     
     console.log("Final media items for carousel:", items);
@@ -155,9 +144,6 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
           <VideoPlayer 
             url={mediaItems[activeIndex].url} 
             autoplay={autoplayVideo}
-            muted={true}
-            loop={true}
-            controls={false}
           />
         ) : (
           <AspectRatio ratio={16 / 9} className="bg-transparent">

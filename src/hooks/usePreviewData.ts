@@ -14,8 +14,6 @@ export const usePreviewData = () => {
   useEffect(() => {
     const loadFormData = () => {
       try {
-        console.log("usePreviewData: Loading preview data from session storage");
-        
         // Check if we have any form data in session storage
         const storedData = sessionStorage.getItem('previewFormData');
         
@@ -30,7 +28,7 @@ export const usePreviewData = () => {
         
         // Parse the form data
         const parsedData = JSON.parse(storedData);
-        console.log("Loaded form data:", parsedData);
+        console.log("Loaded form data for preview:", parsedData);
         setFormData(parsedData);
         
         // Load image URLs - First check for preview image urls
@@ -41,7 +39,7 @@ export const usePreviewData = () => {
           try {
             const parsedImageUrls = JSON.parse(storedImageUrls);
             if (Array.isArray(parsedImageUrls) && parsedImageUrls.length > 0) {
-              console.log("Using stored image URLs:", parsedImageUrls);
+              console.log("Using stored image URLs for preview:", parsedImageUrls);
               setImageUrls(parsedImageUrls);
             }
           } catch (error) {
@@ -53,7 +51,7 @@ export const usePreviewData = () => {
           try {
             const parsedOrdering = JSON.parse(storedImageOrdering);
             if (Array.isArray(parsedOrdering) && parsedOrdering.length > 0) {
-              console.log("Using stored image ordering:", parsedOrdering);
+              console.log("Using stored image ordering for preview:", parsedOrdering);
               setImageUrls(parsedOrdering);
             }
           } catch (error) {
@@ -61,21 +59,21 @@ export const usePreviewData = () => {
           }
         }
         
-        // First explicitly check for video URL in session storage
+        // Load video URL from session storage - this is the critical fix
         const sessionVideo = sessionStorage.getItem('previewVideoUrl');
         console.log("Retrieved video URL from session:", sessionVideo);
         
         if (sessionVideo) {
           setVideoURL(sessionVideo);
-          console.log("Set video URL from session:", sessionVideo);
+          console.log("Set video URL from session for preview:", sessionVideo);
         } else if (parsedData.businessVideoUrl) {
           // Fallback to businessVideoUrl from form data if sessionVideo is not available
           setVideoURL(parsedData.businessVideoUrl);
-          console.log("Set video URL from form data:", parsedData.businessVideoUrl);
+          console.log("Set video URL from form data for preview:", parsedData.businessVideoUrl);
         } else {
           // Ensure video URL is null if none exists
           setVideoURL(null);
-          console.log("No video URL found, set to null");
+          console.log("No video URL found for preview, set to null");
         }
         
         setIsLoading(false);
