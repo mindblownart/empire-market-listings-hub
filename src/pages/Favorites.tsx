@@ -6,7 +6,7 @@ import BusinessCard from '@/components/BusinessCard';
 import { BusinessListing } from '@/types/supabase';
 import { useFavorites } from '@/hooks/useFavorites';
 import Navbar from '@/components/Navbar';
-import { HomeFooter } from '@/components/HomeFooter';
+import HomeFooter from '@/components/HomeFooter';
 import { Badge } from '@/components/ui/badge';
 import { Heart } from 'lucide-react';
 
