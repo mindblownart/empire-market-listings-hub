@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 import { supabase } from '@/lib/supabase';
+import { Heart } from 'lucide-react';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [favoritesActive, setFavoritesActive] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -16,6 +18,8 @@ const Navbar = () => {
   const isHomePage = location.pathname === '/';
   // Check if we're on the submit page
   const isSubmitPage = location.pathname === '/submit';
+  // Check if we're on the favorites page
+  const isFavoritesPage = location.pathname === '/favorites';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,11 +41,14 @@ const Navbar = () => {
       setUser(session?.user || null);
     });
 
+    // Set favorites active state based on current page
+    setFavoritesActive(isFavoritesPage);
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [isFavoritesPage]);
 
   // Close mobile menu when changing routes
   useEffect(() => {
@@ -66,6 +73,17 @@ const Navbar = () => {
     if (!user) {
       e.preventDefault();
       navigate('/login', { state: { redirect: '/submit' } });
+    }
+  };
+
+  // Handle favorites click - navigate to favorites page
+  const handleFavoritesClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      navigate('/login', { state: { redirect: '/favorites' } });
+    } else {
+      navigate('/favorites');
+      setFavoritesActive(true);
     }
   };
 
@@ -102,9 +120,9 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:space-x-8">
+          <div className="hidden md:flex md:flex-1 md:justify-center">
             {!isMinimalNavigation && (
-              <>
+              <div className="flex items-center space-x-8">
                 <HashLink 
                   smooth 
                   to="/#listings" 
@@ -131,10 +149,25 @@ const Navbar = () => {
                 <Link to="/pricing" className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}>
                   Pricing
                 </Link>
-              </>
+              </div>
             )}
-            {!isSubmitPage && !isPreviewPage && (
+          </div>
+
+          {/* Right Side Nav Items */}
+          <div className="hidden md:flex md:items-center md:space-x-6">
+            {!isMinimalNavigation && !isSubmitPage && !isPreviewPage && (
               <>
+                <button
+                  onClick={handleFavoritesClick}
+                  className={`flex items-center gap-1 ${getTextColorClass()} ${getHoverColorClass()} transition-colors`}
+                >
+                  <Heart 
+                    className="h-4 w-4" 
+                    fill={favoritesActive ? "currentColor" : "none"} 
+                  />
+                  <span>Favorites</span>
+                </button>
+                
                 {!user ? (
                   <>
                     <Link to="/login" className={`${getTextColorClass()} ${getHoverColorClass()} transition-colors`}>
@@ -223,6 +256,19 @@ const Navbar = () => {
                   <Link to="/pricing" className="text-[#2F3542] hover:text-[#1a1f29] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
                     Pricing
                   </Link>
+                  <button
+                    onClick={(e) => {
+                      setIsMobileMenuOpen(false);
+                      handleFavoritesClick(e);
+                    }}
+                    className="flex items-center gap-1 text-[#2F3542] hover:text-[#1a1f29] transition-colors text-left"
+                  >
+                    <Heart 
+                      className="h-4 w-4" 
+                      fill={favoritesActive ? "currentColor" : "none"} 
+                    />
+                    <span>Favorites</span>
+                  </button>
                 </>
               )}
               {!user ? (
