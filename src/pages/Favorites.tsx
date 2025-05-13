@@ -73,7 +73,7 @@ const Favorites = () => {
       }
     };
     
-    if (user) {
+    if (user && favorites) {
       fetchFavoriteListings();
     }
   }, [favorites, user]);
