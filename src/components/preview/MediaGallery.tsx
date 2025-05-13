@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { EnhancedCarousel } from '@/components/carousel/EnhancedCarousel';
 
 interface MediaGalleryProps {
@@ -15,27 +15,20 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   autoplayVideo = true,
   skipPrimaryImage = true,
 }) => {
-  // Enhanced logging for debugging
-  useEffect(() => {
-    console.log("MediaGallery mounted with props:", {
-      galleryImagesCount: galleryImages.length,
-      galleryImages: galleryImages,
-      videoURL: videoURL,
-      autoplayVideo,
-      skipPrimaryImage
-    });
-  }, [galleryImages, videoURL, autoplayVideo, skipPrimaryImage]);
+  // Log incoming props for debugging
+  console.log("MediaGallery received props:", { 
+    galleryImagesCount: galleryImages.length, 
+    videoURL, 
+    autoplayVideo, 
+    skipPrimaryImage 
+  });
   
   // Skip the first image when skipPrimaryImage is true and there's at least one image
   const displayImages = skipPrimaryImage && galleryImages.length > 0
     ? galleryImages.slice(1)
     : [...galleryImages];
   
-  // Log the exact images being displayed in the carousel
-  useEffect(() => {
-    console.log("MediaGallery displaying images:", displayImages);
-    console.log("MediaGallery displaying video:", videoURL);
-  }, [displayImages, videoURL]);
+  console.log("Displaying images:", displayImages);
   
   return (
     <EnhancedCarousel
