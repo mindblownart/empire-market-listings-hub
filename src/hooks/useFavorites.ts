@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -52,10 +52,10 @@ export const useFavorites = (userId?: string) => {
             // If a favorite was deleted, remove it from the favorites array immediately
             const removedListingId = payload.old?.listing_id;
             if (removedListingId) {
-              console.log('Removing listing from favorites:', removedListingId);
+              console.log('Removing listing from favorites via realtime:', removedListingId);
               setFavorites(prev => {
                 const updated = prev.filter(id => id !== removedListingId);
-                console.log(`Updated favorites array length: ${updated.length}`);
+                console.log(`Updated favorites array length via realtime: ${updated.length}`);
                 return updated;
               });
             }
@@ -63,24 +63,28 @@ export const useFavorites = (userId?: string) => {
             // If a favorite was added, add it to the favorites array immediately
             const addedListingId = payload.new?.listing_id;
             if (addedListingId) {
-              console.log('Adding listing to favorites:', addedListingId);
+              console.log('Adding listing to favorites via realtime:', addedListingId);
               setFavorites(prev => {
+                if (prev.includes(addedListingId)) return prev;
                 const updated = [...prev, addedListingId];
-                console.log(`Updated favorites array length: ${updated.length}`);
+                console.log(`Updated favorites array length via realtime: ${updated.length}`);
                 return updated;
               });
             }
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
       
     return () => {
+      console.log('Cleaning up favorites subscription');
       supabase.removeChannel(channel);
     };
   }, [userId]);
   
-  const toggleFavorite = async (listingId: string) => {
+  const toggleFavorite = useCallback(async (listingId: string) => {
     // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -167,13 +171,13 @@ export const useFavorites = (userId?: string) => {
       // Clear processing state for this listing
       setIsProcessing(prev => ({ ...prev, [listingId]: false }));
     }
-  };
+  }, [favorites, toast]);
   
   return {
     favorites,
     toggleFavorite,
     isLoading,
     isProcessing,
-    isFavorite: (listingId: string) => favorites.includes(listingId)
+    isFavorite: useCallback((listingId: string) => favorites.includes(listingId), [favorites])
   };
 };
