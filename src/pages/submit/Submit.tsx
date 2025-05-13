@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useFormData } from '@/contexts/FormDataContext';
@@ -13,10 +14,27 @@ import { useBusinessSubmission } from '@/hooks/useBusinessSubmission';
 import { MediaUpload } from '@/components/media-uploader';
 import DragContext from '@/components/media-uploader/DragContext';
 import { MediaFile } from '@/components/media-uploader/types';
+import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 const Submit = () => {
   const { formData, updateFormData } = useFormData();
   const { validationErrors, validateField, validateAllFields } = useBusinessSubmission();
+  const [formValid, setFormValid] = useState(false);
+  
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error || !data.session) {
+        toast.error("You must be logged in to submit a business listing", {
+          description: "Please log in to continue",
+        });
+      }
+    };
+    
+    checkAuth();
+  }, []);
   
   // Handler for reordering images
   const handleImagesReorder = (reorderedImages: string[]) => {
@@ -28,9 +46,29 @@ const Submit = () => {
     console.log("Images reordered in Submit component:", reorderedImages);
   };
   
+  // Validate that media is provided
+  const validateMedia = () => {
+    const hasMedia = 
+      (formData.businessImages && formData.businessImages.length > 0) ||
+      formData.businessVideo !== null || 
+      (formData.businessVideoUrl && formData.businessVideoUrl.trim() !== '');
+      
+    if (!hasMedia) {
+      toast.error("At least one image or video is required", {
+        description: "Please upload at least one image or video of your business"
+      });
+      return false;
+    }
+    return true;
+  };
+  
   // Custom validation function for the form
   const validateForm = () => {
-    return validateAllFields(formData);
+    const fieldsValid = validateAllFields(formData);
+    const mediaValid = validateMedia();
+    const isValid = fieldsValid && mediaValid;
+    setFormValid(isValid);
+    return isValid;
   };
   
   return (
@@ -88,6 +126,11 @@ const Submit = () => {
                       maxImages={10}
                     />
                   </DragContext>
+                  {!formValid && (!formData.businessImages || formData.businessImages.length === 0) && !formData.businessVideoUrl && (
+                    <p className="text-sm font-medium text-red-500 mt-2">
+                      At least one image or video is required
+                    </p>
+                  )}
                 </div>
 
                 <ContactInformation 

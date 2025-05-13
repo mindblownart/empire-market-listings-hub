@@ -12,7 +12,7 @@ export const useFormValidation = () => {
     
     switch (field) {
       case 'businessName':
-        if (!value.trim()) error = 'Business name is required';
+        if (!value?.trim()) error = 'Business name is required';
         break;
       case 'industry':
         if (!value) error = 'Industry is required';
@@ -28,8 +28,16 @@ export const useFormValidation = () => {
         }
         break;
       case 'annualRevenue':
+        if (!value) {
+          error = 'Annual revenue is required';
+        } else if (value && !/^[0-9]+(\.[0-9]{1,2})?$/.test(value)) {
+          error = 'Please enter a valid number';
+        }
+        break;
       case 'annualProfit':
-        if (value && !/^[0-9]+(\.[0-9]{1,2})?$/.test(value)) {
+        if (!value) {
+          error = 'Annual profit is required';
+        } else if (value && !/^[0-9]+(\.[0-9]{1,2})?$/.test(value)) {
           error = 'Please enter a valid number';
         }
         break;
@@ -44,22 +52,24 @@ export const useFormValidation = () => {
         }
         break; 
       case 'description':
-        if (value && value.trim().length < 10) {
+        if (!value?.trim()) {
+          error = 'Business description is required';
+        } else if (value.trim().length < 10) {
           error = 'Description must be at least 10 characters long';
         }
         break;
       case 'fullName':
-        if (!value.trim()) error = 'Full name is required';
+        if (!value?.trim()) error = 'Full name is required';
         break;
       case 'email':
-        if (!value.trim()) {
+        if (!value?.trim()) {
           error = 'Email is required';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           error = 'Please enter a valid email address';
         }
         break;
       case 'phone':
-        if (!value.trim()) error = 'Phone number is required';
+        if (!value?.trim()) error = 'Phone number is required';
         break;
       case 'role':
         if (!value) error = 'Role is required';
@@ -96,8 +106,12 @@ export const useFormValidation = () => {
     
     let isValid = true;
     
+    // Reset all errors before validation
+    const newErrors: ValidationErrors = {};
+    
     fields.forEach(field => {
-      if (!validateField(field.name, field.value)) {
+      const valid = validateField(field.name, field.value);
+      if (!valid) {
         isValid = false;
       }
     });

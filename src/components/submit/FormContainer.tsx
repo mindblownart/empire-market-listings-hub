@@ -21,14 +21,17 @@ const FormContainer: React.FC<FormContainerProps> = ({
   children, 
   onSubmit,
   submitLabel,
-  isSubmitting,
+  isSubmitting: externalIsSubmitting,
   onPreview,
   previewDisabled = false,
   onValidate
 }) => {
   const navigate = useNavigate();
   const { formData } = useFormData();
-  const { handleSubmit, isSubmitting: defaultIsSubmitting, validateAllFields } = useBusinessSubmission();
+  const { handleSubmit, isSubmitting: hookIsSubmitting, validateAllFields } = useBusinessSubmission();
+
+  // Use external isSubmitting prop if provided, otherwise use the hook's isSubmitting state
+  const isSubmitting = externalIsSubmitting !== undefined ? externalIsSubmitting : hookIsSubmitting;
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,30 +44,20 @@ const FormContainer: React.FC<FormContainerProps> = ({
       if (onSubmit) {
         await onSubmit();
         // The navigation will now be handled in the onSubmit function itself
-        // We no longer need to navigate here as that's controlled by the parent component
       } else {
+        console.log("Submitting form data:", formData);
         const result = await handleSubmit(formData);
         if (result) {
-          // Store data for preview if submission is successful
-          sessionStorage.setItem('previewFormData', JSON.stringify({
-            ...formData,
-            // Remove circular references that can't be serialized
-            businessImages: undefined,
-            businessVideo: null
-          }));
-          sessionStorage.setItem('lastSavedFormData', JSON.stringify({
-            ...formData,
-            // Remove circular references that can't be serialized
-            businessImages: undefined,
-            businessVideo: null
-          }));
-          
-          // Navigation to preview is now handled in useBusinessSubmission
+          console.log("Form submission successful!");
+          // Navigation is now handled in useBusinessSubmission
+        } else {
+          console.log("Form submission returned false");
         }
       }
     } catch (error) {
       console.error("Form submission error:", error);
       toast.error("Failed to save changes. Please try again.", {
+        description: error instanceof Error ? error.message : "Unknown error",
         style: {
           border: '1px solid #f87171',
           borderRadius: '0.375rem',
@@ -151,16 +144,26 @@ const FormContainer: React.FC<FormContainerProps> = ({
           variant="outline" 
           className="px-10 py-6 text-lg flex items-center gap-2 transition-all hover:bg-gray-100" 
           onClick={handlePreview}
-          disabled={previewDisabled}
+          disabled={previewDisabled || isSubmitting}
         >
           <Eye className="h-5 w-5" /> Preview
         </Button>
         <Button 
           type="submit" 
           className="bg-primary hover:bg-primary-light px-10 py-6 text-lg transition-all focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          disabled={isSubmitting !== undefined ? isSubmitting : defaultIsSubmitting}
+          disabled={isSubmitting}
         >
-          {submitLabel || (isSubmitting !== undefined ? (isSubmitting ? 'Submitting...' : 'Submit') : (defaultIsSubmitting ? 'Submitting...' : 'Submit Business Listing'))}
+          {isSubmitting ? (
+            <div className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Submitting...
+            </div>
+          ) : (
+            submitLabel || 'Submit Business Listing'
+          )}
         </Button>
       </div>
     </form>
