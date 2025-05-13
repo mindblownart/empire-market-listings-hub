@@ -106,7 +106,7 @@ const Favorites = () => {
           <div className="flex flex-col items-start mb-8">
             <h1 className="text-3xl font-bold text-[#2F3542]">💛 Your Saved Businesses</h1>
             <p className="text-gray-600 mt-2">
-              You have saved {favoriteListings.length} {favoriteListings.length === 1 ? 'business' : 'businesses'}.
+              You have saved {favorites?.length || 0} {favorites?.length === 1 ? 'business' : 'businesses'}.
             </p>
           </div>
 
