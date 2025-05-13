@@ -19,6 +19,7 @@ import EditListing from "./pages/EditListing"; // Import the new EditListing pag
 import Pricing from "./pages/Pricing";
 import ForgotPassword from "./pages/ForgotPassword";
 import PrivacyTerms from "./pages/PrivacyTerms";
+import Favorites from "./pages/Favorites"; // Import the new Favorites page
 import { FormDataProvider } from "./contexts/FormDataContext";
 import PreviewListing from "./pages/PreviewListing";
 
@@ -48,6 +49,7 @@ const App = () => {
                 <Route path="/preview-listing" element={<PreviewListing />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/privacy" element={<PrivacyTerms />} />
+                <Route path="/favorites" element={<Favorites />} /> {/* Add the new Favorites route */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </FormDataProvider>
