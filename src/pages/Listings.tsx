@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -69,7 +68,7 @@ const Listings = () => {
   const [category, setCategory] = useState('all');
   const [country, setCountry] = useState('all');
   const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(2000000);
+  const [maxPrice, setMaxPrice] = useState(10000000); // Updated to match our new max value
   const [sortBy, setSortBy] = useState('newest');
   const [newListingsOnly, setNewListingsOnly] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -100,7 +99,7 @@ const Listings = () => {
       setCategory('all');
       setCountry('all');
       setMinPrice(0);
-      setMaxPrice(2000000);
+      setMaxPrice(10000000); // Updated to match our new max value
       setSortBy('newest');
       setNewListingsOnly(false);
       setFiltersApplied(false);
@@ -231,7 +230,12 @@ const Listings = () => {
 
   // Format price display for the slider
   const formatPriceDisplay = (price: number) => {
-    return price >= 1000000 ? `$${(price / 1000000).toFixed(1)}M` : `$${(price / 1000).toFixed(0)}K`;
+    if (price >= 1000000) {
+      return `$${(price / 1000000).toFixed(1)}M`;
+    } else if (price >= 1000) {
+      return `$${(price / 1000).toFixed(0)}K`;
+    }
+    return `$${price}`;
   };
 
   // Apply filters and sorting
@@ -319,7 +323,7 @@ const Listings = () => {
     if (category !== 'all') params.append('category', category);
     if (country !== 'all') params.append('country', country);
     if (minPrice > 0) params.append('minPrice', minPrice.toString());
-    if (maxPrice < 2000000) params.append('maxPrice', maxPrice.toString());
+    if (maxPrice < 10000000) params.append('maxPrice', maxPrice.toString());
     if (newListingsOnly) params.append('newOnly', 'true');
     
     window.history.pushState({}, '', `${location.pathname}?${params.toString()}`);
@@ -331,7 +335,7 @@ const Listings = () => {
     setCategory('all');
     setCountry('all');
     setMinPrice(0);
-    setMaxPrice(2000000);
+    setMaxPrice(10000000); // Updated to match our new max value
     setNewListingsOnly(false);
     setFiltersApplied(false);
     // Clear URL parameters
