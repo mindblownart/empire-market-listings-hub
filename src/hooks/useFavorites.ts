@@ -23,6 +23,7 @@ export const useFavorites = (userId?: string) => {
           
         if (error) throw error;
         
+        console.log('Fetched favorites:', data);
         setFavorites(data?.map((item: any) => item.listing_id) || []);
       } catch (error) {
         console.error('Error fetching favorites:', error);
@@ -45,6 +46,7 @@ export const useFavorites = (userId?: string) => {
         },
         (payload) => {
           console.log('Realtime favorites change:', payload);
+          // Force re-fetch to ensure consistent state
           fetchFavorites();
         }
       )
