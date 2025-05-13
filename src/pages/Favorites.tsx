@@ -7,6 +7,7 @@ import { BusinessListing } from '@/types/supabase';
 import { useFavorites } from '@/hooks/useFavorites';
 import Navbar from '@/components/Navbar';
 import HomeFooter from '@/components/HomeFooter';
+import { Badge } from '@/components/ui/badge';
 import { Heart } from 'lucide-react';
 
 const Favorites = () => {
@@ -17,9 +18,6 @@ const Favorites = () => {
 
   // Use our custom hook to get and manage favorites
   const { favorites, isLoading: favoritesLoading } = useFavorites(user?.id);
-
-  // Debug output for favorites state
-  console.log(`Favorites component rendering. Favorites length: ${favorites?.length}, Listings length: ${favoriteListings.length}`);
 
   // Check if user is authenticated
   useEffect(() => {
@@ -46,7 +44,7 @@ const Favorites = () => {
       }
 
       // If favorites array is empty, reset listings and stop loading
-      if (!favorites || favorites.length === 0) {
+      if (favorites.length === 0) {
         console.log('No favorites found, showing empty state');
         setFavoriteListings([]);
         setIsLoading(false);
@@ -80,6 +78,13 @@ const Favorites = () => {
     }
   }, [favorites, user]);
 
+  // Handle listing refresh after removing a favorite
+  const handleListingUpdate = () => {
+    console.log("Listing update triggered - UI should update via useFavorites hook");
+    // No need to do anything here as useFavorites handles state updates
+    // through the realtime subscription
+  };
+
   // Empty state message when no favorites
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -98,7 +103,7 @@ const Favorites = () => {
           <div className="flex flex-col items-start mb-8">
             <h1 className="text-3xl font-bold text-[#2F3542]">💛 Your Saved Businesses</h1>
             <p className="text-gray-600 mt-2">
-              You have saved {favorites?.length || 0} {favorites?.length === 1 ? 'business' : 'businesses'}.
+              You have saved {favoriteListings.length} {favoriteListings.length === 1 ? 'business' : 'businesses'}.
             </p>
           </div>
 
@@ -106,7 +111,7 @@ const Favorites = () => {
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
-          ) : favorites?.length === 0 ? (
+          ) : favoriteListings.length === 0 ? (
             renderEmptyState()
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -126,6 +131,7 @@ const Favorites = () => {
                   isHot={listing.is_hot}
                   isOwnListing={listing.user_id === user?.id}
                   userId={user?.id}
+                  onDelete={handleListingUpdate}
                 />
               ))}
             </div>

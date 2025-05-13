@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -9,31 +9,28 @@ export const useFavorites = (userId?: string) => {
   const [isProcessing, setIsProcessing] = useState<{[key: string]: boolean}>({});
   const { toast } = useToast();
 
-  // Function to fetch favorites that can be called from multiple places
-  const fetchFavorites = useCallback(async () => {
-    if (!userId) return;
-    
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('favorites')
-        .select('listing_id')
-        .eq('user_id', userId);
-        
-      if (error) throw error;
-      
-      console.log('Fetched favorites:', data);
-      setFavorites(data?.map((item: any) => item.listing_id) || []);
-    } catch (error) {
-      console.error('Error fetching favorites:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId]);
-
   // Fetch user's favorites when component mounts or userId changes
   useEffect(() => {
     if (!userId) return;
+    
+    const fetchFavorites = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('favorites')
+          .select('listing_id')
+          .eq('user_id', userId);
+          
+        if (error) throw error;
+        
+        console.log('Fetched favorites:', data);
+        setFavorites(data?.map((item: any) => item.listing_id) || []);
+      } catch (error) {
+        console.error('Error fetching favorites:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
     fetchFavorites();
     
@@ -55,39 +52,27 @@ export const useFavorites = (userId?: string) => {
             // If a favorite was deleted, remove it from the favorites array immediately
             const removedListingId = payload.old?.listing_id;
             if (removedListingId) {
-              console.log('Removing listing from favorites via realtime:', removedListingId);
-              setFavorites(prev => {
-                const updated = prev.filter(id => id !== removedListingId);
-                console.log(`Updated favorites array length via realtime: ${updated.length}`);
-                return updated;
-              });
+              console.log('Removing listing from favorites:', removedListingId);
+              setFavorites(prev => prev.filter(id => id !== removedListingId));
             }
           } else if (payload.eventType === 'INSERT') {
             // If a favorite was added, add it to the favorites array immediately
             const addedListingId = payload.new?.listing_id;
             if (addedListingId) {
-              console.log('Adding listing to favorites via realtime:', addedListingId);
-              setFavorites(prev => {
-                if (prev.includes(addedListingId)) return prev;
-                const updated = [...prev, addedListingId];
-                console.log(`Updated favorites array length via realtime: ${updated.length}`);
-                return updated;
-              });
+              console.log('Adding listing to favorites:', addedListingId);
+              setFavorites(prev => [...prev, addedListingId]);
             }
           }
         }
       )
-      .subscribe((status) => {
-        console.log('Subscription status:', status);
-      });
+      .subscribe();
       
     return () => {
-      console.log('Cleaning up favorites subscription');
       supabase.removeChannel(channel);
     };
-  }, [userId, fetchFavorites]);
+  }, [userId]);
   
-  const toggleFavorite = useCallback(async (listingId: string) => {
+  const toggleFavorite = async (listingId: string) => {
     // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -103,18 +88,10 @@ export const useFavorites = (userId?: string) => {
       // Optimistically update the UI immediately before the request completes
       if (isFavorited) {
         // Remove from favorites UI immediately
-        setFavorites(prev => {
-          const updated = prev.filter(id => id !== listingId);
-          console.log(`Optimistically removed favorite. New length: ${updated.length}`);
-          return updated;
-        });
+        setFavorites(favorites.filter(id => id !== listingId));
       } else {
         // Add to favorites UI immediately
-        setFavorites(prev => {
-          const updated = [...prev, listingId];
-          console.log(`Optimistically added favorite. New length: ${updated.length}`);
-          return updated;
-        });
+        setFavorites([...favorites, listingId]);
       }
       
       // Then perform the actual database operation
@@ -174,13 +151,13 @@ export const useFavorites = (userId?: string) => {
       // Clear processing state for this listing
       setIsProcessing(prev => ({ ...prev, [listingId]: false }));
     }
-  }, [favorites, toast]);
+  };
   
   return {
     favorites,
     toggleFavorite,
     isLoading,
     isProcessing,
-    isFavorite: useCallback((listingId: string) => favorites.includes(listingId), [favorites])
+    isFavorite: (listingId: string) => favorites.includes(listingId)
   };
 };
