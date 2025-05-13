@@ -42,6 +42,15 @@ const Favorites = () => {
     }
   }, [favorites]);
 
+  // Additional effect to ensure UI updates when all favorites are removed
+  useEffect(() => {
+    if (user && favorites.length === 0) {
+      console.log('All favorites removed, clearing UI');
+      setFavoriteListings([]);
+      setIsLoading(false);
+    }
+  }, [favorites, user]);
+
   // Fetch favorite listings whenever favorites list changes
   useEffect(() => {
     const fetchFavoriteListings = async () => {
