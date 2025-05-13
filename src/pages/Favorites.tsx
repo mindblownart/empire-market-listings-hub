@@ -37,13 +37,22 @@ const Favorites = () => {
   // Fetch favorite listings whenever favorites list changes
   useEffect(() => {
     const fetchFavoriteListings = async () => {
-      if (!user || favorites.length === 0) {
+      if (!user) {
+        setFavoriteListings([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // If favorites array is empty, reset listings and stop loading
+      if (favorites.length === 0) {
+        console.log('No favorites found, showing empty state');
         setFavoriteListings([]);
         setIsLoading(false);
         return;
       }
 
       try {
+        setIsLoading(true);
         const { data, error } = await supabase
           .from('business_listings')
           .select('*')
@@ -55,6 +64,7 @@ const Favorites = () => {
           throw error;
         }
         
+        console.log('Fetched favorite listings:', data?.length);
         setFavoriteListings(data || []);
       } catch (error) {
         console.error('Error:', error);
@@ -63,10 +73,10 @@ const Favorites = () => {
       }
     };
     
-    if (!favoritesLoading && user) {
+    if (user) {
       fetchFavoriteListings();
     }
-  }, [favorites, user, favoritesLoading]);
+  }, [favorites, user]);
 
   // Handle listing refresh after removing a favorite
   const handleListingUpdate = () => {

@@ -46,7 +46,25 @@ export const useFavorites = (userId?: string) => {
         },
         (payload) => {
           console.log('Realtime favorites change:', payload);
-          // Force re-fetch to ensure consistent state
+          
+          // Immediate UI update based on the realtime event type
+          if (payload.eventType === 'DELETE') {
+            // If a favorite was deleted, remove it from the favorites array immediately
+            const removedListingId = payload.old?.listing_id;
+            if (removedListingId) {
+              console.log('Removing listing from favorites:', removedListingId);
+              setFavorites(prev => prev.filter(id => id !== removedListingId));
+            }
+          } else if (payload.eventType === 'INSERT') {
+            // If a favorite was added, add it to the favorites array immediately
+            const addedListingId = payload.new?.listing_id;
+            if (addedListingId) {
+              console.log('Adding listing to favorites:', addedListingId);
+              setFavorites(prev => [...prev, addedListingId]);
+            }
+          }
+          
+          // Then also fetch from database to ensure consistency
           fetchFavorites();
         }
       )
