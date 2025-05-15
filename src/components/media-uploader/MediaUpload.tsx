@@ -8,7 +8,6 @@ import {
   ACCEPTED_VIDEO_TYPES, 
   MAX_IMAGES,
   VIDEO_SLOT_INDEX,
-  MAX_VIDEO_SIZE_MB,
   MAX_VIDEO_HEIGHT
 } from './utils/constants';
 import { processVideo } from './utils/video-processor';
@@ -221,7 +220,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           continue;
         }
 
-        // Process the video using the improved processor
+        // Process the video using the improved processor - no size limit
         try {
           const { videoFile, thumbnail } = await processVideo(file);
           result.videoFile = videoFile;
@@ -277,11 +276,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       
       // Check for duplicates
       if (result.duplicateDetected) {
-        toast({
-          title: "Duplicate image detected",
-          description: "This image has already been uploaded. Please choose another file.",
-          variant: "destructive"
-        });
+        toast("Duplicate image detected - This image has already been uploaded. Please choose another file.");
       }
       
       // Update images state
@@ -290,10 +285,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         setNewImages(updatedImages);
         onImagesChange(updatedImages);
         
-        toast({
-          title: `${result.acceptedImages.length} image(s) processed`,
-          description: 'Images have been optimized for better performance.',
-        });
+        toast(`${result.acceptedImages.length} image(s) processed - Images have been optimized for better performance.`);
       }
       
       // Update video state
@@ -307,35 +299,18 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           onVideoUrlChange(null);
         }
         
-        toast({
-          title: 'Video processed',
-          description: 'Video preview is now available.',
-        });
+        toast('Video processed - Video preview is now available.');
       } else if (result.videoRejected) {
         const errorMessage = result.videoError || 'Please check file requirements and try again.';
-        toast({
-          title: 'Video upload failed',
-          description: errorMessage,
-          variant: "destructive"
-        });
+        toast(`Video upload failed - ${errorMessage}`);
       }
       
       if (result.rejectedImages.length > 0) {
-        toast({
-          title: `${result.rejectedImages.length} image(s) couldn't be processed`,
-          description: 'Please try with different images.',
-          variant: "warning"
-        });
+        toast(`${result.rejectedImages.length} image(s) couldn't be processed - Please try with different images.`);
       }
     } catch (error) {
       console.error('Error processing files:', error);
-      toast({
-        title: 'Error processing files',
-        description: error instanceof Error 
-          ? error.message 
-          : 'An unexpected error occurred. Please try again.',
-        variant: "destructive"
-      });
+      toast(`Error processing files - ${error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.'}`);
     } finally {
       setProcessingFiles(false);
       setDragActive(false);
@@ -370,10 +345,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const handleVideoUrlInput = useCallback(() => {
     // Only allow if no video exists
     if (newVideo || existingVideoUrl) {
-      toast({
-        title: 'Video already exists',
-        description: 'Please remove the existing video first',
-      });
+      toast('Video already exists - Please remove the existing video first');
       return;
     }
     
@@ -384,20 +356,13 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     // Validate URL (improved check)
     const isValidUrl = url.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be|vimeo\.com)\/.+/);
     if (!isValidUrl) {
-      toast({
-        title: 'Invalid video URL',
-        description: 'Please enter a valid YouTube or Vimeo URL.',
-        variant: "destructive"
-      });
+      toast('Invalid video URL - Please enter a valid YouTube or Vimeo URL.');
       return;
     }
     
     // Update state
     onVideoUrlChange(url);
-    toast({
-      title: 'Video URL added',
-      description: 'Your video has been linked to this listing.',
-    });
+    toast('Video URL added - Your video has been linked to this listing.');
   }, [newVideo, existingVideoUrl, onVideoUrlChange]);
   
   // Handle reordering with enhanced order persistence

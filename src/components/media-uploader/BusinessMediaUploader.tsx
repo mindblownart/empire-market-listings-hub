@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { X } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { extractVideoInfo } from './video-utils';
 import { BusinessMediaUploaderProps, MediaFile } from './types';
 import MediaUpload from './MediaUpload';
@@ -70,9 +69,7 @@ const BusinessMediaUploader: React.FC<BusinessMediaUploaderProps> = ({
     if (url && url.trim() !== '') {
       const videoInfo = extractVideoInfo(url);
       if (!videoInfo.platform) {
-        toast.error("Invalid video URL", {
-          description: "Please enter a valid YouTube or Vimeo URL."
-        });
+        toast("Invalid video URL - Please enter a valid YouTube or Vimeo URL.");
       } else {
         // Clear any file video if URL is valid
         setVideo(null);
