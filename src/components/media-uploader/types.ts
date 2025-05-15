@@ -44,7 +44,7 @@ export interface MediaMetadata {
 // VideoInfo interface aligned across all imports
 export interface VideoInfo {
   platform: string;
-  id: string | null;
+  id: string | null; // Now required but can be null
 }
 
 export interface BusinessMediaUploaderProps {

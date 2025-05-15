@@ -11,7 +11,7 @@ export * from './gallery';
 export type { 
   MediaFile, 
   MediaItemType, 
-  MediaItem,
+  // Remove the duplicate MediaItem export
   DragItem, 
   VideoInfo,
   BusinessMediaUploaderProps,

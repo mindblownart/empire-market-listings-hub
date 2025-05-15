@@ -1,7 +1,7 @@
 
 export interface VideoInfo {
   platform: 'youtube' | 'vimeo' | 'file' | null;
-  id?: string;
+  id: string | null; // Changed from optional to required with null as possible value
   embedUrl?: string;
   thumbnailUrl?: string;
 }
@@ -55,13 +55,15 @@ export const extractVideoInfo = (url: string): VideoInfo => {
   if (videoExtensions.some(ext => url.toLowerCase().includes(ext))) {
     return {
       platform: 'file',
+      id: null, // Set to null for file URLs
       thumbnailUrl: undefined
     };
   }
 
   // Not a recognized video URL
   return {
-    platform: null
+    platform: null,
+    id: null, // Set to null for unrecognized URLs
   };
 };
 
