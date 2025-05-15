@@ -1,7 +1,7 @@
 
 import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { MediaItem as MediaItemType, DragItem } from './types';
+import { MediaItemType, DragItem } from './types';
 import { cn } from '@/lib/utils';
 import { X, Move, Play, Star, Video } from 'lucide-react';
 

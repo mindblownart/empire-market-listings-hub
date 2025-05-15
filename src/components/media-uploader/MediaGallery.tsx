@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import VideoPreviewModal from './VideoPreviewModal';
-import { MediaItem as MediaItemType } from './types';
+import { MediaItemType } from './types';
 import { 
   MediaGrid, 
   GalleryControls, 

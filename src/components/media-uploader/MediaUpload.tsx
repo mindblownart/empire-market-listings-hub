@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import { MediaItem, MediaFile, VideoInfo } from './types';
+import { MediaItemType, MediaFile, VideoInfo } from './types';
 import { extractVideoInfo } from './video-utils';
 import MediaGallery from './MediaGallery';
 import { 
@@ -71,7 +71,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   }, [existingImages]);
   
   // Convert to MediaItem format with correct typing
-  const items: MediaItem[] = [];
+  const items: MediaItemType[] = [];
   
   // Add existing images first
   existingImages.forEach((url, index) => {
