@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { EnhancedCarousel } from '@/components/carousel';
+import { EnhancedCarousel } from '../carousel';
 
 interface MediaGalleryProps {
   galleryImages: string[];

@@ -1,3 +1,4 @@
+
 import { MediaFile } from './types';
 import { 
   ACCEPTED_IMAGE_TYPES,
@@ -32,6 +33,7 @@ export const processFiles = async (
   videoFile: MediaFile | null,
   videoThumbnail: string | null,
   videoRejected: boolean,
+  videoError?: string,
   duplicateDetected: boolean
 }> => {
   const acceptedImages: MediaFile[] = [];
@@ -39,6 +41,7 @@ export const processFiles = async (
   let videoFile: MediaFile | null = null;
   let videoThumbnail: string | null = null;
   let videoRejected = false;
+  let videoError: string | undefined = undefined;
   let duplicateDetected = false;
 
   // Function to ensure file has an ID
@@ -85,6 +88,7 @@ export const processFiles = async (
       if (hasVideo || videoFile) {
         console.log(`Video ${file.name} rejected: only one video allowed`);
         videoRejected = true;
+        videoError = "Only one video is allowed. Please remove the existing video first.";
         continue;
       }
 
@@ -95,6 +99,7 @@ export const processFiles = async (
       } catch (error) {
         console.error(`Error processing video file ${file.name}:`, error);
         videoRejected = true;
+        videoError = error instanceof Error ? error.message : "Unknown error processing video";
       }
     }
     // Reject all other file types
@@ -111,6 +116,7 @@ export const processFiles = async (
     videoFile: videoFile ? ensureFileId(videoFile) : null,  // Ensure video file has ID
     videoThumbnail,
     videoRejected,
+    videoError,
     duplicateDetected
   };
 };
@@ -159,12 +165,12 @@ const processVideoFile = async (file: File): Promise<{
       try {
         // Check video dimensions
         if (video.videoHeight > MAX_VIDEO_HEIGHT) {
-          throw new Error(`Video height exceeds maximum of ${MAX_VIDEO_HEIGHT}px`);
+          throw new Error(`Video height exceeds maximum of ${MAX_VIDEO_HEIGHT}px (your video is ${video.videoHeight}px)`);
         }
         
         // Check video duration
         if (video.duration > MAX_VIDEO_DURATION) {
-          throw new Error(`Video duration exceeds maximum of ${MAX_VIDEO_DURATION} seconds`);
+          throw new Error(`Video duration exceeds maximum of ${MAX_VIDEO_DURATION} seconds (your video is ${Math.round(video.duration)} seconds)`);
         }
         
         // Generate thumbnail at 25% of the video duration
@@ -213,7 +219,7 @@ const processVideoFile = async (file: File): Promise<{
     // Handle errors
     video.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error('Failed to load video'));
+      reject(new Error('Failed to load video. The file may be corrupted or use an unsupported codec.'));
     };
     
     // Start loading video

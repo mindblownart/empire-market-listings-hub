@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { MediaItemType, MediaFile, VideoInfo } from './types';
@@ -8,8 +9,9 @@ import {
   ACCEPTED_VIDEO_TYPES, 
   MAX_IMAGES,
   VIDEO_SLOT_INDEX,
-  processFiles
-} from './media-processing';
+  MAX_VIDEO_SIZE_MB,
+  MAX_VIDEO_HEIGHT
+} from './utils/constants';
 
 interface MediaUploadProps {
   existingImages?: string[];
@@ -190,6 +192,20 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     }
   };
   
+  // Video validation function to provide detailed error messages
+  const validateVideoFile = (file: File): { isValid: boolean; error?: string } => {
+    // Check file size
+    const fileSizeMB = file.size / (1024 * 1024);
+    if (fileSizeMB > MAX_VIDEO_SIZE_MB) {
+      return { 
+        isValid: false, 
+        error: `Video exceeds maximum size of ${MAX_VIDEO_SIZE_MB}MB (your file is ${fileSizeMB.toFixed(1)}MB)`
+      };
+    }
+    
+    return { isValid: true };
+  };
+  
   // Process files when dropped or selected
   const handleFilesSelected = useCallback(async (files: FileList) => {
     if (!files || files.length === 0) return;
@@ -197,6 +213,37 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     setProcessingFiles(true);
     
     try {
+      // Perform initial validation for videos before processing
+      let videoToProcess: File | null = null;
+      
+      // Check if there's any video file that needs validation
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (ACCEPTED_VIDEO_TYPES.includes(file.type)) {
+          // Skip if we already have a video
+          if (existingVideoUrl || newVideo) {
+            toast.error("Only one video allowed", {
+              description: "Please remove existing video first."
+            });
+            setProcessingFiles(false);
+            return;
+          }
+          
+          // Validate the video file
+          const validation = validateVideoFile(file);
+          if (!validation.isValid) {
+            toast.error("Video validation failed", {
+              description: validation.error
+            });
+            setProcessingFiles(false);
+            return;
+          }
+          
+          videoToProcess = file;
+          break; // Only process the first valid video
+        }
+      }
+      
       const result = await processFiles(
         files, 
         existingImages.length + newImages.length,
@@ -237,8 +284,9 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           description: 'Video preview is now available.'
         });
       } else if (result.videoRejected) {
+        const errorMessage = result.videoError || 'Please check file requirements and try again.';
         toast.error('Video processing failed', {
-          description: 'Please check file requirements and try again.'
+          description: errorMessage
         });
       }
       
@@ -250,7 +298,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     } catch (error) {
       console.error('Error processing files:', error);
       toast.error('Error processing files', {
-        description: 'An unexpected error occurred. Please try again.'
+        description: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.'
       });
     } finally {
       setProcessingFiles(false);
