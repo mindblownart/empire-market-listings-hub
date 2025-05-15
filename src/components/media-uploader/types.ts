@@ -1,13 +1,20 @@
 
+// Basic types for media handling
 export type MediaFile = File & {
-  id?: string;
+  id: string;
   preview?: string;
+};
+
+export type DragItem = {
+  id: string;
+  index: number;
+  type: string;
 };
 
 export type MediaItem = {
   id: string;
-  type: 'image' | 'video' | 'empty';
-  preview?: string;
+  type: string;
+  preview: string;
   url?: string;
   file?: MediaFile | File;
   isPrimary?: boolean;
@@ -21,27 +28,6 @@ export type MediaItemType = MediaItem;
 
 // Add the VideoInfo type
 export type VideoInfo = {
-  platform: 'youtube' | 'vimeo' | 'file';
-  id?: string;
+  platform: 'youtube' | 'vimeo' | 'file' | null;
+  id: string | null;
 };
-
-// Add the DragItem type
-export type DragItem = {
-  id: string;
-  index: number;
-  type: string;
-};
-
-export interface BusinessMediaUploaderProps {
-  initialImages?: MediaFile[];
-  initialVideo?: MediaFile | null;
-  initialVideoUrl?: string | null;
-  galleryImages?: string[];
-  disableImageUpload?: boolean;
-  maxImages?: number;
-  onImagesChange?: (images: MediaFile[]) => void;
-  onVideoChange?: (video: MediaFile | null) => void;
-  onVideoUrlChange?: (url: string | null) => void;
-  onSetPrimaryImage?: (index: number) => void;
-  onImagesReorder?: (reorderedImages: string[]) => void;
-}
