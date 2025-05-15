@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { MediaItemType, MediaFile, VideoInfo } from './types';
 import { extractVideoInfo } from './video-utils';
 import MediaGallery from './MediaGallery';
@@ -345,7 +345,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const handleVideoUrlInput = useCallback(() => {
     // Only allow if no video exists
     if (newVideo || existingVideoUrl) {
-      toast('Video already exists - Please remove the existing video first');
+      toast('Please remove the existing video first');
       return;
     }
     
@@ -356,13 +356,13 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     // Validate URL (improved check)
     const isValidUrl = url.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be|vimeo\.com)\/.+/);
     if (!isValidUrl) {
-      toast('Invalid video URL - Please enter a valid YouTube or Vimeo URL.');
+      toast('Please enter a valid YouTube or Vimeo URL.');
       return;
     }
     
     // Update state
     onVideoUrlChange(url);
-    toast('Video URL added - Your video has been linked to this listing.');
+    toast('Your video has been linked to this listing.');
   }, [newVideo, existingVideoUrl, onVideoUrlChange]);
   
   // Handle reordering with enhanced order persistence
