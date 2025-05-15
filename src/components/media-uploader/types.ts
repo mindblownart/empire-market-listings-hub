@@ -3,6 +3,15 @@
 export type MediaFile = File & {
   id: string;
   preview?: string;
+  metadata?: MediaMetadata;
+};
+
+export type MediaMetadata = {
+  size?: number;
+  format?: string;
+  duration?: number;
+  width?: number;
+  height?: number;
 };
 
 export type DragItem = {
@@ -21,6 +30,7 @@ export type MediaItem = {
   isEmpty?: boolean;
   isNew?: boolean;
   videoInfo?: VideoInfo;
+  metadata?: MediaMetadata;
 };
 
 // Add an alias for MediaItem to support the new naming convention
@@ -30,6 +40,7 @@ export type MediaItemType = MediaItem;
 export type VideoInfo = {
   platform: 'youtube' | 'vimeo' | 'file' | null;
   id: string | null;
+  metadata?: MediaMetadata;
 };
 
 // Add back the BusinessMediaUploaderProps interface that was removed

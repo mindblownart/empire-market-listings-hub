@@ -1,9 +1,7 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { ChevronLeft, ChevronRight, ImageOff, VideoOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { ImageOff, VideoOff } from 'lucide-react';
 import { VideoPlayer } from './VideoPlayer';
 
 interface EnhancedCarouselProps {
@@ -17,112 +15,39 @@ interface EnhancedCarouselProps {
 
 export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   images = [],
-  videoURL,
+  videoURL = null,
   autoplayVideo = false,
   skipPrimaryImage = false,
   className = '',
-  inPreview = false
+  inPreview = false,
 }) => {
-  // Media state management
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [mediaItems, setMediaItems] = useState<Array<{type: 'image' | 'video', url: string}>>([]);
-  const [mediaErrors, setMediaErrors] = useState<Record<number, boolean>>({});
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
+  const [videoFailed, setVideoFailed] = useState<boolean>(false);
   
-  // Set up media items to display - video always at index 0 if present
-  useEffect(() => {
-    const items: Array<{type: 'image' | 'video', url: string}> = [];
-    
-    // If we have a video, insert it at position 0 
-    if (videoURL && videoURL.trim() !== '') {
-      items.push({ type: 'video', url: videoURL });
-    }
-    
-    // Add all the images after the video
-    // We're using the images directly since skipPrimaryImage is handled in MediaGallery
-    const imagesToDisplay = skipPrimaryImage && images.length > 0
-      ? images.slice(1)
-      : [...images];
-    
-    imagesToDisplay.forEach(url => {
-      if (url && url.trim() !== '')
-        items.push({ type: 'image', url });
-    });
-    
-    console.log('EnhancedCarousel media items:', items);
-    setMediaItems(items);
-    setMediaErrors({});
-    
-    // Reset active index when media items change
-    setActiveIndex(0);
-  }, [images, videoURL, skipPrimaryImage]);
+  // Filter images if needed
+  const displayImages = skipPrimaryImage && images.length > 0 ? images.slice(1) : images;
 
-  // Calculate display states
-  const hasMedia = mediaItems.length > 0;
-  const hasMultipleItems = mediaItems.length > 1;
-  const isAtStart = activeIndex === 0;
-  const isAtEnd = activeIndex === mediaItems.length - 1;
+  // Handle image load errors
+  const handleImageError = useCallback((index: number) => {
+    setFailedImages(prev => ({
+      ...prev,
+      [index]: true
+    }));
+  }, []);
   
-  // Handle media load errors
-  const handleMediaError = (index: number) => {
-    setMediaErrors(prev => ({...prev, [index]: true}));
-  };
-  
-  // Event handlers for navigation
-  const handlePrev = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    if (activeIndex > 0) {
-      setActiveIndex(prev => prev - 1);
-    }
-  };
-  
-  const handleNext = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    if (activeIndex < mediaItems.length - 1) {
-      setActiveIndex(prev => prev + 1);
-    }
-  };
+  // Handle video error
+  const handleVideoError = useCallback(() => {
+    setVideoFailed(true);
+    console.error("Video failed to load:", videoURL);
+  }, [videoURL]);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!containerRef.current) return;
-      
-      // Only process events when our container is focused or in the active document
-      if (containerRef.current.contains(document.activeElement) || document.activeElement === document.body) {
-        if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          handlePrev();
-        } else if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          handleNext();
-        }
-      }
-    };
-    
-    if (hasMultipleItems) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [activeIndex, hasMultipleItems]);
-
-  // Fallback when no media is available
-  if (!mediaItems.length) {
+  // If no content, show placeholder
+  if (displayImages.length === 0 && (!videoURL || videoFailed)) {
     return (
-      <div className={`w-full rounded-lg overflow-hidden ${className}`}>
+      <div className={`w-full bg-gray-100 rounded-lg overflow-hidden ${className}`}>
         <AspectRatio ratio={16 / 9} className="bg-gray-100">
-          <div className="flex items-center justify-center h-full">
+          <div className="flex flex-col items-center justify-center h-full">
+            <ImageOff className="h-12 w-12 text-gray-400 mb-2" />
             <p className="text-gray-500">No media available</p>
           </div>
         </AspectRatio>
@@ -130,117 +55,98 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
     );
   }
   
-  // Return the complete carousel component
-  return (
-    <div 
-      className={`w-full rounded-lg overflow-hidden shadow-md relative ${className}`}
-      ref={containerRef}
-      tabIndex={0}
-    >
-      {/* Active Media Display */}
-      <div className="w-full">
-        {mediaItems[activeIndex]?.type === 'video' ? (
-          mediaErrors[activeIndex] ? (
-            <AspectRatio ratio={16 / 9} className="bg-gray-100">
-              <div className="flex flex-col items-center justify-center h-full">
-                <VideoOff className="h-12 w-12 text-gray-400 mb-2" />
-                <p className="text-gray-500">Video failed to load</p>
-              </div>
-            </AspectRatio>
-          ) : (
-            <VideoPlayer 
-              url={mediaItems[activeIndex].url} 
-              autoplay={autoplayVideo && inPreview}
-              objectFit="contain"
-              showControls={true}
-              inCarouselPreview={!inPreview}
-              onError={() => handleMediaError(activeIndex)}
-            />
-          )
-        ) : (
-          mediaErrors[activeIndex] ? (
-            <AspectRatio ratio={16 / 9} className="bg-gray-100">
-              <div className="flex flex-col items-center justify-center h-full">
+  // Determine if we need to render a carousel or just a single item
+  const totalItems = displayImages.length + (videoURL && !videoFailed ? 1 : 0);
+  const showCarousel = totalItems > 1;
+  
+  // If only one item, render it directly
+  if (totalItems === 1) {
+    if (displayImages.length === 1) {
+      // Show single image
+      return (
+        <div className={`w-full bg-gray-100 rounded-lg overflow-hidden ${className}`}>
+          <AspectRatio ratio={16 / 9}>
+            {!failedImages[0] ? (
+              <img 
+                src={displayImages[0]} 
+                alt="Business" 
+                className="w-full h-full object-cover"
+                onError={() => handleImageError(0)}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full bg-gray-100">
                 <ImageOff className="h-12 w-12 text-gray-400 mb-2" />
                 <p className="text-gray-500">Image failed to load</p>
               </div>
+            )}
+          </AspectRatio>
+        </div>
+      );
+    } else if (videoURL) {
+      // Show video only
+      return (
+        <div className={`w-full bg-gray-100 rounded-lg overflow-hidden ${className}`}>
+          <AspectRatio ratio={16 / 9}>
+            <VideoPlayer 
+              url={videoURL}
+              autoplay={autoplayVideo}
+              onError={handleVideoError}
+              showControls={true}
+              inCarouselPreview={inPreview}
+            />
+          </AspectRatio>
+        </div>
+      );
+    }
+  }
+  
+  // Otherwise show carousel
+  return (
+    <Carousel className={`w-full ${className}`}>
+      <CarouselContent>
+        {/* Render images */}
+        {displayImages.map((image, index) => (
+          <CarouselItem key={`image-${index}`}>
+            <AspectRatio ratio={16 / 9}>
+              {!failedImages[index] ? (
+                <img 
+                  src={image} 
+                  alt={`Business ${index + 1}`} 
+                  className="w-full h-full object-cover rounded-lg"
+                  onError={() => handleImageError(index)}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full bg-gray-100 rounded-lg">
+                  <ImageOff className="h-12 w-12 text-gray-400 mb-2" />
+                  <p className="text-gray-500">Image failed to load</p>
+                </div>
+              )}
             </AspectRatio>
-          ) : (
-            <AspectRatio ratio={16 / 9} className="bg-transparent">
-              <img 
-                src={mediaItems[activeIndex]?.url} 
-                alt={`Media ${activeIndex + 1}`}
-                className="w-full h-full object-contain object-center"
-                loading={activeIndex === 0 ? "eager" : "lazy"}
-                onError={() => handleMediaError(activeIndex)}
+          </CarouselItem>
+        ))}
+        
+        {/* Render video if present */}
+        {videoURL && !videoFailed && (
+          <CarouselItem key="video">
+            <AspectRatio ratio={16 / 9}>
+              <VideoPlayer 
+                url={videoURL} 
+                autoplay={autoplayVideo}
+                onError={handleVideoError}
+                showControls={true}
+                inCarouselPreview={inPreview}
               />
             </AspectRatio>
-          )
+          </CarouselItem>
         )}
-      </div>
+      </CarouselContent>
       
-      {/* Navigation arrows - only shown if multiple items */}
-      {mediaItems.length > 1 && (
+      {showCarousel && (
         <>
-          {/* Left navigation arrow */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={handlePrev}
-            disabled={isAtStart}
-            className={cn(
-              "absolute left-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
-              "bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800",
-              "shadow-md z-20 transition-opacity",
-              isAtStart ? "opacity-60" : "opacity-100"
-            )}
-            aria-label="Previous item"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </Button>
-
-          {/* Right navigation arrow */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={handleNext}
-            disabled={isAtEnd}
-            className={cn(
-              "absolute right-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
-              "bg-white/70 hover:bg-white/90 backdrop-blur-sm text-gray-800",
-              "shadow-md z-20 transition-opacity",
-              isAtEnd ? "opacity-60" : "opacity-100"
-            )}
-            aria-label="Next item"
-          >
-            <ChevronRight className="h-6 w-6" />
-          </Button>
+          <CarouselPrevious className="left-2" />
+          <CarouselNext className="right-2" />
         </>
       )}
-      
-      {/* Pagination indicators - only shown if multiple items */}
-      {mediaItems.length > 1 && (
-        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
-          {mediaItems.map((item, index) => (
-            <button
-              key={`indicator-${index}`}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setActiveIndex(index);
-              }}
-              className={cn(
-                "h-2.5 transition-all focus:outline-none focus:ring-2 focus:ring-primary rounded-full",
-                activeIndex === index 
-                  ? "bg-white w-6" 
-                  : "bg-white/40 w-2.5 hover:bg-white/70"
-              )}
-              aria-label={`Go to item ${index + 1}`}
-              aria-current={activeIndex === index ? 'true' : 'false'}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    </Carousel>
   );
 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { MediaItemType, MediaFile, VideoInfo } from './types';
@@ -7,8 +8,7 @@ import {
   ACCEPTED_IMAGE_TYPES, 
   ACCEPTED_VIDEO_TYPES, 
   MAX_IMAGES,
-  VIDEO_SLOT_INDEX,
-  MAX_VIDEO_HEIGHT
+  VIDEO_SLOT_INDEX
 } from './utils/constants';
 import { processVideo } from './utils/video-processor';
 
@@ -44,7 +44,22 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const [dragActive, setDragActive] = useState(false);
   const [processingFiles, setProcessingFiles] = useState(false);
   const [existingImageHashes, setExistingImageHashes] = useState<string[]>([]);
+  const [videoUploaded, setVideoUploaded] = useState<boolean>(false);
+  const [videoErrorInfo, setVideoErrorInfo] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Check if there was a previously attempted video upload but it's not in the media array
+  useEffect(() => {
+    const checkVideoStatus = () => {
+      if (videoUploaded && !newVideo && !existingVideoUrl) {
+        setVideoErrorInfo("Video was uploaded but not saved. Please try uploading again or contact support.");
+      } else {
+        setVideoErrorInfo(null);
+      }
+    };
+    
+    checkVideoStatus();
+  }, [videoUploaded, newVideo, existingVideoUrl]);
   
   // Precompute hashes for existing images when they change
   useEffect(() => {
@@ -93,7 +108,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       file: file,
       preview: file.preview || URL.createObjectURL(file),
       isPrimary: existingImages.length === 0 && index === 0,
-      isNew: true
+      isNew: true,
+      metadata: file.metadata
     });
   });
   
@@ -115,7 +131,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         ? `https://img.youtube.com/vi/${videoInfo.id || ''}/hqdefault.jpg`
         : 'https://via.placeholder.com/400x300?text=Video+Thumbnail',
       isPrimary: false,
-      videoInfo: videoInfo as VideoInfo
+      videoInfo: videoInfo
     };
   } else if (newVideo) {
     videoItem = {
@@ -124,7 +140,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       file: newVideo,
       preview: videoThumbnail || URL.createObjectURL(newVideo),
       isPrimary: false,
-      videoInfo: { platform: 'file', id: null }
+      videoInfo: { platform: 'file', id: null },
+      metadata: newVideo.metadata
     };
   }
   
@@ -220,11 +237,12 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           continue;
         }
 
-        // Process the video using the improved processor - no size limit
+        // Process the video using the improved processor
         try {
           const { videoFile, thumbnail } = await processVideo(file);
           result.videoFile = videoFile;
           result.videoThumbnail = thumbnail;
+          setVideoUploaded(true);
         } catch (error) {
           result.videoRejected = true;
           result.videoError = error instanceof Error 
@@ -276,7 +294,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       
       // Check for duplicates
       if (result.duplicateDetected) {
-        toast("Duplicate image detected - This image has already been uploaded. Please choose another file.");
+        toast("This image has already been uploaded. Please choose another file.");
       }
       
       // Update images state
@@ -285,7 +303,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         setNewImages(updatedImages);
         onImagesChange(updatedImages);
         
-        toast(`${result.acceptedImages.length} image(s) processed - Images have been optimized for better performance.`);
+        toast(`${result.acceptedImages.length} image(s) processed successfully.`);
       }
       
       // Update video state
@@ -299,14 +317,14 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           onVideoUrlChange(null);
         }
         
-        toast('Video processed - Video preview is now available.');
+        toast('Video processed successfully.');
       } else if (result.videoRejected) {
         const errorMessage = result.videoError || 'Please check file requirements and try again.';
         toast(`Video upload failed - ${errorMessage}`);
       }
       
       if (result.rejectedImages.length > 0) {
-        toast(`${result.rejectedImages.length} image(s) couldn't be processed - Please try with different images.`);
+        toast(`${result.rejectedImages.length} image(s) couldn't be processed. Please try different images.`);
       }
     } catch (error) {
       console.error('Error processing files:', error);
@@ -362,6 +380,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     
     // Update state
     onVideoUrlChange(url);
+    setVideoUploaded(true);
     toast('Your video has been linked to this listing.');
   }, [newVideo, existingVideoUrl, onVideoUrlChange]);
   
@@ -410,11 +429,13 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       // Handle existing video deletion
       if (onDeleteExistingVideo) {
         onDeleteExistingVideo();
+        setVideoUploaded(false);
       }
-    } else if (id.startsWith('new-video-')) {
+    } else if (id === newVideo?.id) {
       // Handle new video deletion
       setNewVideo(null);
       setVideoThumbnail(null);
+      setVideoUploaded(false);
       onVideoChange(null);
     } else {
       // Handle new image deletion
@@ -422,7 +443,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       setNewImages(updatedNewImages);
       onImagesChange(updatedNewImages);
     }
-  }, [newImages, onDeleteExistingImage, onDeleteExistingVideo, onImagesChange, onVideoChange]);
+  }, [newImages, newVideo, onDeleteExistingImage, onDeleteExistingVideo, onImagesChange, onVideoChange]);
 
   return (
     <div 
@@ -440,6 +461,19 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         isProcessing={processingFiles}
         maxImages={maxImages}
       />
+      
+      {/* Video error info */}
+      {videoErrorInfo && (
+        <div className="bg-amber-50 text-amber-800 p-3 rounded-md border border-amber-200 text-sm">
+          <p>{videoErrorInfo}</p>
+          <button 
+            onClick={handleVideoUrlInput} 
+            className="text-amber-700 underline mt-1 hover:text-amber-900"
+          >
+            Try again
+          </button>
+        </div>
+      )}
       
       {/* Hidden file input */}
       <input

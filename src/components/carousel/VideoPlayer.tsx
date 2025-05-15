@@ -29,6 +29,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [isPlaying, setIsPlaying] = useState(autoplay);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [isLoadingVideo, setIsLoadingVideo] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   
   // Set up video autoplay when component mounts or updates
@@ -58,6 +59,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         setIsPlaying(false);
       }).then(() => {
         setIsPlaying(true);
+        setIsLoadingVideo(false);
       });
     }
   };
@@ -104,7 +106,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const handleError = () => {
     setHasError(true);
     setIsPlaying(false);
+    setIsLoadingVideo(false);
+    console.error("Video failed to load:", url);
     if (onError) onError();
+  };
+  
+  // Handle video loaded
+  const handleVideoLoaded = () => {
+    setIsLoadingVideo(false);
+    if (autoplay) {
+      playVideo();
+    }
   };
 
   // Determine video type (YouTube, Vimeo, or direct file)
@@ -148,27 +160,42 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   };
   
+  // Show loading state if video is still loading
+  if (isLoadingVideo && !hasError && !isYouTube && !isVimeo) {
+    return (
+      <div className={`flex items-center justify-center bg-gray-100 h-full w-full ${className}`}>
+        <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+  
   // If there's an error, show error state
   if (hasError) {
     return (
-      <AspectRatio ratio={16 / 9} className={`bg-gray-100 ${className}`}>
-        <div className="flex flex-col items-center justify-center h-full">
-          <VideoOff className="h-12 w-12 text-gray-400 mb-2" />
-          <p className="text-gray-500">Video failed to load</p>
-        </div>
-      </AspectRatio>
+      <div className={`flex flex-col items-center justify-center h-full bg-gray-100 ${className}`}>
+        <VideoOff className="h-12 w-12 text-gray-400 mb-2" />
+        <p className="text-gray-500">Video failed to load</p>
+        {thumbnail && (
+          <div className="mt-2 p-2 bg-white/50 rounded">
+            <img 
+              src={thumbnail} 
+              alt="Video thumbnail" 
+              className="w-full max-h-32 object-contain rounded"
+            />
+          </div>
+        )}
+      </div>
     );
   }
   
   return (
-    <AspectRatio ratio={16 / 9} className={`bg-transparent overflow-hidden rounded-lg ${className}`}>
+    <div className={`relative w-full h-full bg-black ${className}`}>
       {isYouTube ? (
         <iframe 
           src={getYoutubeEmbedUrl()}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
           className="w-full h-full"
-          title="YouTube video"
           onError={handleError}
         />
       ) : isVimeo ? (
@@ -177,43 +204,43 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           allow="autoplay; fullscreen; picture-in-picture"
           allowFullScreen
           className="w-full h-full"
-          title="Vimeo video"
           onError={handleError}
         />
       ) : (
-        // Direct video file container
-        <div className="relative w-full h-full">
-          <video 
+        <>
+          <video
             ref={videoRef}
             src={url}
-            poster={thumbnail}
-            controls={false}
-            loop
+            className={`w-full h-full object-${objectFit}`}
             muted={isMuted}
             playsInline
-            onClick={togglePlay}
-            className={`w-full h-full object-${objectFit} object-center`}
+            loop
+            preload="metadata"
+            controls={showControls && hasInteracted}
             onError={handleError}
+            onLoadedData={handleVideoLoaded}
           />
           
-          {/* Custom overlay with play/pause */}
           {renderOverlay()}
           
-          {/* Video Controls - high z-index to ensure visibility */}
-          {showControls && (
-            <div className="absolute bottom-4 right-4 z-[100]">
-              <Button
-                variant="outline"
-                size="icon"
-                className="bg-white/80 backdrop-blur-sm hover:bg-white rounded-full pointer-events-auto"
+          {showControls && !hasInteracted && (
+            <div className="absolute bottom-4 right-4 z-20">
+              <Button 
+                size="sm" 
+                variant="secondary" 
+                className="bg-black/50 hover:bg-black/70 text-white rounded-full p-2 h-8 w-8" 
                 onClick={toggleMute}
               >
-                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                {isMuted ? (
+                  <VolumeX className="h-4 w-4" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
               </Button>
             </div>
           )}
-        </div>
+        </>
       )}
-    </AspectRatio>
+    </div>
   );
 };

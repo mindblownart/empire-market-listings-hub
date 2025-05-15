@@ -1,7 +1,6 @@
 
 import { fileToMediaFile, getFileSizeMB } from './file-utils';
-import { MediaFile } from '../types';
-import { MAX_VIDEO_SIZE_MB } from './constants';
+import { MediaFile, MediaMetadata } from '../types';
 
 // Generate video thumbnail
 export const generateVideoThumbnail = async (videoFile: File): Promise<string> => {
@@ -48,34 +47,76 @@ export const generateVideoThumbnail = async (videoFile: File): Promise<string> =
   });
 };
 
+// Extract video metadata
+export const extractVideoMetadata = async (videoFile: File): Promise<MediaMetadata> => {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    
+    const objectUrl = URL.createObjectURL(videoFile);
+    
+    video.onloadedmetadata = () => {
+      const metadata: MediaMetadata = {
+        size: videoFile.size,
+        format: videoFile.type,
+        duration: Math.round(video.duration),
+        width: video.videoWidth,
+        height: video.videoHeight
+      };
+      
+      URL.revokeObjectURL(objectUrl);
+      resolve(metadata);
+    };
+    
+    video.onerror = (e) => {
+      URL.revokeObjectURL(objectUrl);
+      console.error('Video metadata error:', e);
+      
+      // Resolve with partial metadata
+      resolve({
+        size: videoFile.size,
+        format: videoFile.type
+      });
+    };
+    
+    video.src = objectUrl;
+  });
+};
+
 // Process video with improved error handling
 export const processVideo = async (file: File): Promise<{ 
   videoFile: MediaFile; 
   thumbnail: string | null;
 }> => {
-  // Check file size with clearer error message
-  if (getFileSizeMB(file) > MAX_VIDEO_SIZE_MB) {
-    throw new Error(`Video exceeds maximum size of ${MAX_VIDEO_SIZE_MB}MB. Please reduce the file size.`);
-  }
-  
   // Validate video format
   if (!['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'].includes(file.type)) {
     throw new Error(`Unsupported video format: ${file.type || 'unknown'}. Please use MP4, WebM, or MOV format.`);
   }
   
   let thumbnail: string | null = null;
+  let metadata: MediaMetadata = {
+    size: file.size,
+    format: file.type
+  };
   
   try {
+    // Generate thumbnail
     thumbnail = await generateVideoThumbnail(file);
+    
+    // Extract metadata
+    metadata = await extractVideoMetadata(file);
   } catch (error) {
-    console.error("Error generating video thumbnail:", error);
-    // Continue without thumbnail, but provide a fallback later
+    console.error("Error processing video:", error);
+    // Continue with basic metadata
   }
   
   // Create MediaFile with ID and metadata
   const videoFile = fileToMediaFile(file);
   
-  // Add additional metadata for persistence
+  // Add metadata
+  videoFile.metadata = metadata;
+  
+  // Add preview
   videoFile.preview = thumbnail || undefined;
   
   return { 
