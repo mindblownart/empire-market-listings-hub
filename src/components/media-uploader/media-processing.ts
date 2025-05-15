@@ -1,4 +1,3 @@
-
 import { MediaFile } from './types';
 import { 
   ACCEPTED_IMAGE_TYPES,
@@ -23,17 +22,17 @@ export { MAX_IMAGES, VIDEO_SLOT_INDEX } from './utils/constants';
  * Process and validate media files
  */
 export const processFiles = async (
-  files: FileList,
-  currentImageCount: number,
-  videoExists: boolean,
+  files: FileList, 
+  existingImageCount: number = 0,
+  hasVideo: boolean = false,
   existingHashes: string[] = []
 ): Promise<{
-  acceptedImages: MediaFile[];
-  rejectedImages: File[];
-  videoFile: MediaFile | null;
-  videoThumbnail: string | null;
-  videoRejected: boolean;
-  duplicateDetected: boolean;
+  acceptedImages: MediaFile[],
+  rejectedImages: File[],
+  videoFile: MediaFile | null,
+  videoThumbnail: string | null,
+  videoRejected: boolean,
+  duplicateDetected: boolean
 }> => {
   const acceptedImages: MediaFile[] = [];
   const rejectedImages: File[] = [];
@@ -41,6 +40,15 @@ export const processFiles = async (
   let videoThumbnail: string | null = null;
   let videoRejected = false;
   let duplicateDetected = false;
+
+  // Function to ensure file has an ID
+  const ensureFileId = (file: File): MediaFile => {
+    const mediaFile = file as MediaFile;
+    if (!mediaFile.id) {
+      mediaFile.id = `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    }
+    return mediaFile;
+  };
 
   // Process each file
   for (let i = 0; i < files.length; i++) {
@@ -74,7 +82,7 @@ export const processFiles = async (
     // Process video files
     else if (ACCEPTED_VIDEO_TYPES.includes(file.type)) {
       // Only accept one video
-      if (videoExists || videoFile) {
+      if (hasVideo || videoFile) {
         console.log(`Video ${file.name} rejected: only one video allowed`);
         videoRejected = true;
         continue;
@@ -96,10 +104,11 @@ export const processFiles = async (
     }
   }
 
+  // Return the processed results
   return {
-    acceptedImages,
+    acceptedImages: acceptedImages.map(ensureFileId), // Ensure all files have IDs
     rejectedImages,
-    videoFile,
+    videoFile: videoFile ? ensureFileId(videoFile) : null,  // Ensure video file has ID
     videoThumbnail,
     videoRejected,
     duplicateDetected

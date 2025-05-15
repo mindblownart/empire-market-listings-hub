@@ -179,6 +179,17 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     }
   }, []);
   
+  // Ensure the file object has an id property
+  const ensureMediaFileId = (file: File): MediaFile => {
+    if ('id' in file && file.id) {
+      return file as MediaFile;
+    } else {
+      const mediaFile = file as MediaFile;
+      mediaFile.id = `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      return mediaFile;
+    }
+  };
+  
   // Process files when dropped or selected
   const handleFilesSelected = useCallback(async (files: FileList) => {
     if (!files || files.length === 0) return;
@@ -315,7 +326,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           }
         } else if (item.isNew && item.file) {
           // New image - get file
-          updatedNewImages.push(item.file);
+          updatedNewImages.push(ensureMediaFileId(item.file));
         }
       }
     });
