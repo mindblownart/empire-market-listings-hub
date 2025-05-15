@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { MediaItemType, MediaFile, VideoInfo } from './types';
@@ -204,6 +203,116 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
     }
     
     return { isValid: true };
+  };
+
+  // Implementation of the missing processFiles function
+  const processFiles = async (
+    files: FileList,
+    existingImageCount: number,
+    hasExistingVideo: boolean,
+    existingHashes: string[]
+  ) => {
+    const result = {
+      acceptedImages: [] as MediaFile[],
+      rejectedImages: [] as File[],
+      videoFile: null as MediaFile | null,
+      videoThumbnail: null as string | null,
+      videoRejected: false,
+      videoError: '',
+      duplicateDetected: false
+    };
+
+    // Process each file
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      // Handle video files
+      if (ACCEPTED_VIDEO_TYPES.includes(file.type)) {
+        if (hasExistingVideo) {
+          result.videoRejected = true;
+          result.videoError = "Only one video is allowed. Please remove the existing video first.";
+          continue;
+        }
+
+        // Validate the video
+        const validation = validateVideoFile(file);
+        if (!validation.isValid) {
+          result.videoRejected = true;
+          result.videoError = validation.error || "Video validation failed.";
+          continue;
+        }
+
+        // Process the video
+        const videoFile = ensureMediaFileId(file);
+        result.videoFile = videoFile;
+        
+        try {
+          // Create a video element to get dimensions
+          const video = document.createElement('video');
+          video.preload = 'metadata';
+          
+          // Create a promise that resolves when video metadata is loaded
+          const metadataLoaded = new Promise<void>((resolve, reject) => {
+            video.onloadedmetadata = () => resolve();
+            video.onerror = () => reject(new Error("Could not load video metadata"));
+            
+            // Safety timeout
+            setTimeout(() => reject(new Error("Video metadata loading timeout")), 5000);
+          });
+          
+          // Set video source to the File
+          video.src = URL.createObjectURL(file);
+          
+          // Wait for metadata to load
+          await metadataLoaded;
+          
+          // Check video dimensions
+          if (video.videoHeight > MAX_VIDEO_HEIGHT) {
+            result.videoRejected = true;
+            result.videoError = `Video height exceeds maximum of ${MAX_VIDEO_HEIGHT}px (your video is ${video.videoHeight}px)`;
+            result.videoFile = null;
+            
+            // Clean up
+            URL.revokeObjectURL(video.src);
+            continue;
+          }
+          
+          // Set thumbnail (video element as is or first frame)
+          result.videoThumbnail = URL.createObjectURL(file);
+          
+          // Clean up
+          URL.revokeObjectURL(video.src);
+        } catch (error) {
+          console.error("Error processing video:", error);
+          // Still keep the video if metadata processing fails
+          result.videoThumbnail = URL.createObjectURL(file);
+        }
+      }
+      // Handle image files
+      else if (ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        // Check if we've reached the maximum number of images
+        if (existingImageCount + result.acceptedImages.length >= maxImages) {
+          result.rejectedImages.push(file);
+          continue;
+        }
+
+        // Ensure the image file has an ID
+        const imageFile = ensureMediaFileId(file);
+        
+        // Add preview URL
+        if (!imageFile.preview) {
+          imageFile.preview = URL.createObjectURL(imageFile);
+        }
+        
+        result.acceptedImages.push(imageFile);
+      }
+      // Reject other file types
+      else {
+        result.rejectedImages.push(file);
+      }
+    }
+
+    return result;
   };
   
   // Process files when dropped or selected
