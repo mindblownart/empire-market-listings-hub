@@ -11,34 +11,41 @@ interface EnhancedCarouselProps {
   videoURL?: string | null;
   autoplayVideo?: boolean;
   skipPrimaryImage?: boolean;
+  className?: string;
 }
 
 export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   images = [],
   videoURL,
   autoplayVideo = true,
-  skipPrimaryImage = false, // Default changed to false as we handle this in MediaGallery
+  skipPrimaryImage = false,
+  className = ''
 }) => {
   // Media state management
   const [activeIndex, setActiveIndex] = useState(0);
   const [mediaItems, setMediaItems] = useState<Array<{type: 'image' | 'video', url: string}>>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Set up media items to display with video always in slot 2 (index 0 in carousel)
+  // Set up media items to display - video always at index 0 if present
   useEffect(() => {
     const items: Array<{type: 'image' | 'video', url: string}> = [];
     
-    // If we have a video, insert it at position 0 (slot 2 in the UI after the hero image)
+    // If we have a video, insert it at position 0 
     if (videoURL) {
       items.push({ type: 'video', url: videoURL });
     }
     
     // Add all the images after the video
     // We're using the images directly since skipPrimaryImage is handled in MediaGallery
-    images.forEach(url => {
+    const imagesToDisplay = skipPrimaryImage && images.length > 0
+      ? images.slice(1)
+      : [...images];
+    
+    imagesToDisplay.forEach(url => {
       items.push({ type: 'image', url });
     });
     
+    console.log('EnhancedCarousel media items:', items);
     setMediaItems(items);
     
     // Reset active index when media items change
@@ -103,7 +110,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   // Fallback when no media is available
   if (!mediaItems.length) {
     return (
-      <div className="w-full rounded-lg overflow-hidden">
+      <div className={`w-full rounded-lg overflow-hidden ${className}`}>
         <AspectRatio ratio={16 / 9} className="bg-gray-100">
           <div className="flex items-center justify-center h-full">
             <p className="text-gray-500">No media available</p>
@@ -116,7 +123,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   // Return the complete carousel component
   return (
     <div 
-      className="w-full rounded-lg overflow-hidden shadow-md relative"
+      className={`w-full rounded-lg overflow-hidden shadow-md relative ${className}`}
       ref={containerRef}
       tabIndex={0}
     >
@@ -126,6 +133,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
           <VideoPlayer 
             url={mediaItems[activeIndex].url} 
             autoplay={autoplayVideo}
+            objectFit="cover"
           />
         ) : (
           <AspectRatio ratio={16 / 9} className="bg-transparent">

@@ -9,3 +9,6 @@ export {
   CarouselPrevious,
   CarouselNext,
 } from "./carousel/index";
+
+// Export enhanced carousel components
+export { EnhancedCarousel, VideoPlayer } from "../carousel";

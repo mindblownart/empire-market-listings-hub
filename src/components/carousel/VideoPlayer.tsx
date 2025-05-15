@@ -7,29 +7,41 @@ import { Button } from '@/components/ui/button';
 interface VideoPlayerProps {
   url: string;
   autoplay?: boolean;
+  thumbnail?: string;
+  objectFit?: 'cover' | 'contain';
+  className?: string;
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   url,
-  autoplay = false
+  autoplay = false,
+  thumbnail,
+  objectFit = 'cover',
+  className = ''
 }) => {
   const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(autoplay);
   const videoRef = useRef<HTMLVideoElement>(null);
   
   // Set up video autoplay when component mounts or updates
   useEffect(() => {
-    if (videoRef.current && autoplay) {
+    if (videoRef.current) {
       videoRef.current.muted = isMuted;
       
       // Make sure to play the video after a short delay to ensure DOM is ready
       const timer = setTimeout(() => {
-        const playPromise = videoRef.current?.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            console.log('Autoplay prevented:', error);
-          });
+        if (autoplay && videoRef.current) {
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(error => {
+              console.log('Autoplay prevented:', error);
+              setIsPlaying(false);
+            }).then(() => {
+              setIsPlaying(true);
+            });
+          }
         }
-      }, 200);
+      }, 300);
       
       return () => clearTimeout(timer);
     }
@@ -44,6 +56,25 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const newMutedState = !isMuted;
       videoRef.current.muted = newMutedState;
       setIsMuted(newMutedState);
+    }
+  };
+
+  // Toggle play/pause when clicking on the video
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            setIsPlaying(true);
+          }).catch(error => {
+            console.log('Play prevented:', error);
+          });
+        }
+      }
     }
   };
 
@@ -69,7 +100,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
   
   return (
-    <AspectRatio ratio={16 / 9} className="bg-transparent overflow-hidden rounded-lg">
+    <AspectRatio ratio={16 / 9} className={`bg-transparent overflow-hidden rounded-lg ${className}`}>
       {isYouTube ? (
         <iframe 
           src={getYoutubeEmbedUrl()}
@@ -88,15 +119,16 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         />
       ) : (
         // Direct video file container
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full" onClick={togglePlay}>
           <video 
             ref={videoRef}
             src={url}
+            poster={thumbnail}
             controls={false}
             loop
             muted={isMuted}
             playsInline
-            className="w-full h-full object-cover object-center"
+            className={`w-full h-full object-${objectFit} object-center`}
           />
           
           {/* Video Controls - high z-index to ensure visibility */}
