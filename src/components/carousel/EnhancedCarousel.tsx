@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ImageOff, VideoOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { VideoPlayer } from './VideoPlayer';
@@ -26,6 +26,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   // Media state management
   const [activeIndex, setActiveIndex] = useState(0);
   const [mediaItems, setMediaItems] = useState<Array<{type: 'image' | 'video', url: string}>>([]);
+  const [mediaErrors, setMediaErrors] = useState<Record<number, boolean>>({});
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Set up media items to display - video always at index 0 if present
@@ -50,6 +51,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
     
     console.log('EnhancedCarousel media items:', items);
     setMediaItems(items);
+    setMediaErrors({});
     
     // Reset active index when media items change
     setActiveIndex(0);
@@ -60,6 +62,11 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   const hasMultipleItems = mediaItems.length > 1;
   const isAtStart = activeIndex === 0;
   const isAtEnd = activeIndex === mediaItems.length - 1;
+  
+  // Handle media load errors
+  const handleMediaError = (index: number) => {
+    setMediaErrors(prev => ({...prev, [index]: true}));
+  };
   
   // Event handlers for navigation
   const handlePrev = (e?: React.MouseEvent) => {
@@ -133,22 +140,42 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       {/* Active Media Display */}
       <div className="w-full">
         {mediaItems[activeIndex]?.type === 'video' ? (
-          <VideoPlayer 
-            url={mediaItems[activeIndex].url} 
-            autoplay={autoplayVideo && inPreview}
-            objectFit="cover"
-            showControls={true}
-            inCarouselPreview={!inPreview}
-          />
-        ) : (
-          <AspectRatio ratio={16 / 9} className="bg-transparent">
-            <img 
-              src={mediaItems[activeIndex]?.url} 
-              alt={`Media ${activeIndex + 1}`}
-              className="w-full h-full object-cover object-center"
-              loading={activeIndex === 0 ? "eager" : "lazy"}
+          mediaErrors[activeIndex] ? (
+            <AspectRatio ratio={16 / 9} className="bg-gray-100">
+              <div className="flex flex-col items-center justify-center h-full">
+                <VideoOff className="h-12 w-12 text-gray-400 mb-2" />
+                <p className="text-gray-500">Video failed to load</p>
+              </div>
+            </AspectRatio>
+          ) : (
+            <VideoPlayer 
+              url={mediaItems[activeIndex].url} 
+              autoplay={autoplayVideo && inPreview}
+              objectFit="contain"
+              showControls={true}
+              inCarouselPreview={!inPreview}
+              onError={() => handleMediaError(activeIndex)}
             />
-          </AspectRatio>
+          )
+        ) : (
+          mediaErrors[activeIndex] ? (
+            <AspectRatio ratio={16 / 9} className="bg-gray-100">
+              <div className="flex flex-col items-center justify-center h-full">
+                <ImageOff className="h-12 w-12 text-gray-400 mb-2" />
+                <p className="text-gray-500">Image failed to load</p>
+              </div>
+            </AspectRatio>
+          ) : (
+            <AspectRatio ratio={16 / 9} className="bg-transparent">
+              <img 
+                src={mediaItems[activeIndex]?.url} 
+                alt={`Media ${activeIndex + 1}`}
+                className="w-full h-full object-contain object-center"
+                loading={activeIndex === 0 ? "eager" : "lazy"}
+                onError={() => handleMediaError(activeIndex)}
+              />
+            </AspectRatio>
+          )
         )}
       </div>
       

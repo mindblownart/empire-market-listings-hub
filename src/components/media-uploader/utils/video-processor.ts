@@ -38,24 +38,29 @@ export const generateVideoThumbnail = async (videoFile: File): Promise<string> =
       }
     };
     
-    video.onerror = () => {
+    video.onerror = (e) => {
       URL.revokeObjectURL(objectUrl);
-      reject(new Error('Error loading video'));
+      console.error('Video error:', e);
+      reject(new Error('Error loading video: Format may be unsupported'));
     };
     
     video.src = objectUrl;
   });
 };
 
-// Process video (currently just creates thumbnail and returns file with ID)
-// In a real-world implementation, this would also compress the video
+// Process video with improved error handling
 export const processVideo = async (file: File): Promise<{ 
   videoFile: MediaFile; 
   thumbnail: string | null;
 }> => {
-  // For simplicity, we'll just check the size but not actually compress
+  // Check file size with clearer error message
   if (getFileSizeMB(file) > MAX_VIDEO_SIZE_MB) {
-    throw new Error(`Video exceeds maximum size of ${MAX_VIDEO_SIZE_MB}MB`);
+    throw new Error(`Video exceeds maximum size of ${MAX_VIDEO_SIZE_MB}MB. Please reduce the file size.`);
+  }
+  
+  // Validate video format
+  if (!['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'].includes(file.type)) {
+    throw new Error(`Unsupported video format: ${file.type || 'unknown'}. Please use MP4, WebM, or MOV format.`);
   }
   
   let thumbnail: string | null = null;
@@ -64,11 +69,17 @@ export const processVideo = async (file: File): Promise<{
     thumbnail = await generateVideoThumbnail(file);
   } catch (error) {
     console.error("Error generating video thumbnail:", error);
-    // Continue without thumbnail
+    // Continue without thumbnail, but provide a fallback later
   }
   
-  // Create MediaFile with ID
+  // Create MediaFile with ID and metadata
   const videoFile = fileToMediaFile(file);
   
-  return { videoFile, thumbnail };
+  // Add additional metadata for persistence
+  videoFile.preview = thumbnail || undefined;
+  
+  return { 
+    videoFile, 
+    thumbnail 
+  };
 };

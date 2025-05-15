@@ -27,20 +27,20 @@ export const ACCEPTED_VIDEO_TYPES = [
   'video/quicktime'
 ];
 
-// Maximum file size in bytes (20MB)
-export const MAX_FILE_SIZE = 20 * 1024 * 1024;
+// Maximum file size in bytes (500MB)
+export const MAX_FILE_SIZE = 500 * 1024 * 1024;
 
-// Maximum video duration in seconds (5 minutes)
-export const MAX_VIDEO_DURATION = 300;
+// Maximum video duration in seconds (30 minutes)
+export const MAX_VIDEO_DURATION = 1800;
 
-// Maximum video resolution (720p)
-export const MAX_VIDEO_HEIGHT = 720;
+// Maximum video resolution (1080p)
+export const MAX_VIDEO_HEIGHT = 1080;
 
 // Maximum target size for images in MB
 export const TARGET_IMAGE_SIZE_MB = 5;
 
-// Maximum size for videos in MB
-export const MAX_VIDEO_SIZE_MB = 20;
+// Maximum size for videos in MB - removed restriction
+export const MAX_VIDEO_SIZE_MB = 500;
 
 // Image processing constants
 export const MAX_IMAGE_WIDTH = 1920;

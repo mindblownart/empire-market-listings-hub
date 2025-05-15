@@ -103,7 +103,13 @@ export const useBusinessSubmission = () => {
         // Initialize media fields
         primary_image_url: null,
         gallery_images: null,
-        video_url: null
+        video_url: null,
+        // Add video metadata if available
+        video_metadata: formData.businessVideo ? {
+          name: formData.businessVideo.name,
+          size: formData.businessVideo.size,
+          type: formData.businessVideo.type,
+        } : null
       };
       
       // Handle image uploads if there are any
@@ -151,10 +157,17 @@ export const useBusinessSubmission = () => {
       
       // Handle video URL or file
       if (formData.businessVideo) {
-        // Wait until video is processed and uploaded
-        const videoUpload = await uploadBusinessMedia([formData.businessVideo], true);
-        if (videoUpload.videoUrl) {
-          businessData.video_url = videoUpload.videoUrl;
+        try {
+          // Wait until video is processed and uploaded
+          const videoUpload = await uploadBusinessMedia([formData.businessVideo], true);
+          if (videoUpload.videoUrl) {
+            businessData.video_url = videoUpload.videoUrl;
+          }
+        } catch (videoError) {
+          console.error("Error uploading video:", videoError);
+          toast.error("Video upload failed. Please try again with a different file or use a video URL instead.");
+          setIsSubmitting(false);
+          return false;
         }
       } else if (formData.businessVideoUrl) {
         // Use the provided video URL directly

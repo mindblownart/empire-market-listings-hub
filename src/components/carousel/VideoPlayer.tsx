@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Volume2, VolumeX, Play, Pause } from 'lucide-react';
+import { Volume2, VolumeX, Play, Pause, VideoOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface VideoPlayerProps {
@@ -12,6 +12,7 @@ interface VideoPlayerProps {
   className?: string;
   showControls?: boolean;
   inCarouselPreview?: boolean;
+  onError?: () => void;
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -21,16 +22,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   objectFit = 'cover',
   className = '',
   showControls = true,
-  inCarouselPreview = false
+  inCarouselPreview = false,
+  onError
 }) => {
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(autoplay);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   
   // Set up video autoplay when component mounts or updates
   useEffect(() => {
-    if (videoRef.current) {
+    if (videoRef.current && !hasError) {
       videoRef.current.muted = isMuted;
       
       // Make sure to play the video after a short delay to ensure DOM is ready
@@ -42,11 +45,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       
       return () => clearTimeout(timer);
     }
-  }, [autoplay, isMuted, url]);
+  }, [autoplay, isMuted, url, hasError]);
   
   // Handle playing the video with proper error handling
   const playVideo = () => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || hasError) return;
     
     const playPromise = videoRef.current.play();
     if (playPromise !== undefined) {
@@ -64,7 +67,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     e.preventDefault();
     e.stopPropagation(); // Prevent click from bubbling to parent elements
     
-    if (videoRef.current) {
+    if (videoRef.current && !hasError) {
       const newMutedState = !isMuted;
       videoRef.current.muted = newMutedState;
       setIsMuted(newMutedState);
@@ -87,7 +90,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setHasInteracted(true);
     }
     
-    if (videoRef.current) {
+    if (videoRef.current && !hasError) {
       if (isPlaying) {
         videoRef.current.pause();
         setIsPlaying(false);
@@ -95,6 +98,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         playVideo();
       }
     }
+  };
+  
+  // Handle video error
+  const handleError = () => {
+    setHasError(true);
+    setIsPlaying(false);
+    if (onError) onError();
   };
 
   // Determine video type (YouTube, Vimeo, or direct file)
@@ -138,6 +148,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   };
   
+  // If there's an error, show error state
+  if (hasError) {
+    return (
+      <AspectRatio ratio={16 / 9} className={`bg-gray-100 ${className}`}>
+        <div className="flex flex-col items-center justify-center h-full">
+          <VideoOff className="h-12 w-12 text-gray-400 mb-2" />
+          <p className="text-gray-500">Video failed to load</p>
+        </div>
+      </AspectRatio>
+    );
+  }
+  
   return (
     <AspectRatio ratio={16 / 9} className={`bg-transparent overflow-hidden rounded-lg ${className}`}>
       {isYouTube ? (
@@ -147,6 +169,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           allowFullScreen
           className="w-full h-full"
           title="YouTube video"
+          onError={handleError}
         />
       ) : isVimeo ? (
         <iframe 
@@ -155,6 +178,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           allowFullScreen
           className="w-full h-full"
           title="Vimeo video"
+          onError={handleError}
         />
       ) : (
         // Direct video file container
@@ -169,6 +193,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             playsInline
             onClick={togglePlay}
             className={`w-full h-full object-${objectFit} object-center`}
+            onError={handleError}
           />
           
           {/* Custom overlay with play/pause */}
