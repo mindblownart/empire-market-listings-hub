@@ -35,3 +35,15 @@ export const MAX_VIDEO_DURATION = 300;
 
 // Maximum video resolution (720p)
 export const MAX_VIDEO_HEIGHT = 720;
+
+// Maximum target size for images in MB
+export const TARGET_IMAGE_SIZE_MB = 5;
+
+// Maximum size for videos in MB
+export const MAX_VIDEO_SIZE_MB = 20;
+
+// Image processing constants
+export const MAX_IMAGE_WIDTH = 1920;
+export const MAX_IMAGE_HEIGHT = 1080;
+export const IMAGE_QUALITY_START = 0.9;
+export const IMAGE_QUALITY_MIN = 0.5;

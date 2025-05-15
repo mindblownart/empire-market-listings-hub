@@ -89,3 +89,15 @@ export const getVideoThumbnailUrl = async (videoInfo: VideoInfo): Promise<string
 
   return undefined;
 };
+
+/**
+ * Get the embed URL for a video platform and ID
+ */
+export const getVideoEmbedUrl = (platform: string, id: string): string => {
+  if (platform === 'youtube') {
+    return `https://www.youtube.com/embed/${id}`;
+  } else if (platform === 'vimeo') {
+    return `https://player.vimeo.com/video/${id}`;
+  }
+  return '';
+};

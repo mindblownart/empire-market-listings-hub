@@ -6,6 +6,7 @@ export { default as VideoPreviewModal } from './VideoPreviewModal';
 export { default as EmptySlot } from './EmptySlot';
 export { default as DragContext } from './DragContext';
 export * from './gallery';
-export * from './types';
+// Explicitly re-export the types to avoid ambiguity
+export type { MediaFile, MediaItem, DragItem } from './types';
 export * from './video-utils';
 export * from './media-processing';
