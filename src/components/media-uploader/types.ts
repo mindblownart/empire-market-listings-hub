@@ -12,9 +12,12 @@ export type MediaItem = {
   file?: MediaFile | File;
   isPrimary?: boolean;
   isEmpty?: boolean;
-  isNew?: boolean; // Add this property to fix the TypeScript errors
+  isNew?: boolean;
   videoInfo?: VideoInfo;
 };
+
+// Add an alias for MediaItem to support the new naming convention
+export type MediaItemType = MediaItem;
 
 // Add the VideoInfo type
 export type VideoInfo = {

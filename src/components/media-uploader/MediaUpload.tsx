@@ -103,7 +103,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const videoInfo = existingVideoUrl ? extractVideoInfo(existingVideoUrl) : null;
   
   // Create video item with correct type handling
-  let videoItem: MediaItem | null = null;
+  let videoItem: MediaItemType | null = null;
   
   if (existingVideoUrl && videoInfo) {
     videoItem = {
@@ -300,7 +300,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   }, [newVideo, existingVideoUrl, onVideoUrlChange]);
   
   // Handle reordering with enhanced order persistence
-  const handleReorder = useCallback((updatedItems: MediaItem[]) => {
+  const handleReorder = useCallback((updatedItems: MediaItemType[]) => {
     // Split items into existing and new
     const updatedExistingImages: string[] = [];
     const updatedNewImages: MediaFile[] = [];

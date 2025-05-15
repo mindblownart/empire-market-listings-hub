@@ -7,8 +7,7 @@ export { default as EmptySlot } from './EmptySlot';
 export { default as DragContext } from './DragContext';
 export * from './gallery';
 // Explicitly re-export the types to avoid ambiguity
-export type { MediaFile, DragItem } from './types';
-// Rename MediaItem type to MediaItemType to avoid name collision
-export type { MediaItem as MediaItemType } from './types';
+export type { MediaFile, DragItem, MediaItemType } from './types';
+// Explicitly avoid re-exporting MediaItem to prevent name collision
 export * from './video-utils';
 export * from './media-processing';
