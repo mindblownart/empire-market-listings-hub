@@ -1,49 +1,39 @@
+import { FileWithPath } from 'react-dropzone';
 
-// Basic types for media handling
-export type MediaFile = File & {
+export type MediaItemType = {
+  id: string;
+  type: 'image' | 'video' | 'empty';
+  file?: MediaFile;
+  url?: string;
+  preview: string;
+  isPrimary: boolean;
+  isEmpty?: boolean;
+  videoInfo?: VideoInfo | null;
+  metadata?: MediaMetadata;
+  isNew?: boolean;
+};
+
+export interface MediaFile extends FileWithPath {
   id: string;
   preview?: string;
   metadata?: MediaMetadata;
-};
+  originalFile?: File;
+}
 
-export type MediaMetadata = {
-  size?: number;
-  format?: string;
+export interface MediaMetadata {
+  size: number;
+  format: string;
   duration?: number;
   width?: number;
   height?: number;
-};
+}
 
-export type DragItem = {
-  id: string;
-  index: number;
-  type: string;
-};
-
-export type MediaItem = {
-  id: string;
-  type: string;
-  preview: string;
-  url?: string;
-  file?: MediaFile | File;
-  isPrimary?: boolean;
-  isEmpty?: boolean;
-  isNew?: boolean;
-  videoInfo?: VideoInfo;
-  metadata?: MediaMetadata;
-};
-
-// Add an alias for MediaItem to support the new naming convention
-export type MediaItemType = MediaItem;
-
-// Add the VideoInfo type
-export type VideoInfo = {
-  platform: 'youtube' | 'vimeo' | 'file' | null;
+// Update the VideoInfo interface to make id optional to match with video-utils.ts
+export interface VideoInfo {
+  platform: string;
   id: string | null;
-  metadata?: MediaMetadata;
-};
+}
 
-// Add back the BusinessMediaUploaderProps interface that was removed
 export interface BusinessMediaUploaderProps {
   initialImages?: MediaFile[];
   initialVideo?: MediaFile | null;
