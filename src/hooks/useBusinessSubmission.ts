@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -141,15 +142,22 @@ export const useBusinessSubmission = () => {
             toast.error("Failed to upload images. Please try again.");
             return false;
           }
-          
-          businessData.video_url = formData.businessVideoUrl || null;
         } catch (uploadError) {
           console.error("Error uploading media:", uploadError);
           toast.error("Failed to upload media files. Please try again.");
           return false;
         }
+      }
+      
+      // Handle video URL or file
+      if (formData.businessVideo) {
+        // Wait until video is processed and uploaded
+        const videoUpload = await uploadBusinessMedia([formData.businessVideo], true);
+        if (videoUpload.videoUrl) {
+          businessData.video_url = videoUpload.videoUrl;
+        }
       } else if (formData.businessVideoUrl) {
-        // If there are no images but there's a video URL, set video_url
+        // Use the provided video URL directly
         businessData.video_url = formData.businessVideoUrl;
       }
       
@@ -158,6 +166,11 @@ export const useBusinessSubmission = () => {
         sessionStorage.setItem('previewImageUrls', JSON.stringify(orderedImages));
         sessionStorage.setItem('previewImageOrdering', JSON.stringify(orderedImages));
         sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(orderedImages));
+      }
+      
+      // Store video URL in session storage
+      if (businessData.video_url) {
+        sessionStorage.setItem('previewVideoUrl', businessData.video_url);
       }
       
       console.log("Submitting business data:", businessData);
@@ -183,8 +196,8 @@ export const useBusinessSubmission = () => {
           sessionStorage.setItem('previewImageUrls', JSON.stringify(orderedImages));
           sessionStorage.setItem('lastSavedImageOrdering', JSON.stringify(orderedImages));
         }
-        if (formData.businessVideoUrl) {
-          sessionStorage.setItem('previewVideoUrl', formData.businessVideoUrl);
+        if (businessData.video_url) {
+          sessionStorage.setItem('previewVideoUrl', businessData.video_url);
         }
         
         // Navigate to preview instead of the listing page

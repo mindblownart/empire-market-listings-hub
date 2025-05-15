@@ -1,27 +1,37 @@
 
-// Define accepted mime types and file extensions
+// Maximum allowed images
+export const MAX_IMAGES = 10;
+
+// Maximum total media files (images + video)
+export const MAX_TOTAL_MEDIA = 11;
+
+// Fixed position for video in the media grid
+export const VIDEO_SLOT_INDEX = 1;
+
+// Accepted image file types
 export const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
-  'image/jpg',
   'image/png',
-  'image/webp'
+  'image/webp',
+  'image/gif',
+  'image/avif',
+  'image/tiff',
+  'image/svg+xml'
 ];
 
+// Accepted video file types
 export const ACCEPTED_VIDEO_TYPES = [
-  'video/mp4'
+  'video/mp4',
+  'video/webm',
+  'video/ogg',
+  'video/quicktime'
 ];
 
-// Image processing configuration
-export const MAX_IMAGE_WIDTH = 1600;
-export const MAX_IMAGE_HEIGHT = 2000;
-export const TARGET_IMAGE_SIZE_MB = 5;  // Updated to 5MB per requirement
-export const IMAGE_QUALITY_START = 0.9;
-export const IMAGE_QUALITY_MIN = 0.7;
+// Maximum file size in bytes (20MB)
+export const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
-// Video processing configuration
-export const MAX_VIDEO_SIZE_MB = 20;
-export const TARGET_VIDEO_HEIGHT = 720;
+// Maximum video duration in seconds (5 minutes)
+export const MAX_VIDEO_DURATION = 300;
 
-// Gallery configuration
-export const MAX_IMAGES = 11;
-export const VIDEO_SLOT_INDEX = 1;  // Video is always in slot 2 (index 1)
+// Maximum video resolution (720p)
+export const MAX_VIDEO_HEIGHT = 720;

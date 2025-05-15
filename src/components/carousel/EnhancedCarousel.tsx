@@ -12,14 +12,16 @@ interface EnhancedCarouselProps {
   autoplayVideo?: boolean;
   skipPrimaryImage?: boolean;
   className?: string;
+  inPreview?: boolean;
 }
 
 export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
   images = [],
   videoURL,
-  autoplayVideo = true,
+  autoplayVideo = false,
   skipPrimaryImage = false,
-  className = ''
+  className = '',
+  inPreview = false
 }) => {
   // Media state management
   const [activeIndex, setActiveIndex] = useState(0);
@@ -31,7 +33,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
     const items: Array<{type: 'image' | 'video', url: string}> = [];
     
     // If we have a video, insert it at position 0 
-    if (videoURL) {
+    if (videoURL && videoURL.trim() !== '') {
       items.push({ type: 'video', url: videoURL });
     }
     
@@ -42,7 +44,8 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       : [...images];
     
     imagesToDisplay.forEach(url => {
-      items.push({ type: 'image', url });
+      if (url && url.trim() !== '')
+        items.push({ type: 'image', url });
     });
     
     console.log('EnhancedCarousel media items:', items);
@@ -132,8 +135,10 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
         {mediaItems[activeIndex]?.type === 'video' ? (
           <VideoPlayer 
             url={mediaItems[activeIndex].url} 
-            autoplay={autoplayVideo}
+            autoplay={autoplayVideo && inPreview}
             objectFit="cover"
+            showControls={true}
+            inCarouselPreview={!inPreview}
           />
         ) : (
           <AspectRatio ratio={16 / 9} className="bg-transparent">
@@ -189,7 +194,7 @@ export const EnhancedCarousel: React.FC<EnhancedCarouselProps> = ({
       {/* Pagination indicators - only shown if multiple items */}
       {mediaItems.length > 1 && (
         <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
-          {mediaItems.map((_, index) => (
+          {mediaItems.map((item, index) => (
             <button
               key={`indicator-${index}`}
               onClick={(e) => {

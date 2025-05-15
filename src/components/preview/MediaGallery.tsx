@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { EnhancedCarousel } from '@/components/carousel/EnhancedCarousel';
+import { EnhancedCarousel } from '@/components/carousel';
 
 interface MediaGalleryProps {
   galleryImages: string[];
@@ -13,7 +13,7 @@ interface MediaGalleryProps {
 export const MediaGallery: React.FC<MediaGalleryProps> = ({
   galleryImages = [],
   videoURL,
-  autoplayVideo = true,
+  autoplayVideo = false,
   skipPrimaryImage = true,
   className = '',
 }) => {
@@ -26,9 +26,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       ? galleryImages.slice(1)
       : [...galleryImages];
       
-    setDisplayImages(processedImages);
+    // Filter out any empty or invalid URLs
+    const validImages = processedImages.filter(img => img && img.trim() !== '');
+      
+    setDisplayImages(validImages);
     
     // Debug logging
+    console.log("MediaGallery received images:", validImages);
     if (videoURL) {
       console.log("MediaGallery received videoURL:", videoURL);
     }
@@ -37,10 +41,11 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   return (
     <EnhancedCarousel
       images={displayImages}
-      videoURL={videoURL}
+      videoURL={videoURL && videoURL.trim() !== '' ? videoURL : null}
       autoplayVideo={autoplayVideo}
       skipPrimaryImage={false} // We've already handled the skipping here
       className={className}
+      inPreview={true}
     />
   );
 };

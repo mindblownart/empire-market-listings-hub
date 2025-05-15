@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -15,6 +16,7 @@ import DragContext from '../../components/media-uploader/DragContext';
 import { MediaFile } from '../../components/media-uploader/types';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
+import { MAX_TOTAL_MEDIA } from '../../components/media-uploader/utils/constants';
 
 const Submit = () => {
   const { formData, updateFormData } = useFormData();
@@ -33,6 +35,35 @@ const Submit = () => {
     };
     
     checkAuth();
+  }, []);
+  
+  // Check for returning from preview
+  useEffect(() => {
+    // When returning from preview, retrieve stored form and media data
+    const previewFormData = sessionStorage.getItem('previewFormData');
+    const previewImageOrdering = sessionStorage.getItem('previewImageOrdering');
+    const previewVideoUrl = sessionStorage.getItem('previewVideoUrl');
+    
+    if (previewFormData) {
+      try {
+        const parsedData = JSON.parse(previewFormData);
+        console.log("Retrieved form data from preview:", parsedData);
+        // Only update non-file fields from storage
+        // Files are handled separately
+        updateFormData({
+          ...parsedData,
+          // Don't override these with null values
+          businessImages: formData.businessImages || [],
+          businessVideo: formData.businessVideo || null
+        });
+      } catch (error) {
+        console.error("Error parsing preview form data:", error);
+      }
+    }
+    
+    if (previewVideoUrl) {
+      updateFormData({ businessVideoUrl: previewVideoUrl });
+    }
   }, []);
   
   // Handler for reordering images
@@ -58,6 +89,19 @@ const Submit = () => {
       });
       return false;
     }
+    
+    // Validate total media count
+    const totalMediaCount = 
+      (formData.businessImages ? formData.businessImages.length : 0) + 
+      ((formData.businessVideo || (formData.businessVideoUrl && formData.businessVideoUrl.trim() !== '')) ? 1 : 0);
+      
+    if (totalMediaCount > MAX_TOTAL_MEDIA) {
+      toast.error(`Maximum of ${MAX_TOTAL_MEDIA} media items allowed`, {
+        description: `Please reduce the number of media items to ${MAX_TOTAL_MEDIA} or fewer`
+      });
+      return false;
+    }
+    
     return true;
   };
   
@@ -122,7 +166,9 @@ const Submit = () => {
                       onVideoChange={(video: MediaFile | null) => updateFormData({ businessVideo: video })}
                       onVideoUrlChange={(url: string | null) => updateFormData({ businessVideoUrl: url || '' })}
                       onImagesReorder={handleImagesReorder}
-                      maxImages={10}
+                      maxImages={MAX_TOTAL_MEDIA - 1} // Reserve 1 slot for video
+                      existingImages={[]} // This will be populated from sessionStorage if returning from preview
+                      existingVideoUrl={formData.businessVideoUrl} // This will be populated from sessionStorage if returning from preview
                     />
                   </DragContext>
                   {!formValid && (!formData.businessImages || formData.businessImages.length === 0) && !formData.businessVideoUrl && (
