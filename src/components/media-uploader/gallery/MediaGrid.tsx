@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { MediaItem } from '../types';
+import { MediaItemType } from '../types';
 import MediaSlot from './MediaSlot';
 
 interface MediaGridProps {
-  items: MediaItem[];
+  items: MediaItemType[];
   moveItem: (dragIndex: number, hoverIndex: number) => void;
   onDelete: (id: string) => void;
-  onPreview: (item: MediaItem) => void;
+  onPreview: (item: MediaItemType) => void;
   onVideoSlotClick?: () => void;
   isDragging: boolean;
   onDrop: (e: React.DragEvent) => void;

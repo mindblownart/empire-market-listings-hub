@@ -1,13 +1,13 @@
 
 import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { MediaItem, DragItem } from '../types';
+import { MediaItemType, DragItem } from '../types';
 import { cn } from '@/lib/utils';
 import { X, Move, Play, Star } from 'lucide-react';
 import { VIDEO_SLOT_INDEX } from '../utils/constants';
 
 interface DraggableMediaItemProps {
-  item: MediaItem;
+  item: MediaItemType;
   index: number;
   moveItem: (dragIndex: number, hoverIndex: number) => void;
   onDelete: () => void;

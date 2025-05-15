@@ -1,5 +1,5 @@
 
-import { MediaFile } from './types';
+import { MediaFile, MediaMetadata } from './types';
 import { 
   ACCEPTED_IMAGE_TYPES,
   ACCEPTED_VIDEO_TYPES,
@@ -46,7 +46,7 @@ export const processFiles = async (
 
   // Function to ensure file has an ID
   const ensureFileId = (file: File): MediaFile => {
-    const mediaFile = file as MediaFile;
+    const mediaFile = file as unknown as MediaFile;
     if (!mediaFile.id) {
       mediaFile.id = `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     }
@@ -111,9 +111,9 @@ export const processFiles = async (
 
   // Return the processed results
   return {
-    acceptedImages: acceptedImages.map(ensureFileId), // Ensure all files have IDs
+    acceptedImages,
     rejectedImages,
-    videoFile: videoFile ? ensureFileId(videoFile) : null,  // Ensure video file has ID
+    videoFile,
     videoThumbnail,
     videoRejected,
     videoError,
@@ -137,7 +137,7 @@ const simpleFileHash = async (file: File): Promise<string> => {
  */
 const processImageFile = async (file: File, hash?: string): Promise<MediaFile> => {
   // Add ID and preview to the file object
-  const mediaFile = file as MediaFile;
+  const mediaFile = file as unknown as MediaFile;
   mediaFile.id = `img-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   
   // Create preview URL
@@ -156,7 +156,7 @@ const processVideoFile = async (file: File): Promise<{
   return new Promise((resolve, reject) => {
     // Create video element for metadata validation
     const video = document.createElement('video');
-    const mediaFile = file as MediaFile;
+    const mediaFile = file as unknown as MediaFile;
     mediaFile.id = `video-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const url = URL.createObjectURL(file);
     

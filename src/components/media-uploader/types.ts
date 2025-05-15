@@ -1,5 +1,7 @@
+
 import { FileWithPath } from 'react-dropzone';
 
+// Primary media item type used throughout the application
 export type MediaItemType = {
   id: string;
   type: 'image' | 'video' | 'empty';
@@ -13,7 +15,18 @@ export type MediaItemType = {
   isNew?: boolean;
 };
 
-export interface MediaFile extends FileWithPath {
+// For backwards compatibility
+export type MediaItem = MediaItemType;
+
+// For drag and drop functionality
+export type DragItem = {
+  id: string;
+  index: number;
+  type: string;
+};
+
+// File with additional metadata
+export interface MediaFile extends File {
   id: string;
   preview?: string;
   metadata?: MediaMetadata;
@@ -28,7 +41,7 @@ export interface MediaMetadata {
   height?: number;
 }
 
-// Update the VideoInfo interface to make id optional to match with video-utils.ts
+// VideoInfo interface aligned across all imports
 export interface VideoInfo {
   platform: string;
   id: string | null;

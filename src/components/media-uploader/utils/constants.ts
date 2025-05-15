@@ -1,23 +1,23 @@
 
-// File upload constants
+// Accepted media types
 export const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg', 
-  'image/jpg', 
   'image/png', 
+  'image/gif', 
   'image/webp', 
-  'image/gif'
+  'image/svg+xml'
 ];
 
 export const ACCEPTED_VIDEO_TYPES = [
-  'video/mp4', 
-  'video/webm', 
-  'video/ogg', 
-  'video/quicktime'
+  'video/mp4',
+  'video/webm',
+  'video/ogg'
 ];
 
+// Grid configuration
 export const MAX_IMAGES = 10;
-export const MAX_TOTAL_MEDIA = 10;
 export const VIDEO_SLOT_INDEX = 1;
+export const MAX_TOTAL_MEDIA = 11; // 1 video + 10 images
 
 // Display constants
 export const MAX_VIDEO_HEIGHT = 600; // pixels

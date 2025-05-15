@@ -6,8 +6,17 @@ export { default as VideoPreviewModal } from './VideoPreviewModal';
 export { default as EmptySlot } from './EmptySlot';
 export { default as DragContext } from './DragContext';
 export * from './gallery';
-// Explicitly re-export the types to avoid ambiguity
-export type { MediaFile, DragItem, MediaItemType, BusinessMediaUploaderProps } from './types';
-// Explicitly avoid re-exporting MediaItem to prevent name collision
+
+// Export types properly
+export type { 
+  MediaFile, 
+  MediaItemType, 
+  MediaItem,
+  DragItem, 
+  VideoInfo,
+  BusinessMediaUploaderProps,
+  MediaMetadata
+} from './types';
+
 export * from './video-utils';
 export * from './media-processing';

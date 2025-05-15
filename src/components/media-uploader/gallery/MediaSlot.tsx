@@ -1,13 +1,13 @@
 
 import React from 'react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { MediaItem } from '../types';
+import { MediaItemType } from '../types';
 import DraggableMediaItem from './DraggableMediaItem';
 import EmptySlotContent from './EmptySlotContent';
 import { VIDEO_SLOT_INDEX } from '../utils/constants';
 
 interface MediaSlotProps {
-  item: MediaItem;
+  item: MediaItemType;
   index: number;
   moveItem: (dragIndex: number, hoverIndex: number) => void;
   onDelete: () => void;
